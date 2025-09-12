@@ -56,6 +56,17 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
+  // Initialize demo data before starting the server
+  try {
+    // Import storage here to avoid circular dependencies
+    const { storage } = await import("./storage");
+    await storage.seedDemoData();
+    log('Demo data initialized successfully');
+  } catch (error) {
+    log(`Error initializing demo data: ${error}`);
+    // Continue server startup even if seeding fails
+  }
+
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
