@@ -1,62 +1,100 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { User, Clock, CheckCircle, XCircle, Bot, Zap } from 'lucide-react'
+import type { Appointment, Service, Staff, Customer } from '@shared/schema'
 
-interface Appointment {
-  id: string
-  customerName: string
-  service: string
-  duration: number
-  time: string
-  status: 'confirmed' | 'in-progress' | 'completed' | 'cancelled'
-  staffId: string
+// Extended appointment interface with joined data for display
+interface AppointmentWithDetails extends Appointment {
+  customer?: Pick<Customer, 'name' | 'phone'>
+  service?: Pick<Service, 'name' | 'duration' | 'price' | 'category'>
+  staff?: Pick<Staff, 'name' | 'role'>
 }
 
 export default function SchedulingPage() {
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [loading, setLoading] = useState(true)
+  // Fetch today's appointments
+  const { data: appointments = [], isLoading: appointmentsLoading } = useQuery<Appointment[]>({
+    queryKey: ['/api/appointments', 'today'],
+    queryFn: async () => {
+      const response = await fetch('/api/appointments?day=today')
+      if (!response.ok) throw new Error('Failed to fetch appointments')
+      return response.json()
+    }
+  })
 
-  useEffect(() => {
-    // In a real implementation, this would fetch from the API
-    const mockAppointments: Appointment[] = [
-      {
-        id: '1',
-        customerName: 'Sarah Johnson',
-        service: 'Hair Color & Cut',
-        duration: 120,
-        time: '2:00 PM',
-        status: 'confirmed',
-        staffId: 'staff1'
-      },
-      {
-        id: '2',
-        customerName: 'Mike Chen',
-        service: 'Beard Trim',
-        duration: 30,
-        time: '4:30 PM',
-        status: 'in-progress',
-        staffId: 'staff2'
-      },
-      {
-        id: '3',
-        customerName: 'Lisa Thompson',
-        service: 'Full Color Treatment',
-        duration: 180,
-        time: '6:00 PM',
-        status: 'confirmed',
-        staffId: 'staff1'
-      }
-    ]
+  // Fetch all services for joining
+  const { data: services = [] } = useQuery<Service[]>({
+    queryKey: ['/api/services'],
+    queryFn: async () => {
+      const response = await fetch('/api/services')
+      if (!response.ok) throw new Error('Failed to fetch services')
+      return response.json()
+    }
+  })
+
+  // Fetch all staff for joining
+  const { data: staff = [] } = useQuery<Staff[]>({
+    queryKey: ['/api/staff'],
+    queryFn: async () => {
+      const response = await fetch('/api/staff')
+      if (!response.ok) throw new Error('Failed to fetch staff')
+      return response.json()
+    }
+  })
+
+  // Fetch customers for joining (limited data for privacy)
+  const { data: customers = [] } = useQuery<Pick<Customer, 'id' | 'name' | 'phone'>[]>({
+    queryKey: ['/api/customers'],
+    queryFn: async () => {
+      const response = await fetch('/api/customers')
+      if (!response.ok) throw new Error('Failed to fetch customers')
+      return response.json()
+    }
+  })
+
+  // Join appointment data with related entities
+  const appointmentsWithDetails: AppointmentWithDetails[] = appointments.map(appointment => {
+    const customer = customers.find(c => c.id === appointment.customerId)
+    const service = services.find(s => s.id === appointment.serviceId)
+    const staffMember = staff.find(s => s.id === appointment.staffId)
     
-    setTimeout(() => {
-      setAppointments(mockAppointments)
-      setLoading(false)
-    }, 1000)
-  }, [])
+    return {
+      ...appointment,
+      customer: customer ? { name: customer.name, phone: customer.phone } : undefined,
+      service: service ? { 
+        name: service.name, 
+        duration: service.duration, 
+        price: service.price,
+        category: service.category 
+      } : undefined,
+      staff: staffMember ? { name: staffMember.name, role: staffMember.role } : undefined
+    }
+  })
 
-  const getStatusColor = (status: Appointment['status']) => {
+  const loading = appointmentsLoading
+
+  // Format price in CAD currency
+  const formatPrice = (price: string | undefined) => {
+    if (!price) return ''
+    return new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency: 'CAD'
+    }).format(parseFloat(price))
+  }
+
+  // Format appointment time
+  const formatTime = (dateTime: Date | string) => {
+    const date = new Date(dateTime)
+    return date.toLocaleTimeString('en-CA', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    })
+  }
+
+  const getStatusColor = (status: string) => {
     switch (status) {
+      case 'scheduled': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       case 'confirmed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       case 'in-progress': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
       case 'completed': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
@@ -65,8 +103,9 @@ export default function SchedulingPage() {
     }
   }
 
-  const getStatusIcon = (status: Appointment['status']) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
+      case 'scheduled': return <Clock className="h-4 w-4" />
       case 'confirmed': return <Clock className="h-4 w-4" />
       case 'in-progress': return <Zap className="h-4 w-4" />
       case 'completed': return <CheckCircle className="h-4 w-4" />
@@ -122,39 +161,61 @@ export default function SchedulingPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {appointments.map((appointment) => (
-              <div 
-                key={appointment.id} 
-                className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
-                data-testid={`appointment-${appointment.id}`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                    <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white" data-testid={`customer-name-${appointment.id}`}>
-                      {appointment.customerName}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`service-${appointment.id}`}>
-                      {appointment.service} - {appointment.duration}min
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white" data-testid={`appointment-time-${appointment.id}`}>
-                    {appointment.time}
-                  </p>
-                  <span 
-                    className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${getStatusColor(appointment.status)}`}
-                    data-testid={`status-${appointment.id}`}
-                  >
-                    {getStatusIcon(appointment.status)}
-                    {appointment.status.replace('-', ' ')}
-                  </span>
-                </div>
+            {appointmentsWithDetails.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No appointments scheduled for today</p>
               </div>
-            ))}
+            ) : (
+              appointmentsWithDetails
+                .sort((a, b) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime())
+                .map((appointment) => (
+                <div 
+                  key={appointment.id} 
+                  className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+                  data-testid={`appointment-${appointment.id}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                      <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white" data-testid={`customer-name-${appointment.id}`}>
+                        {appointment.customer?.name || 'Unknown Customer'}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`service-${appointment.id}`}>
+                        {appointment.service?.name || 'Unknown Service'} - {appointment.service?.duration || 0}min
+                        {appointment.service?.price && (
+                          <span className="ml-2 font-medium text-green-600 dark:text-green-400">
+                            {formatPrice(appointment.service.price)}
+                          </span>
+                        )}
+                      </p>
+                      {appointment.staff && (
+                        <p className="text-xs text-gray-500 dark:text-gray-500">
+                          with {appointment.staff.name} ({appointment.staff.role})
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white" data-testid={`appointment-time-${appointment.id}`}>
+                      {formatTime(appointment.scheduledStart)}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {formatTime(appointment.scheduledStart)} - {formatTime(appointment.scheduledEnd)}
+                    </p>
+                    <span 
+                      className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full mt-1 ${getStatusColor(appointment.status)}`}
+                      data-testid={`status-${appointment.id}`}
+                    >
+                      {getStatusIcon(appointment.status)}
+                      {appointment.status.replace('-', ' ')}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
 
             {/* AI Conflict Detection */}
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 rounded-r-lg" data-testid="ai-optimization-panel">
@@ -165,7 +226,11 @@ export default function SchedulingPage() {
                 </span>
               </div>
               <p className="text-sm text-gray-700 dark:text-gray-300" data-testid="ai-suggestion">
-                Suggested optimization: Move 5:00 PM appointment to 5:15 PM to reduce staff overlap by 15 minutes.
+                {appointmentsWithDetails.length > 0 ? (
+                  `Analyzing ${appointmentsWithDetails.length} appointments for optimization opportunities...`
+                ) : (
+                  'No appointments to optimize today. Schedule looks clear!'
+                )}
               </p>
               <div className="flex gap-2 mt-3">
                 <Button 
