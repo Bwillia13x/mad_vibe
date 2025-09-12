@@ -30,7 +30,7 @@ If asked about technical features, explain them in business terms. Always be sup
     const response = await openai.chat.completions.create({
       model: "gpt-5",
       messages: allMessages,
-      max_tokens: 500,
+      max_completion_tokens: 500,
       temperature: 0.7,
     });
 
@@ -55,7 +55,7 @@ export async function analyzeBusinessData(data: string, analysisType: string): P
           content: `Please analyze this business data for ${analysisType}:\n\n${data}`
         }
       ],
-      max_tokens: 400,
+      max_completion_tokens: 400,
       temperature: 0.3,
     });
 
