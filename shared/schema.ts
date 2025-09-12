@@ -4,6 +4,21 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+// Business Profile table
+export const businessProfile = pgTable("business_profile", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  address: text("address").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email").notNull(),
+  website: text("website"),
+  hours: jsonb("hours").notNull(),
+  socialLinks: jsonb("social_links"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Users table for admin authentication
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -32,7 +47,11 @@ export const staff = pgTable("staff", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   role: text("role").notNull(),
-  skills: text("skills").array().notNull().default(sql`ARRAY[]::text[]`),
+  specialties: text("specialties").array().notNull().default(sql`ARRAY[]::text[]`),
+  experience: integer("experience").notNull(), // years of experience
+  rating: decimal("rating", { precision: 2, scale: 1 }).notNull().default('4.5'),
+  bio: text("bio"),
+  avatar: text("avatar"),
   availability: jsonb("availability").notNull(),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -66,18 +85,21 @@ export const appointments = pgTable("appointments", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Inventory table
-export const inventory = pgTable("inventory", {
+// Inventory Items table
+export const inventoryItem = pgTable("inventory_item", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   sku: text("sku").notNull().unique(),
   category: text("category").notNull(),
+  brand: text("brand").notNull(),
   supplier: text("supplier").notNull(),
   currentStock: integer("current_stock").notNull().default(0),
   minStock: integer("min_stock").notNull().default(0),
   maxStock: integer("max_stock").notNull().default(100),
   unitCost: decimal("unit_cost", { precision: 10, scale: 2 }).notNull(),
+  retailPrice: decimal("retail_price", { precision: 10, scale: 2 }),
   status: text("status").notNull().default("in-stock"),
+  description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -105,6 +127,24 @@ export const purchaseOrders = pgTable("purchase_orders", {
   status: text("status").notNull().default("draft"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   sentAt: timestamp("sent_at"),
+});
+
+// Analytics Snapshot table
+export const analyticsSnapshot = pgTable("analytics_snapshot", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  date: timestamp("date").notNull(),
+  totalRevenue: decimal("total_revenue", { precision: 10, scale: 2 }).notNull(),
+  totalAppointments: integer("total_appointments").notNull(),
+  totalCustomers: integer("total_customers").notNull(),
+  averageRating: decimal("average_rating", { precision: 2, scale: 1 }).notNull(),
+  utilizationRate: decimal("utilization_rate", { precision: 3, scale: 2 }).notNull(),
+  customerSatisfaction: decimal("customer_satisfaction", { precision: 3, scale: 2 }).notNull(),
+  noShowRate: decimal("no_show_rate", { precision: 3, scale: 2 }).notNull(),
+  repeatCustomerRate: decimal("repeat_customer_rate", { precision: 3, scale: 2 }).notNull(),
+  averageServiceDuration: integer("average_service_duration").notNull(), // minutes
+  topServices: jsonb("top_services"),
+  staffPerformance: jsonb("staff_performance"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // System logs table
@@ -176,10 +216,21 @@ export const insertAppointmentSchema = createInsertSchema(appointments).omit({
   updatedAt: true,
 });
 
-export const insertInventorySchema = createInsertSchema(inventory).omit({
+export const insertBusinessProfileSchema = createInsertSchema(businessProfile).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertInventoryItemSchema = createInsertSchema(inventoryItem).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAnalyticsSnapshotSchema = createInsertSchema(analyticsSnapshot).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertAiInsightSchema = createInsertSchema(aiInsights).omit({
@@ -210,8 +261,14 @@ export type Service = typeof services.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
 export type Appointment = typeof appointments.$inferSelect;
 
-export type InsertInventory = z.infer<typeof insertInventorySchema>;
-export type Inventory = typeof inventory.$inferSelect;
+export type InsertBusinessProfile = z.infer<typeof insertBusinessProfileSchema>;
+export type BusinessProfile = typeof businessProfile.$inferSelect;
+
+export type InsertInventoryItem = z.infer<typeof insertInventoryItemSchema>;
+export type InventoryItem = typeof inventoryItem.$inferSelect;
+
+export type InsertAnalyticsSnapshot = z.infer<typeof insertAnalyticsSnapshotSchema>;
+export type AnalyticsSnapshot = typeof analyticsSnapshot.$inferSelect;
 
 export type InsertAiInsight = z.infer<typeof insertAiInsightSchema>;
 export type AiInsight = typeof aiInsights.$inferSelect;
