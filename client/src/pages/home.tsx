@@ -10,7 +10,8 @@ export default function Home() {
     {
       role: "assistant",
       content: "Welcome to Andreas Vibe Business Management! I'm your AI business assistant. I can help you with scheduling, inventory management, staff coordination, analytics, and more. What would you like to work on today?",
-      timestamp: new Date()
+      timestamp: new Date(),
+      id: 0
     }
   ]);
   const [isBusinessPanelOpen, setIsBusinessPanelOpen] = useState(false);
@@ -22,21 +23,34 @@ export default function Home() {
     const userMessage = {
       role: "user" as const,
       content: message,
-      timestamp: new Date()
+      timestamp: new Date(),
+      id: Date.now() - 1
     };
 
     setMessages(prev => [...prev, userMessage]);
     setMessage("");
 
+    // Add a placeholder for the streaming AI response
+    const aiMessageId = Date.now();
+    const placeholderAiMessage = {
+      role: "assistant" as const,
+      content: "",
+      timestamp: new Date(),
+      id: aiMessageId
+    };
+    
+    setMessages(prev => [...prev, placeholderAiMessage]);
+
     try {
-      // Send message to OpenAI via our backend
+      // Send message to OpenAI via our backend with streaming
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [...messages.filter(m => m.role !== 'assistant' || m.content !== "Welcome to Andreas Vibe Business Management! I'm your AI business assistant. I can help you with scheduling, inventory management, staff coordination, analytics, and more. What would you like to work on today?"), userMessage].map(({ role, content }) => ({ role, content }))
+          messages: [...messages.filter(m => m.role !== 'assistant' || m.content !== "Welcome to Andreas Vibe Business Management! I'm your AI business assistant. I can help you with scheduling, inventory management, staff coordination, analytics, and more. What would you like to work on today?"), userMessage].map(({ role, content }) => ({ role, content })),
+          stream: true
         }),
       });
 
@@ -44,23 +58,49 @@ export default function Home() {
         throw new Error('Failed to get AI response');
       }
 
-      const data = await response.json();
-      
-      const aiResponse = {
-        role: "assistant" as const,
-        content: data.message,
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, aiResponse]);
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') {
+                return;
+              }
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.content) {
+                  accumulatedContent += parsed.content;
+                  // Update the AI message in real-time
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === aiMessageId 
+                      ? { ...msg, content: accumulatedContent }
+                      : msg
+                  ));
+                }
+              } catch (e) {
+                // Ignore JSON parse errors for partial chunks
+              }
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error('Error getting AI response:', error);
-      const errorResponse = {
-        role: "assistant" as const,
-        content: "I'm having trouble connecting right now. Please try again in a moment.",
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorResponse]);
+      setMessages(prev => prev.map(msg => 
+        msg.id === aiMessageId 
+          ? { ...msg, content: "I'm having trouble connecting right now. Please try again in a moment." }
+          : msg
+      ));
     }
   };
 
