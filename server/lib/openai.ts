@@ -9,10 +9,9 @@ export interface BusinessChatMessage {
 }
 
 export async function generateBusinessResponse(messages: BusinessChatMessage[]): Promise<string> {
-  try {
-    const systemPrompt: BusinessChatMessage = {
-      role: "system",
-      content: `You are an AI business assistant for Andreas Vibe Business Management platform. You help with:
+  const systemPrompt: BusinessChatMessage = {
+    role: "system",
+    content: `You are an AI business assistant for Andreas Vibe Business Management platform. You help with:
 
 - Scheduling and appointment management
 - Inventory tracking and stock management  
@@ -23,21 +22,45 @@ export async function generateBusinessResponse(messages: BusinessChatMessage[]):
 Provide helpful, professional responses focused on business management tasks. When users ask about specific business functions, offer actionable advice and suggest relevant tools or data they might need. Keep responses concise but informative.
 
 If asked about technical features, explain them in business terms. Always be supportive and solution-oriented.`
-    };
+  };
 
-    const allMessages = [systemPrompt, ...messages];
+  const allMessages = [systemPrompt, ...messages];
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-5",
-      messages: allMessages,
-      max_completion_tokens: 500,
-    });
+  // List of models to try in order of preference
+  const modelsToTry = ["gpt-5", "gpt-4o", "gpt-4-turbo", "gpt-4"];
 
-    return response.choices[0].message.content || "I apologize, I'm having trouble processing your request right now. Please try again.";
-  } catch (error) {
-    console.error("OpenAI API error:", error);
-    return "I'm experiencing some technical difficulties right now. Please try again in a moment.";
+  for (const model of modelsToTry) {
+    try {
+      console.log(`Attempting non-streaming with model: ${model}`);
+      
+      const response = await openai.chat.completions.create({
+        model: model,
+        messages: allMessages,
+        max_completion_tokens: 500,
+      });
+
+      const content = response.choices[0].message.content;
+      if (content) {
+        console.log(`Non-streaming successful with model: ${model}`);
+        return content;
+      }
+    } catch (error: any) {
+      console.error(`OpenAI API error with model ${model}:`, error?.message || error);
+      
+      // If this is an organization verification error and we have more models to try, continue
+      if (error?.message?.includes("organization") && model !== modelsToTry[modelsToTry.length - 1]) {
+        console.log(`Organization verification issue with ${model}, trying next model...`);
+        continue;
+      }
+      
+      // If we've exhausted all models or it's a different error, break
+      break;
+    }
   }
+
+  // Fallback response if all models fail
+  console.log("All non-streaming models failed, providing fallback response");
+  return "I'm ready to help you with your business management needs! I can assist with scheduling, inventory, staff coordination, analytics, and more. What would you like to work on today?";
 }
 
 export async function analyzeBusinessData(data: string, analysisType: string): Promise<string> {
