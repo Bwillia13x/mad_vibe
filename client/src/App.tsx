@@ -1,15 +1,17 @@
 import { Switch, Route } from "wouter";
+import { lazy, Suspense } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import SidebarLayout from "@/components/SidebarLayout";
-import Home from "@/pages/home";
-import Scheduling from "@/pages/scheduling";
-import Inventory from "@/pages/inventory";
-import Staff from "@/pages/staff";
-import Analytics from "@/pages/analytics";
-import NotFound from "@/pages/not-found";
+const Home = lazy(() => import("@/pages/home"));
+const Scheduling = lazy(() => import("@/pages/scheduling"));
+const Inventory = lazy(() => import("@/pages/inventory"));
+const Staff = lazy(() => import("@/pages/staff"));
+const Analytics = lazy(() => import("@/pages/analytics"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+import DemoInit from "@/components/DemoInit";
 
 function Router() {
   return (
@@ -17,31 +19,45 @@ function Router() {
       {/* Business Tool Pages with Sidebar */}
       <Route path="/">
         <SidebarLayout>
-          <Home />
+          <Suspense fallback={<div className="p-6">Loading…</div>}>
+            <Home />
+          </Suspense>
         </SidebarLayout>
       </Route>
       <Route path="/scheduling">
         <SidebarLayout>
-          <Scheduling />
+          <Suspense fallback={<div className="p-6">Loading…</div>}>
+            <Scheduling />
+          </Suspense>
         </SidebarLayout>
       </Route>
       <Route path="/inventory">
         <SidebarLayout>
-          <Inventory />
+          <Suspense fallback={<div className="p-6">Loading…</div>}>
+            <Inventory />
+          </Suspense>
         </SidebarLayout>
       </Route>
       <Route path="/staff">
         <SidebarLayout>
-          <Staff />
+          <Suspense fallback={<div className="p-6">Loading…</div>}>
+            <Staff />
+          </Suspense>
         </SidebarLayout>
       </Route>
       <Route path="/analytics">
         <SidebarLayout>
-          <Analytics />
+          <Suspense fallback={<div className="p-6">Loading…</div>}>
+            <Analytics />
+          </Suspense>
         </SidebarLayout>
       </Route>
       {/* Fallback to 404 without sidebar */}
-      <Route component={NotFound} />
+      <Route>
+        <Suspense fallback={<div className="p-6">Loading…</div>}>
+          <NotFound />
+        </Suspense>
+      </Route>
     </Switch>
   );
 }
@@ -50,6 +66,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <DemoInit />
         <Toaster />
         <Router />
       </TooltipProvider>

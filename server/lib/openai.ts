@@ -1,7 +1,20 @@
 import OpenAI from "openai";
 
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Gracefully handle missing API key in demo environments
+let openai: OpenAI | null = null;
+const apiKey = process.env.OPENAI_API_KEY;
+if (apiKey && apiKey.trim().length > 0) {
+  try {
+    // the newest OpenAI model is "gpt-5" which was released August 7, 2025.
+    // do not change this unless explicitly requested by the user
+    openai = new OpenAI({ apiKey });
+  } catch (err) {
+    console.error("Failed to initialize OpenAI client, falling back to demo mode:", err);
+    openai = null;
+  }
+} else {
+  console.warn("OPENAI_API_KEY not set. AI features will run in demo mode with fallback responses.");
+}
 
 export interface BusinessChatMessage {
   role: "system" | "user" | "assistant";
@@ -47,6 +60,19 @@ ${businessContext || 'No current business data available.'}
   // List of models to try in order of preference
   const modelsToTry = ["gpt-5", "gpt-4o", "gpt-4-turbo", "gpt-4"];
 
+  // Fallback early if OpenAI isn't configured
+  if (!openai) {
+    console.log("OpenAI not configured. Returning non-AI demo response.");
+    const hint = businessContext
+      ? " Here’s current business context I can use: " + businessContext.slice(0, 300)
+      : "";
+    return (
+      "I'm ready to help you with your business management needs! " +
+      "I can assist with scheduling, inventory, staff coordination, analytics, and more." +
+      hint
+    );
+  }
+
   for (const model of modelsToTry) {
     try {
       console.log(`Attempting non-streaming with model: ${model}`);
@@ -82,6 +108,9 @@ ${businessContext || 'No current business data available.'}
 }
 
 export async function analyzeBusinessData(data: string, analysisType: string): Promise<string> {
+  if (!openai) {
+    return "Demo mode: AI analysis is unavailable without an API key. Based on the data provided, consider monitoring appointment utilization, staff performance, inventory turnover, and customer satisfaction to identify quick wins.";
+  }
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-5",

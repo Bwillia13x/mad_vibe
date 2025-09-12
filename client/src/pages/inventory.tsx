@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Package, AlertTriangle, CheckCircle, Mail, Send, ArrowRight } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useQuery } from '@tanstack/react-query'
@@ -15,6 +16,7 @@ export default function InventoryPage() {
     queryKey: ['/api', 'inventory'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
+  const { data: health } = useQuery<any>({ queryKey: ['/api/health'] })
 
   // Helper function to calculate status based on current vs min stock
   const getCalculatedStatus = (item: InventoryItem): 'in-stock' | 'low-stock' | 'out-of-stock' => {
@@ -115,10 +117,19 @@ export default function InventoryPage() {
   return (
     <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white" data-testid="heading-inventory">
-          Inventory Management
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">Monitor stock levels and automate purchase orders</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white" data-testid="heading-inventory">
+              Inventory Management
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">Monitor stock levels and automate purchase orders</p>
+          </div>
+          {health?.scenario && (
+            <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              Scenario: {health.scenario}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -271,24 +282,39 @@ export default function InventoryPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button variant="outline" className="h-16" data-testid="button-add-item">
-                <div className="text-center">
-                  <Package className="h-5 w-5 mx-auto mb-1" />
-                  <div className="text-sm">Add Item</div>
-                </div>
-              </Button>
-              <Button variant="outline" className="h-16" data-testid="button-scan-barcode">
-                <div className="text-center">
-                  <CheckCircle className="h-5 w-5 mx-auto mb-1" />
-                  <div className="text-sm">Scan Barcode</div>
-                </div>
-              </Button>
-              <Button variant="outline" className="h-16" data-testid="button-generate-report">
-                <div className="text-center">
-                  <Mail className="h-5 w-5 mx-auto mb-1" />
-                  <div className="text-sm">Generate Report</div>
-                </div>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" className="h-16" data-testid="button-add-item" aria-label="Add inventory item">
+                    <div className="text-center">
+                      <Package className="h-5 w-5 mx-auto mb-1" />
+                      <div className="text-sm">Add Item</div>
+                    </div>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Create a new inventory item</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" className="h-16" data-testid="button-scan-barcode" aria-label="Scan item barcode">
+                    <div className="text-center">
+                      <CheckCircle className="h-5 w-5 mx-auto mb-1" />
+                      <div className="text-sm">Scan Barcode</div>
+                    </div>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Scan to update stock</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" className="h-16" data-testid="button-generate-report" aria-label="Generate inventory report">
+                    <div className="text-center">
+                      <Mail className="h-5 w-5 mx-auto mb-1" />
+                      <div className="text-sm">Generate Report</div>
+                    </div>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Generate CSV/PDF report</TooltipContent>
+              </Tooltip>
             </div>
           </CardContent>
         </Card>

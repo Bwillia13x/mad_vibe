@@ -1,8 +1,21 @@
 import OpenAI from "openai";
 import { Readable } from "stream";
 
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Gracefully handle missing API key in demo environments
+let openai: OpenAI | null = null;
+const apiKey = process.env.OPENAI_API_KEY;
+if (apiKey && apiKey.trim().length > 0) {
+  try {
+    // the newest OpenAI model is "gpt-5" which was released August 7, 2025.
+    // do not change this unless explicitly requested by the user
+    openai = new OpenAI({ apiKey });
+  } catch (err) {
+    console.error("Failed to initialize OpenAI client, falling back to demo mode:", err);
+    openai = null;
+  }
+} else {
+  console.warn("OPENAI_API_KEY not set. AI features will run in demo mode with fallback responses.");
+}
 
 export interface BusinessChatMessage {
   role: "system" | "user" | "assistant";
@@ -47,6 +60,15 @@ ${businessContext || 'No current business data available.'}
 
   // List of models to try in order of preference
   const modelsToTry = ["gpt-5", "gpt-4o", "gpt-4-turbo", "gpt-4"];
+
+  // Fallback early if OpenAI isn't configured
+  if (!openai) {
+    console.log("OpenAI not configured. Streaming demo response.");
+    const intro = "Demo mode: AI assistant is running without an API key. ";
+    const ctx = businessContext ? `\n\nBusiness context: ${businessContext.slice(0, 300)}` : "";
+    yield intro + "I can still walk you through the app and reference mock data." + ctx;
+    return;
+  }
 
   for (const model of modelsToTry) {
     try {

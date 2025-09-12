@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import chatRouter from "./routes/chat";
+import { getNow, setFreeze, getFreeze } from "./lib/clock";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // put application routes here
@@ -9,6 +10,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Add chat route for AI business assistant
   app.use("/api", chatRouter);
+
+  // Basic health endpoint for operational checks
+  app.get("/api/health", async (_req, res) => {
+    const aiDemoMode = !process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.trim() === '';
+    res.json({
+      status: "ok",
+      env: app.get("env"),
+      timestamp: getNow().toISOString(),
+      aiDemoMode,
+      scenario: storage.getCurrentScenario?.() ?? 'default',
+      seed: storage.getCurrentSeed?.() ?? null,
+      freeze: getFreeze()
+    });
+  });
+
+  // Demo scenario reseed endpoint (for demos only)
+  app.post("/api/demo/seed", async (req, res) => {
+    try {
+      const scenario = String((req.query.scenario as string) || req.body?.scenario || 'default');
+      const seed = req.query.seed ? parseInt(req.query.seed as string, 10) : (req.body?.seed as number | undefined);
+      await storage.seedDemoData(scenario, seed);
+      res.json({ ok: true, scenario, seed: storage.getCurrentSeed?.() });
+    } catch (error) {
+      console.error('Error reseeding demo data:', error);
+      res.status(500).json({ message: 'Failed to reseed demo data' });
+    }
+  });
 
   // Business Profile endpoints
   app.get("/api/profile", async (req, res) => {
@@ -99,7 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check for day filter
       if (req.query.day === 'today') {
-        appointments = await storage.getAppointmentsByDay(new Date());
+        appointments = await storage.getAppointmentsByDay(getNow());
       } else if (req.query.date) {
         const filterDate = new Date(req.query.date as string);
         if (isNaN(filterDate.getTime())) {
@@ -114,6 +142,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting appointments:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Analytics export (CSV)
+  app.get("/api/analytics/export", async (_req, res) => {
+    try {
+      const analytics = await storage.getAllAnalytics();
+      const header = [
+        'date','totalRevenue','totalAppointments','totalCustomers','averageRating','utilizationRate','customerSatisfaction','noShowRate','repeatCustomerRate','averageServiceDuration'
+      ];
+      const rows = analytics.map(a => [
+        new Date(a.date).toISOString(),
+        a.totalRevenue,
+        a.totalAppointments,
+        a.totalCustomers,
+        a.averageRating,
+        a.utilizationRate,
+        a.customerSatisfaction,
+        a.noShowRate,
+        a.repeatCustomerRate,
+        a.averageServiceDuration
+      ]);
+      const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="analytics.csv"');
+      res.send(csv);
+    } catch (error) {
+      console.error("Error exporting analytics:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Demo time controls
+  app.post("/api/demo/time", async (req, res) => {
+    try {
+      const clear = req.query.clear === '1' || (req.body && req.body.clear === true);
+      if (clear) {
+        setFreeze(null);
+      } else {
+        const date = String((req.query.date as string) || (req.body && req.body.date) || getNow().toISOString());
+        setFreeze(date);
+      }
+      await storage.seedDemoData(storage.getCurrentScenario?.(), storage.getCurrentSeed?.());
+      res.json({ ok: true, freeze: getFreeze() });
+    } catch (error) {
+      console.error('Error setting demo time:', error);
+      res.status(400).json({ message: 'Invalid date' });
+    }
+  });
+
+  // Reset demo to defaults (clear freeze, default scenario/seed)
+  app.post("/api/demo/reset", async (_req, res) => {
+    try {
+      setFreeze(null);
+      await storage.seedDemoData('default', undefined);
+      res.json({ ok: true, scenario: storage.getCurrentScenario?.(), seed: storage.getCurrentSeed?.(), freeze: getFreeze() });
+    } catch (error) {
+      console.error('Error resetting demo:', error);
+      res.status(500).json({ message: 'Failed to reset demo' });
     }
   });
 

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { User, Clock, CheckCircle, XCircle, Bot, Zap } from 'lucide-react'
 import type { Appointment, Service, Staff, Customer } from '@shared/schema'
 
@@ -12,6 +13,7 @@ interface AppointmentWithDetails extends Appointment {
 }
 
 export default function SchedulingPage() {
+  const { data: health } = useQuery<any>({ queryKey: ['/api/health'] })
   // Fetch today's appointments
   const { data: appointments = [], isLoading: appointmentsLoading } = useQuery<Appointment[]>({
     queryKey: ['/api/appointments', 'today'],
@@ -143,10 +145,19 @@ export default function SchedulingPage() {
   return (
     <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white" data-testid="heading-scheduling">
-          AI-Powered Scheduling
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">Manage appointments with intelligent conflict detection</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white" data-testid="heading-scheduling">
+              AI-Powered Scheduling
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage appointments with intelligent conflict detection</p>
+          </div>
+          {health?.scenario && (
+            <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              Scenario: {health.scenario}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6">
@@ -233,22 +244,34 @@ export default function SchedulingPage() {
                 )}
               </p>
               <div className="flex gap-2 mt-3">
-                <Button 
-                  size="sm" 
-                  onClick={handleApplyOptimization}
-                  data-testid="button-apply-optimization"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Apply
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={handleDismissOptimization}
-                  data-testid="button-dismiss-optimization"
-                >
-                  Dismiss
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      onClick={handleApplyOptimization}
+                      data-testid="button-apply-optimization"
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      aria-label="Apply AI optimization"
+                    >
+                      Apply
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Apply suggested schedule optimization</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={handleDismissOptimization}
+                      data-testid="button-dismiss-optimization"
+                      aria-label="Dismiss AI optimization"
+                    >
+                      Dismiss
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Dismiss this suggestion</TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </CardContent>
@@ -261,24 +284,39 @@ export default function SchedulingPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button variant="outline" className="h-16" data-testid="button-new-appointment">
-                <div className="text-center">
-                  <Clock className="h-5 w-5 mx-auto mb-1" />
-                  <div className="text-sm">New Appointment</div>
-                </div>
-              </Button>
-              <Button variant="outline" className="h-16" data-testid="button-view-calendar">
-                <div className="text-center">
-                  <User className="h-5 w-5 mx-auto mb-1" />
-                  <div className="text-sm">View Calendar</div>
-                </div>
-              </Button>
-              <Button variant="outline" className="h-16" data-testid="button-staff-schedule">
-                <div className="text-center">
-                  <Bot className="h-5 w-5 mx-auto mb-1" />
-                  <div className="text-sm">Staff Schedule</div>
-                </div>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" className="h-16" data-testid="button-new-appointment" aria-label="Create new appointment">
+                    <div className="text-center">
+                      <Clock className="h-5 w-5 mx-auto mb-1" />
+                      <div className="text-sm">New Appointment</div>
+                    </div>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Create a booking</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" className="h-16" data-testid="button-view-calendar" aria-label="View calendar">
+                    <div className="text-center">
+                      <User className="h-5 w-5 mx-auto mb-1" />
+                      <div className="text-sm">View Calendar</div>
+                    </div>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Open calendar</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" className="h-16" data-testid="button-staff-schedule" aria-label="View staff schedule">
+                    <div className="text-center">
+                      <Bot className="h-5 w-5 mx-auto mb-1" />
+                      <div className="text-sm">Staff Schedule</div>
+                    </div>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>See staff availability</TooltipContent>
+              </Tooltip>
             </div>
           </CardContent>
         </Card>

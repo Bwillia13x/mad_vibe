@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { DollarSign, Calendar, Users, TrendingUp, TrendingDown, BarChart3, Download, RefreshCw, AlertCircle, Minus } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
@@ -157,15 +158,35 @@ export default function AnalyticsPage() {
             </h1>
             <p className="text-gray-600 dark:text-gray-400">AI-powered business insights and metrics</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" data-testid="button-refresh" onClick={handleRefresh}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-            <Button variant="outline" size="sm" data-testid="button-export">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
+          <div className="flex gap-2 no-print">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" data-testid="button-refresh" onClick={handleRefresh} aria-label="Refresh analytics">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Reload latest analytics</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild variant="outline" size="sm" data-testid="button-export" aria-label="Export analytics as CSV">
+                  <a href="/api/analytics/export" download>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </a>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Download CSV snapshot</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" onClick={() => window.print()} data-testid="button-print-report" aria-label="Print analytics report">
+                  Print Report
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Open print dialog</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </div>

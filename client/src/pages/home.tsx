@@ -2,8 +2,11 @@ import { useState } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
+  const { data: health } = useQuery<any>({ queryKey: ['/api/health'] })
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([
     {
@@ -147,51 +150,81 @@ export default function Home() {
       <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Click and try one of these prompts:</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-          <Button
-            variant="outline"
-            className="text-left justify-start h-auto p-3"
-            onClick={() => setMessage("Show me today's schedule and upcoming appointments")}
-            data-testid="prompt-schedule"
-          >
-            <div>
-              <div className="font-medium text-sm">Show me today's schedule and upcoming appointments</div>
-            </div>
-          </Button>
-          <Button
-            variant="outline"
-            className="text-left justify-start h-auto p-3"
-            onClick={() => setMessage("What inventory items are running low?")}
-            data-testid="prompt-inventory"
-          >
-            <div>
-              <div className="font-medium text-sm">What inventory items are running low?</div>
-            </div>
-          </Button>
-          <Button
-            variant="outline"
-            className="text-left justify-start h-auto p-3"
-            onClick={() => setMessage("Generate a staff performance report for this month")}
-            data-testid="prompt-staff"
-          >
-            <div>
-              <div className="font-medium text-sm">Generate a staff performance report for this month</div>
-            </div>
-          </Button>
-          <Button
-            variant="outline"
-            className="text-left justify-start h-auto p-3"
-            onClick={() => setMessage("Show me revenue analytics and business insights")}
-            data-testid="prompt-analytics"
-          >
-            <div>
-              <div className="font-medium text-sm">Show me revenue analytics and business insights</div>
-            </div>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                className="text-left justify-start h-auto p-3"
+                onClick={() => setMessage("Show me today's schedule and upcoming appointments")}
+                data-testid="prompt-schedule"
+                aria-label="Use schedule prompt"
+              >
+                <div>
+                  <div className="font-medium text-sm">Show me today's schedule and upcoming appointments</div>
+                </div>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Paste into chat and send</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                className="text-left justify-start h-auto p-3"
+                onClick={() => setMessage("What inventory items are running low?")}
+                data-testid="prompt-inventory"
+                aria-label="Use inventory prompt"
+              >
+                <div>
+                  <div className="font-medium text-sm">What inventory items are running low?</div>
+                </div>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Paste into chat and send</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                className="text-left justify-start h-auto p-3"
+                onClick={() => setMessage("Generate a staff performance report for this month")}
+                data-testid="prompt-staff"
+                aria-label="Use staff performance prompt"
+              >
+                <div>
+                  <div className="font-medium text-sm">Generate a staff performance report for this month</div>
+                </div>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Paste into chat and send</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                className="text-left justify-start h-auto p-3"
+                onClick={() => setMessage("Show me revenue analytics and business insights")}
+                data-testid="prompt-analytics"
+                aria-label="Use analytics prompt"
+              >
+                <div>
+                  <div className="font-medium text-sm">Show me revenue analytics and business insights</div>
+                </div>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Paste into chat and send</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
       {/* Message Input */}
       <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+        {health?.aiDemoMode && (
+          <div className="mb-2 flex items-center gap-2 text-xs text-yellow-700 dark:text-yellow-300">
+            <span className="px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-800/40">Demo Mode</span>
+            <span>AI live responses are disabled for this demo.</span>
+          </div>
+        )}
         <div className="flex space-x-3">
           <Input
             value={message}
@@ -199,8 +232,9 @@ export default function Home() {
             placeholder="Type your message..."
             className="flex-1"
             data-testid="input-message"
+            aria-label="Message input"
           />
-          <Button type="submit" disabled={!message.trim()} data-testid="button-send">
+          <Button type="submit" disabled={!message.trim()} data-testid="button-send" aria-label="Send message">
             <Send className="h-4 w-4" />
           </Button>
         </div>

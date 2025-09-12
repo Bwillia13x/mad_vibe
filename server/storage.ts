@@ -73,7 +73,8 @@ export interface IStorage {
   createAnalytics(analytics: InsertAnalyticsSnapshot): Promise<AnalyticsSnapshot>;
   
   // Seed method
-  seedDemoData(): Promise<void>;
+  seedDemoData(scenario?: string): Promise<void>;
+  getCurrentScenario?(): string;
 }
 
 export class MemStorage implements IStorage {
@@ -85,6 +86,9 @@ export class MemStorage implements IStorage {
   private appointments: Map<string, Appointment>;
   private inventoryItems: Map<string, InventoryItem>;
   private analytics: Map<string, AnalyticsSnapshot>;
+  private scenario: string = 'default';
+  private seed: number = 12345;
+  private rng: (() => number) | null = null;
 
   constructor() {
     this.users = new Map();
@@ -421,8 +425,16 @@ export class MemStorage implements IStorage {
     return newAnalytics;
   }
 
+  getCurrentScenario() { return this.scenario; }
+  getCurrentSeed() { return this.seed; }
+
   // Seed method
-  async seedDemoData(): Promise<void> {
+  async seedDemoData(scenario?: string, seedArg?: number): Promise<void> {
+    this.scenario = scenario || process.env.DEMO_SCENARIO || 'default';
+    const envSeed = process.env.DEMO_SEED ? parseInt(process.env.DEMO_SEED, 10) : undefined;
+    this.seed = Number.isFinite(seedArg as number) ? (seedArg as number) : (Number.isFinite(envSeed) ? (envSeed as number) : 12345);
+    const { createRng } = await import('./lib/rng.js');
+    this.rng = createRng(this.seed);
     const demoData = await import("@shared/demoData");
     
     // Clear existing data
@@ -473,10 +485,39 @@ export class MemStorage implements IStorage {
       tempIdToRealId.set(tempId, customer.id);
     }
 
+    // Determine appointments based on scenario
+    let appointmentSource = demoData.appointmentsData;
+    if (this.scenario === 'busy_day') {
+      // duplicate appointments to simulate a crowded schedule
+      appointmentSource = [
+        ...demoData.appointmentsData,
+        ...demoData.appointmentsData.map(a => ({
+          ...a,
+          scheduledStart: new Date(new Date(a.scheduledStart as any as Date).getTime() + 60*60*1000),
+          scheduledEnd: new Date(new Date(a.scheduledEnd as any as Date).getTime() + 60*60*1000),
+          status: 'scheduled'
+        }))
+      ]
+    } else if (this.scenario === 'appointment_gaps') {
+      // create gaps: only every other appointment kept
+      appointmentSource = demoData.appointmentsData.filter((_, idx) => idx % 2 === 0)
+    }
+
+    // Align appointments to the current demo day
+    const { getNow } = await import('./lib/clock.js');
+    const now = getNow();
+    const alignToCurrentDay = (d: Date): Date => {
+      const base = new Date(now);
+      base.setHours(d.getHours(), d.getMinutes(), d.getSeconds(), d.getMilliseconds());
+      return base;
+    };
+
     // Seed appointments with mapped IDs
-    for (const appointmentData of demoData.appointmentsData) {
+    for (const appointmentData of appointmentSource) {
       const mappedAppointment = {
         ...appointmentData,
+        scheduledStart: alignToCurrentDay(new Date(appointmentData.scheduledStart as any as Date)),
+        scheduledEnd: alignToCurrentDay(new Date(appointmentData.scheduledEnd as any as Date)),
         customerId: tempIdToRealId.get(appointmentData.customerId) || appointmentData.customerId,
         staffId: tempIdToRealId.get(appointmentData.staffId) || appointmentData.staffId,
         serviceId: tempIdToRealId.get(appointmentData.serviceId) || appointmentData.serviceId
@@ -484,9 +525,20 @@ export class MemStorage implements IStorage {
       await this.createAppointment(mappedAppointment);
     }
 
-    // Seed inventory items
+    // Seed inventory items (with scenario variations)
     for (const inventoryData of demoData.inventoryData) {
-      await this.createInventoryItem(inventoryData);
+      const item = { ...inventoryData } as InsertInventoryItem;
+      if (this.scenario === 'low_inventory') {
+        const r = this.rng ? this.rng() : Math.random();
+        if (r < 0.4) {
+          (item as any).currentStock = 0;
+          (item as any).status = 'out-of-stock' as any;
+        } else if (r < 0.7) {
+          (item as any).currentStock = Math.max(0, (inventoryData.minStock ?? 0) - 1) as any;
+          (item as any).status = 'low' as any;
+        }
+      }
+      await this.createInventoryItem(item);
     }
 
     // Seed analytics

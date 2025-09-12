@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { getNow } from "./clock";
 
 export interface BusinessContext {
   todaysAppointments: any[];
@@ -36,7 +37,7 @@ export async function getBusinessContext(): Promise<string> {
     const outOfStockItems = inventoryItems.filter(item => item.status === 'out-of-stock');
 
     // Process today's schedule
-    const currentTime = new Date();
+    const currentTime = getNow();
     const upcomingAppointments = todaysAppointments.filter(apt => 
       new Date(apt.scheduledStart) > currentTime
     );
@@ -52,7 +53,7 @@ export async function getBusinessContext(): Promise<string> {
 
     // Build context summary
     const contextSummary = `
-**TODAY'S SCHEDULE (${new Date().toLocaleDateString()}):**
+**TODAY'S SCHEDULE (${currentTime.toLocaleDateString()}):**
 - Total appointments: ${todaysAppointments.length}
 - Completed: ${completedToday.length}
 - In progress: ${inProgressAppointments.length}
@@ -101,7 +102,7 @@ export async function getSpecificContext(contextType: string): Promise<string> {
     switch (contextType.toLowerCase()) {
       case 'appointments':
       case 'schedule':
-        const appointments = await storage.getAppointmentsByDay(new Date());
+        const appointments = await storage.getAppointmentsByDay(getNow());
         const staff = await storage.getAllStaff();
         const services = await storage.getAllServices();
         

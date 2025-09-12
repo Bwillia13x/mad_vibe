@@ -27,6 +27,18 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('recharts')) return 'charts';
+            if (id.includes('@tanstack')) return 'query';
+            if (id.includes('lucide-react')) return 'icons';
+            return 'vendor';
+          }
+        }
+      }
+    }
   },
   server: {
     fs: {

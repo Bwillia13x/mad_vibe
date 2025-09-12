@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import fs from "fs";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -43,8 +44,11 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
+    // Respond and log the error without crashing the server
+    try {
+      res.status(status).json({ message });
+    } catch {}
+    log(`Unhandled error: ${message}`, "express");
   });
 
   // importantly only setup vite in development and after
@@ -71,12 +75,52 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  const desiredPort = parseInt(process.env.PORT || '5000', 10);
+  const host = "0.0.0.0";
+
+  async function tryListen(portToUse: number): Promise<boolean> {
+    return await new Promise<boolean>((resolve) => {
+      const onError = (err: any) => {
+        log(`listen error on ${host}:${portToUse} -> ${err?.code || err?.message || err}`, "express");
+        server.off('listening', onListening);
+        server.off('error', onError);
+        resolve(false);
+      };
+      const onListening = () => {
+        const address = server.address();
+        // @ts-ignore - Node typings allow address to be string | AddressInfo | null
+        const actualPort = typeof address === 'object' && address ? address.port : portToUse;
+        log(`serving on port ${actualPort}`);
+        // Optionally write the bound port to a file for smoke tests or tooling
+        const portFile = process.env.PORT_FILE;
+        if (portFile) {
+          try {
+            fs.writeFileSync(portFile, String(actualPort), { encoding: 'utf8' });
+          } catch {}
+        }
+        server.off('error', onError);
+        server.off('listening', onListening);
+        resolve(true);
+      };
+      server.once('error', onError);
+      server.once('listening', onListening);
+      try {
+        server.listen({ port: portToUse, host });
+      } catch (err) {
+        onError(err);
+      }
+    });
+  }
+
+  // Attempt to bind to the desired port, then try a few alternatives
+  let bound = await tryListen(desiredPort);
+  if (!bound) {
+    for (let i = 1; i <= 5 && !bound; i++) {
+      const nextPort = desiredPort + i;
+      bound = await tryListen(nextPort);
+    }
+    if (!bound) {
+      log(`Could not bind to ${host} on ${desiredPort}-${desiredPort + 5}.`, "express");
+    }
+  }
 })();

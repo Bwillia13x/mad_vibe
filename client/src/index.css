@@ -167,3 +167,52 @@
 .btn-accent:hover {
   background-color: hsl(var(--accent) / 0.9);
 }
+
+/* Print/styles for demo reports */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff !important; }
+}
+
+/* iOS/Android safe area adjustments */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Accessibility: Skip link */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Print-only utility */
+.print-only { display: none; }
+@media print { .print-only { display: block; } }
+
+/* Focus visible outline for keyboard users */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Route fade-in animation */
+.route-fade { animation: routefade 180ms ease-out; }
+@keyframes routefade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.skip-link:focus {
+  left: 0;
+  top: 0;
+  width: auto;
+  height: auto;
+  background: #111827; /* gray-900 */
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0 0 0.5rem 0.5rem;
+  z-index: 1000;
+}

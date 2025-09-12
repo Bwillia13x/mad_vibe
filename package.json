@@ -7,7 +7,15 @@
     "dev": "NODE_ENV=development tsx server/index.ts",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
+    "dev:dynamic": "PORT=0 NODE_ENV=development tsx server/index.ts",
+    "start:dynamic": "PORT=0 NODE_ENV=production node dist/index.js",
+    "lint": "eslint server scripts --ext .ts,.tsx",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "check": "tsc",
+    "smoke": "npm run build && tsx scripts/smoke.ts",
+    "e2e": "npm run build && tsx scripts/e2e.ts",
+    "test": "npm run smoke",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
@@ -87,6 +95,9 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "puppeteer": "^23.6.0",
     "@replit/vite-plugin-cartographer": "^0.3.0",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.15",
