@@ -2,65 +2,111 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { User, Clock, Star, Calendar, Users, UserCheck } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { Staff, Appointment, Customer, Service } from '@shared/schema'
 
-interface StaffMember {
-  id: string
-  name: string
-  role: string
+interface StaffAvailability {
+  [key: string]: { start: string; end: string } | 'off'
+}
+
+interface StaffWithMetrics extends Staff {
   status: 'available' | 'busy' | 'offline'
   currentAppointment?: string
   todayAppointments: number
-  rating: number
 }
 
 export default function StaffPage() {
-  const [staff, setStaff] = useState<StaffMember[]>([])
-  const [loading, setLoading] = useState(true)
+  // Fetch staff data
+  const { data: staffData, isLoading: staffLoading } = useQuery<Staff[]>({
+    queryKey: ['/api/staff'],
+  })
 
-  useEffect(() => {
-    const mockStaff: StaffMember[] = [
-      {
-        id: 'staff1',
-        name: 'Emily Rodriguez',
-        role: 'Senior Stylist',
-        status: 'busy',
-        currentAppointment: 'Sarah Johnson - Hair Color',
-        todayAppointments: 6,
-        rating: 4.9
-      },
-      {
-        id: 'staff2',
-        name: 'Marcus Thompson',
-        role: 'Barber',
-        status: 'available',
-        todayAppointments: 4,
-        rating: 4.8
-      },
-      {
-        id: 'staff3',
-        name: 'Sofia Martinez',
-        role: 'Color Specialist',
-        status: 'available',
-        todayAppointments: 5,
-        rating: 4.7
-      },
-      {
-        id: 'staff4',
-        name: 'David Kim',
-        role: 'Junior Stylist',
-        status: 'offline',
-        todayAppointments: 3,
-        rating: 4.5
+  // Fetch today's appointments to calculate staff metrics
+  const { data: appointmentsData, isLoading: appointmentsLoading } = useQuery<(Appointment & { customer?: Customer, service?: Service })[]>({
+    queryKey: ['/api/appointments'],
+    queryFn: async () => {
+      const response = await fetch('/api/appointments?day=today', {
+        credentials: 'include',
+      })
+      if (!response.ok) {
+        throw new Error('Failed to fetch appointments')
       }
-    ]
-    
-    setTimeout(() => {
-      setStaff(mockStaff)
-      setLoading(false)
-    }, 1000)
-  }, [])
+      return response.json()
+    },
+  })
 
-  const getStatusColor = (status: StaffMember['status']) => {
+  // Fetch customers to get names for current appointments
+  const { data: customersData } = useQuery<Customer[]>({
+    queryKey: ['/api/customers'],
+  })
+
+  // Fetch services to get service names for current appointments
+  const { data: servicesData } = useQuery<Service[]>({
+    queryKey: ['/api/services'],
+  })
+
+  const loading = staffLoading || appointmentsLoading
+
+  // Process staff data to add metrics
+  const staff: StaffWithMetrics[] = (staffData || []).map(member => {
+    const todaysAppointments = (appointmentsData || []).filter(
+      apt => apt.staffId === member.id
+    )
+    
+    // Find current appointment (in-progress status)
+    const currentAppointment = todaysAppointments.find(
+      apt => apt.status === 'in-progress'
+    )
+    
+    // Determine status
+    let status: 'available' | 'busy' | 'offline' = 'available'
+    if (!member.isActive) {
+      status = 'offline'
+    } else if (currentAppointment) {
+      status = 'busy'
+    } else {
+      // Check if staff is scheduled to be working today
+      const now = new Date()
+      const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+      const today = dayNames[now.getDay()]
+      const availability = member.availability as StaffAvailability
+      const todaySchedule = availability[today]
+      
+      if (todaySchedule === 'off' || !todaySchedule) {
+        status = 'offline'
+      } else {
+        const currentHour = now.getHours()
+        const currentMinute = now.getMinutes()
+        const currentTime = currentHour * 60 + currentMinute
+        
+        const startTime = parseInt(todaySchedule.start.split(':')[0]) * 60 + parseInt(todaySchedule.start.split(':')[1])
+        const endTime = parseInt(todaySchedule.end.split(':')[0]) * 60 + parseInt(todaySchedule.end.split(':')[1])
+        
+        if (currentTime < startTime || currentTime > endTime) {
+          status = 'offline'
+        }
+      }
+    }
+    
+    // Get current appointment description
+    let currentAppointmentDesc = undefined
+    if (currentAppointment) {
+      const customer = customersData?.find(c => c.id === currentAppointment.customerId)
+      const service = servicesData?.find(s => s.id === currentAppointment.serviceId)
+      if (customer && service) {
+        currentAppointmentDesc = `${customer.name} - ${service.name}`
+      }
+    }
+    
+    return {
+      ...member,
+      status,
+      currentAppointment: currentAppointmentDesc,
+      todayAppointments: todaysAppointments.length,
+    }
+  })
+
+  const getStatusColor = (status: StaffWithMetrics['status']) => {
     switch (status) {
       case 'available': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
       case 'busy': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
@@ -69,7 +115,7 @@ export default function StaffPage() {
     }
   }
 
-  const getStatusIcon = (status: StaffMember['status']) => {
+  const getStatusIcon = (status: StaffWithMetrics['status']) => {
     switch (status) {
       case 'available': return <UserCheck className="h-4 w-4" />
       case 'busy': return <Clock className="h-4 w-4" />
@@ -78,7 +124,7 @@ export default function StaffPage() {
     }
   }
 
-  const averageRating = staff.length > 0 ? (staff.reduce((sum, member) => sum + member.rating, 0) / staff.length).toFixed(1) : '0.0'
+  const averageRating = staff.length > 0 ? (staff.reduce((sum, member) => sum + parseFloat(member.rating), 0) / staff.length).toFixed(1) : '0.0'
   const activeStaff = staff.filter(member => member.status !== 'offline').length
   const totalAppointments = staff.reduce((sum, member) => sum + member.todayAppointments, 0)
 
@@ -216,7 +262,7 @@ export default function StaffPage() {
                 <span className="text-sm text-gray-600 dark:text-gray-400">Rating</span>
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-gray-900 dark:text-white" data-testid={`staff-rating-${member.id}`}>
-                    {member.rating}
+                    {parseFloat(member.rating).toFixed(1)}
                   </span>
                   <Star className="h-4 w-4 text-yellow-500 fill-current" />
                 </div>
@@ -247,11 +293,17 @@ export default function StaffPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Top Performer</span>
-                  <span className="text-sm font-medium text-green-800 dark:text-green-200">Emily Rodriguez (6 appointments)</span>
+                  <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                    {staff.length > 0 
+                      ? `${staff.reduce((prev, current) => (prev.todayAppointments > current.todayAppointments) ? prev : current).name} (${staff.reduce((prev, current) => (prev.todayAppointments > current.todayAppointments) ? prev : current).todayAppointments} appointments)`
+                      : 'Loading...'}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Team Utilization</span>
-                  <span className="text-sm font-medium text-blue-800 dark:text-blue-200">85% (Above Target)</span>
+                  <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    {activeStaff > 0 ? `${Math.round((activeStaff / staff.length) * 100)}%` : '0%'} (Active Staff)
+                  </span>
                 </div>
               </div>
             </div>
