@@ -1,73 +1,38 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Package, AlertTriangle, CheckCircle, Mail, Send, ArrowRight } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-
-interface InventoryItem {
-  id: string
-  name: string
-  sku: string
-  supplier: string
-  stock: number
-  status: 'in-stock' | 'low-stock' | 'out-of-stock'
-  reorderPoint: number
-}
+import { useQuery } from '@tanstack/react-query'
+import type { InventoryItem } from '@shared/schema'
 
 export default function InventoryPage() {
-  const [inventory, setInventory] = useState<InventoryItem[]>([])
-  const [loading, setLoading] = useState(true)
   const [sendingOrder, setSendingOrder] = useState(false)
   const { toast } = useToast()
 
-  useEffect(() => {
-    // Mock inventory data - in production this would fetch from API
-    const mockInventory: InventoryItem[] = [
-      {
-        id: '1',
-        name: 'Professional Hair Color',
-        sku: 'AC-HC001',
-        supplier: 'Andreas Co. Supplier',
-        stock: 23,
-        status: 'in-stock',
-        reorderPoint: 10
-      },
-      {
-        id: '2',
-        name: 'Styling Tools',
-        sku: 'AC-ST002',
-        supplier: 'Andreas Co. Supplier',
-        stock: 5,
-        status: 'low-stock',
-        reorderPoint: 10
-      },
-      {
-        id: '3',
-        name: 'Premium Shampoo',
-        sku: 'AC-SH003',
-        supplier: 'Beauty Supplies Inc',
-        stock: 0,
-        status: 'out-of-stock',
-        reorderPoint: 15
-      },
-      {
-        id: '4',
-        name: 'Hair Treatment Oil',
-        sku: 'AC-HT004',
-        supplier: 'Andreas Co. Supplier',
-        stock: 45,
-        status: 'in-stock',
-        reorderPoint: 20
-      }
-    ]
-    
-    setTimeout(() => {
-      setInventory(mockInventory)
-      setLoading(false)
-    }, 1000)
-  }, [])
+  // Fetch inventory data from API
+  const { data: inventory = [], isLoading: loading, error } = useQuery<InventoryItem[]>({
+    queryKey: ['/api', 'inventory'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
 
-  const getStatusColor = (status: InventoryItem['status']) => {
+  // Helper function to calculate status based on current vs min stock
+  const getCalculatedStatus = (item: InventoryItem): 'in-stock' | 'low-stock' | 'out-of-stock' => {
+    if (item.currentStock === 0) return 'out-of-stock'
+    if (item.currentStock <= item.minStock) return 'low-stock'
+    return 'in-stock'
+  }
+
+  // Helper function to format currency in CAD
+  const formatCAD = (amount: string | number) => {
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount
+    return new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency: 'CAD'
+    }).format(numericAmount)
+  }
+
+  const getStatusColor = (status: 'in-stock' | 'low-stock' | 'out-of-stock') => {
     switch (status) {
       case 'in-stock': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
       case 'low-stock': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
@@ -76,7 +41,7 @@ export default function InventoryPage() {
     }
   }
 
-  const getStatusIcon = (status: InventoryItem['status']) => {
+  const getStatusIcon = (status: 'in-stock' | 'low-stock' | 'out-of-stock') => {
     switch (status) {
       case 'in-stock': return <CheckCircle className="h-4 w-4" />
       case 'low-stock': return <AlertTriangle className="h-4 w-4" />
@@ -109,7 +74,16 @@ export default function InventoryPage() {
     }
   }
 
-  const lowStockItems = inventory.filter(item => item.status === 'low-stock' || item.status === 'out-of-stock')
+  const lowStockItems = inventory.filter(item => {
+    const status = getCalculatedStatus(item)
+    return status === 'low-stock' || status === 'out-of-stock'
+  })
+
+  // Calculate total inventory value
+  const totalInventoryValue = inventory.reduce((total, item) => {
+    const cost = typeof item.unitCost === 'string' ? parseFloat(item.unitCost) : item.unitCost
+    return total + (cost * item.currentStock)
+  }, 0)
 
   if (loading) {
     return (
@@ -126,6 +100,18 @@ export default function InventoryPage() {
     )
   }
 
+  if (error) {
+    return (
+      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Failed to Load Inventory</h3>
+          <p className="text-gray-600 dark:text-gray-400">Please try refreshing the page or contact support.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="mb-6">
@@ -136,7 +122,7 @@ export default function InventoryPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -172,7 +158,21 @@ export default function InventoryPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">In Stock</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="in-stock-count">
-                  {inventory.filter(item => item.status === 'in-stock').length}
+                  {inventory.filter(item => getCalculatedStatus(item) === 'in-stock').length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Package className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Value</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="total-inventory-value">
+                  {formatCAD(totalInventoryValue)}
                 </p>
               </div>
             </div>
@@ -191,39 +191,46 @@ export default function InventoryPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {inventory.map((item) => (
-              <div 
-                key={item.id} 
-                className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
-                data-testid={`inventory-item-${item.id}`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                    <Package className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+            {inventory.map((item) => {
+              const status = getCalculatedStatus(item)
+              return (
+                <div 
+                  key={item.id} 
+                  className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+                  data-testid={`inventory-item-${item.id}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                      <Package className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 dark:text-white" data-testid={`item-name-${item.id}`}>
+                        {item.name} - {item.sku}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`supplier-${item.id}`}>
+                        {item.brand} • {item.supplier}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500 truncate" data-testid={`category-${item.id}`}>
+                        {item.category} • {formatCAD(item.unitCost)} unit cost
+                        {item.retailPrice && ` • ${formatCAD(item.retailPrice)} retail`}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white" data-testid={`item-name-${item.id}`}>
-                      {item.name} - {item.sku}
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white" data-testid={`stock-${item.id}`}>
+                      {item.currentStock} / {item.minStock} min
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`supplier-${item.id}`}>
-                      {item.supplier}
-                    </p>
+                    <span 
+                      className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${getStatusColor(status)}`}
+                      data-testid={`status-${item.id}`}
+                    >
+                      {getStatusIcon(status)}
+                      {status.replace('-', ' ')}
+                    </span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white" data-testid={`stock-${item.id}`}>
-                    {item.stock} units
-                  </p>
-                  <span 
-                    className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${getStatusColor(item.status)}`}
-                    data-testid={`status-${item.id}`}
-                  >
-                    {getStatusIcon(item.status)}
-                    {item.status.replace('-', ' ')}
-                  </span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
 
             {/* Automated Purchase Orders */}
             {lowStockItems.length > 0 && (
