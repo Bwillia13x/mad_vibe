@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { DollarSign, Calendar, Users, TrendingUp, TrendingDown, BarChart3, Download, RefreshCw } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { DollarSign, Calendar, Users, TrendingUp, TrendingDown, BarChart3, Download, RefreshCw, AlertCircle, Minus } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { queryClient } from '@/lib/queryClient'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { BarChart, XAxis, YAxis, Bar, LineChart, Line } from 'recharts'
+import type { AnalyticsSnapshot } from '@shared/schema'
 
 interface AnalyticsData {
   revenue: { value: number; change: number }
@@ -17,52 +22,104 @@ interface ChartData {
 }
 
 export default function AnalyticsPage() {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [chartData, setChartData] = useState<ChartData[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: analyticsSnapshots, isLoading, error, refetch } = useQuery<AnalyticsSnapshot[]>({
+    queryKey: ['/api/analytics'],
+  })
 
-  useEffect(() => {
-    const mockAnalytics: AnalyticsData = {
-      revenue: { value: 12450, change: 8.2 },
-      appointments: { value: 156, change: 12.5 },
-      customerSatisfaction: { value: 4.8, change: 2.1 },
-      staffUtilization: { value: 82, change: -1.5 }
+  // Sort analytics snapshots by date client-side for robustness
+  const snapshots = [...(analyticsSnapshots || [])].sort((a, b) => +new Date(b.date) - +new Date(a.date))
+
+  // Process analytics data to get current month and previous month for comparisons
+  const currentMonthData = snapshots[0] // Most recent (September 2025)
+  const previousMonthData = snapshots[1] // Previous month (August 2025)
+  
+  // Calculate percentage changes
+  const calculateChange = (current: string | number, previous: string | number): number => {
+    const currentNum = typeof current === 'string' ? parseFloat(current) : current
+    const previousNum = typeof previous === 'string' ? parseFloat(previous) : previous
+    if (previousNum === 0) return 0
+    return ((currentNum - previousNum) / previousNum) * 100
+  }
+
+  // Transform data for UI
+  const analytics: AnalyticsData | null = currentMonthData && previousMonthData ? {
+    revenue: {
+      value: parseFloat(currentMonthData.totalRevenue),
+      change: calculateChange(currentMonthData.totalRevenue, previousMonthData.totalRevenue)
+    },
+    appointments: {
+      value: currentMonthData.totalAppointments,
+      change: calculateChange(currentMonthData.totalAppointments, previousMonthData.totalAppointments)
+    },
+    customerSatisfaction: {
+      value: parseFloat(currentMonthData.customerSatisfaction) * 5, // Convert to 5-point scale
+      change: calculateChange(
+        parseFloat(currentMonthData.customerSatisfaction) * 5,
+        parseFloat(previousMonthData.customerSatisfaction) * 5
+      )
+    },
+    staffUtilization: {
+      value: parseFloat(currentMonthData.utilizationRate) * 100, // Convert to percentage
+      change: calculateChange(
+        parseFloat(currentMonthData.utilizationRate) * 100,
+        parseFloat(previousMonthData.utilizationRate) * 100
+      )
     }
+  } : null
 
-    const mockChartData: ChartData[] = [
-      { month: 'Jan', revenue: 8500, appointments: 120 },
-      { month: 'Feb', revenue: 9200, appointments: 135 },
-      { month: 'Mar', revenue: 11800, appointments: 152 },
-      { month: 'Apr', revenue: 12450, appointments: 156 },
-    ]
-    
-    setTimeout(() => {
-      setAnalytics(mockAnalytics)
-      setChartData(mockChartData)
-      setLoading(false)
-    }, 1000)
-  }, [])
+  // Transform data for charts (last 3 months)
+  const chartData: ChartData[] = snapshots.slice(0, 3).reverse().map((snapshot, index) => {
+    const date = new Date(snapshot.date)
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return {
+      month: monthNames[date.getMonth()],
+      revenue: parseFloat(snapshot.totalRevenue),
+      appointments: snapshot.totalAppointments
+    }
+  })
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/analytics'] })
+  }
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-CA', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'CAD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value)
   }
 
   const getChangeIcon = (change: number) => {
-    return change > 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />
+    if (change > 0) return <TrendingUp className="h-4 w-4" />
+    if (change < 0) return <TrendingDown className="h-4 w-4" />
+    return <Minus className="h-4 w-4" />
   }
 
   const getChangeColor = (change: number) => {
-    return change > 0 
-      ? "text-green-600 dark:text-green-400" 
-      : "text-red-600 dark:text-red-400"
+    if (change > 0) return "text-green-600 dark:text-green-400"
+    if (change < 0) return "text-red-600 dark:text-red-400"
+    return "text-gray-600 dark:text-gray-400"
   }
 
-  if (loading) {
+  if (error) {
+    return (
+      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
+        <Alert className="max-w-md mx-auto" data-testid="error-analytics">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="ml-2">
+            Failed to load analytics data. Please try again.
+            <Button variant="outline" size="sm" className="ml-2" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
+  if (isLoading) {
     return (
       <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
         <div className="animate-pulse space-y-4">
@@ -73,6 +130,19 @@ export default function AnalyticsPage() {
             ))}
           </div>
         </div>
+      </div>
+    )
+  }
+
+  if (snapshots.length < 2) {
+    return (
+      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
+        <Alert className="max-w-md mx-auto">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="ml-2">
+            Insufficient data for analytics. At least 2 months of data are required for trend analysis.
+          </AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -88,7 +158,7 @@ export default function AnalyticsPage() {
             <p className="text-gray-600 dark:text-gray-400">AI-powered business insights and metrics</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" data-testid="button-refresh">
+            <Button variant="outline" size="sm" data-testid="button-refresh" onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
@@ -117,7 +187,7 @@ export default function AnalyticsPage() {
                 </div>
                 <p className={`text-xs flex items-center gap-1 ${getChangeColor(analytics.revenue.change)}`} data-testid="revenue-change">
                   {getChangeIcon(analytics.revenue.change)}
-                  {analytics.revenue.change > 0 ? '+' : ''}{analytics.revenue.change}% from last month
+                  {analytics.revenue.change > 0 ? '+' : ''}{analytics.revenue.change.toFixed(1)}% from last month
                 </p>
               </CardContent>
             </Card>
@@ -135,7 +205,7 @@ export default function AnalyticsPage() {
                 </div>
                 <p className={`text-xs flex items-center gap-1 ${getChangeColor(analytics.appointments.change)}`} data-testid="appointments-change">
                   {getChangeIcon(analytics.appointments.change)}
-                  {analytics.appointments.change > 0 ? '+' : ''}{analytics.appointments.change}% from last month
+                  {analytics.appointments.change > 0 ? '+' : ''}{analytics.appointments.change.toFixed(1)}% from last month
                 </p>
               </CardContent>
             </Card>
@@ -153,7 +223,7 @@ export default function AnalyticsPage() {
                 </div>
                 <p className={`text-xs flex items-center gap-1 ${getChangeColor(analytics.customerSatisfaction.change)}`} data-testid="satisfaction-change">
                   {getChangeIcon(analytics.customerSatisfaction.change)}
-                  {analytics.customerSatisfaction.change > 0 ? '+' : ''}{analytics.customerSatisfaction.change}% from last month
+                  {analytics.customerSatisfaction.change > 0 ? '+' : ''}{analytics.customerSatisfaction.change.toFixed(1)}% from last month
                 </p>
               </CardContent>
             </Card>
@@ -167,11 +237,11 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="utilization-value">
-                  {analytics.staffUtilization.value}%
+                  {analytics.staffUtilization.value.toFixed(0)}%
                 </div>
                 <p className={`text-xs flex items-center gap-1 ${getChangeColor(analytics.staffUtilization.change)}`} data-testid="utilization-change">
                   {getChangeIcon(analytics.staffUtilization.change)}
-                  {analytics.staffUtilization.change > 0 ? '+' : ''}{analytics.staffUtilization.change}% from last month
+                  {analytics.staffUtilization.change > 0 ? '+' : ''}{analytics.staffUtilization.change.toFixed(1)}% from last month
                 </p>
               </CardContent>
             </Card>
@@ -184,23 +254,25 @@ export default function AnalyticsPage() {
                 <CardTitle>Revenue Trend</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg" data-testid="revenue-chart">
-                  <div className="text-center">
-                    <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Revenue trending upward
-                    </p>
-                    <div className="mt-4 space-y-2">
-                      {chartData.map((data, index) => (
-                        <div key={data.month} className="flex justify-between text-sm">
-                          <span className="text-gray-600 dark:text-gray-400">{data.month}</span>
-                          <span className="font-medium text-gray-900 dark:text-white">
-                            {formatCurrency(data.revenue)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                <div className="h-64" data-testid="revenue-chart">
+                  <ChartContainer
+                    config={{
+                      revenue: {
+                        label: "Revenue",
+                        color: "hsl(var(--chart-1))",
+                      },
+                    }}
+                  >
+                    <BarChart data={chartData}>
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <ChartTooltip 
+                        content={<ChartTooltipContent />}
+                        formatter={(value: number) => [formatCurrency(value), "Revenue"]}
+                      />
+                      <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -210,23 +282,32 @@ export default function AnalyticsPage() {
                 <CardTitle>Appointment Volume</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg" data-testid="appointments-chart">
-                  <div className="text-center">
-                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Steady appointment growth
-                    </p>
-                    <div className="mt-4 space-y-2">
-                      {chartData.map((data, index) => (
-                        <div key={data.month} className="flex justify-between text-sm">
-                          <span className="text-gray-600 dark:text-gray-400">{data.month}</span>
-                          <span className="font-medium text-gray-900 dark:text-white">
-                            {data.appointments} appointments
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                <div className="h-64" data-testid="appointments-chart">
+                  <ChartContainer
+                    config={{
+                      appointments: {
+                        label: "Appointments",
+                        color: "hsl(var(--chart-2))",
+                      },
+                    }}
+                  >
+                    <LineChart data={chartData}>
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <ChartTooltip 
+                        content={<ChartTooltipContent />}
+                        formatter={(value: number) => [value, "Appointments"]}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="appointments" 
+                        stroke="var(--color-appointments)" 
+                        strokeWidth={3}
+                        dot={{ fill: "var(--color-appointments)", strokeWidth: 0, r: 4 }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                      />
+                    </LineChart>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -247,17 +328,17 @@ export default function AnalyticsPage() {
                   <div className="space-y-3">
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded-r-lg" data-testid="insight-revenue">
                       <p className="text-sm text-gray-700 dark:text-gray-300">
-                        <strong>Revenue Growth:</strong> 8.2% increase driven by premium services adoption
+                        <strong>Revenue Growth:</strong> {analytics.revenue.change > 0 ? '+' : ''}{analytics.revenue.change.toFixed(1)}% increase driven by premium grooming services
                       </p>
                     </div>
                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 rounded-r-lg" data-testid="insight-efficiency">
                       <p className="text-sm text-gray-700 dark:text-gray-300">
-                        <strong>Efficiency:</strong> AI scheduling reduced wait times by 15 minutes on average
+                        <strong>Efficiency:</strong> {analytics.staffUtilization.value.toFixed(0)}% staff utilization with optimized scheduling
                       </p>
                     </div>
                     <div className="p-3 bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 rounded-r-lg" data-testid="insight-satisfaction">
                       <p className="text-sm text-gray-700 dark:text-gray-300">
-                        <strong>Customer Satisfaction:</strong> 4.8/5.0 rating with 97% retention rate
+                        <strong>Customer Satisfaction:</strong> {analytics.customerSatisfaction.value.toFixed(1)}/5.0 rating with {currentMonthData ? (parseFloat(currentMonthData.repeatCustomerRate) * 100).toFixed(0) : 78}% retention rate
                       </p>
                     </div>
                   </div>
@@ -268,17 +349,17 @@ export default function AnalyticsPage() {
                   <div className="space-y-3">
                     <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg" data-testid="recommendation-inventory">
                       <p className="text-sm text-gray-700 dark:text-gray-300">
-                        Optimize inventory ordering for 12% cost reduction
+                        Increase Executive Cut availability - highest revenue per appointment
                       </p>
                     </div>
                     <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg" data-testid="recommendation-peak">
                       <p className="text-sm text-gray-700 dark:text-gray-300">
-                        Consider peak-hour pricing to balance demand
+                        Promote Deluxe Grooming Packages during slower weekday mornings
                       </p>
                     </div>
                     <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg" data-testid="recommendation-marketing">
                       <p className="text-sm text-gray-700 dark:text-gray-300">
-                        Target marketing campaigns during low-booking periods
+                        Focus on beard services - growing trend in men's grooming
                       </p>
                     </div>
                   </div>
