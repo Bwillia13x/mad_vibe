@@ -31,7 +31,6 @@ If asked about technical features, explain them in business terms. Always be sup
       model: "gpt-5",
       messages: allMessages,
       max_completion_tokens: 500,
-      temperature: 0.7,
     });
 
     return response.choices[0].message.content || "I apologize, I'm having trouble processing your request right now. Please try again.";
@@ -56,7 +55,6 @@ export async function analyzeBusinessData(data: string, analysisType: string): P
         }
       ],
       max_completion_tokens: 400,
-      temperature: 0.3,
     });
 
     return response.choices[0].message.content || "Unable to analyze the data at this time.";
