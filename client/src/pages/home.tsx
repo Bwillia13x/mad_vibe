@@ -15,7 +15,7 @@ export default function Home() {
   ]);
   const [isBusinessPanelOpen, setIsBusinessPanelOpen] = useState(false);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
 
@@ -28,15 +28,40 @@ export default function Home() {
     setMessages(prev => [...prev, userMessage]);
     setMessage("");
 
-    // Simulate AI response (replace with actual AI integration)
-    setTimeout(() => {
+    try {
+      // Send message to OpenAI via our backend
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages.filter(m => m.role !== 'assistant' || m.content !== "Welcome to Andreas Vibe Business Management! I'm your AI business assistant. I can help you with scheduling, inventory management, staff coordination, analytics, and more. What would you like to work on today?"), userMessage].map(({ role, content }) => ({ role, content }))
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const data = await response.json();
+      
       const aiResponse = {
         role: "assistant" as const,
-        content: `I understand you want to work on: "${message}". Let me help you with that business task. Which specific area would you like me to assist with?`,
+        content: data.message,
         timestamp: new Date()
       };
+      
       setMessages(prev => [...prev, aiResponse]);
-    }, 1000);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      const errorResponse = {
+        role: "assistant" as const,
+        content: "I'm having trouble connecting right now. Please try again in a moment.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    }
   };
 
   const businessTools = [
