@@ -11,6 +11,10 @@ const Inventory = lazy(() => import("@/pages/inventory"));
 const Staff = lazy(() => import("@/pages/staff"));
 const Analytics = lazy(() => import("@/pages/analytics"));
 const NotFound = lazy(() => import("@/pages/not-found"));
+// New custom tool pages
+const POS = lazy(() => import("@/pages/pos"));
+const Marketing = lazy(() => import("@/pages/marketing"));
+const Loyalty = lazy(() => import("@/pages/loyalty"));
 import DemoInit from "@/components/DemoInit";
 
 function Router() {
@@ -21,6 +25,27 @@ function Router() {
         <SidebarLayout>
           <Suspense fallback={<div className="p-6">Loading…</div>}>
             <Home />
+          </Suspense>
+        </SidebarLayout>
+      </Route>
+      <Route path="/pos">
+        <SidebarLayout>
+          <Suspense fallback={<div className="p-6">Loading…</div>}>
+            <POS />
+          </Suspense>
+        </SidebarLayout>
+      </Route>
+      <Route path="/marketing">
+        <SidebarLayout>
+          <Suspense fallback={<div className="p-6">Loading…</div>}>
+            <Marketing />
+          </Suspense>
+        </SidebarLayout>
+      </Route>
+      <Route path="/loyalty">
+        <SidebarLayout>
+          <Suspense fallback={<div className="p-6">Loading…</div>}>
+            <Loyalty />
           </Suspense>
         </SidebarLayout>
       </Route>

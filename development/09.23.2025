@@ -1,0 +1,38 @@
+> Deployment updated: API routes now work on Vercel via a serverless Express handler.
+
+  What I changed
+
+  - Added serverless API function
+      - File: api/[...path].ts
+      - Creates an Express app, registers all routes via registerRoutes(app), seeds demo data once per cold start, and handles errors.
+      - Exports a handler compatible with Vercel’s Node runtime.
+  - Configured Vercel build/rewrites
+      - File: vercel.json
+      - "buildCommand": "npm run build" to build the Vite client into dist/public.
+      - "outputDirectory": "dist/public" to serve the static app.
+      - Rewrites keep /api/* mapped to serverless functions and route all other paths to / for SPA.
+  - Cleaned repo state
+      - Ignored .local/ and removed local artifacts.
+      - Pushed changes to main; triggered a new deployment.
+
+  Status
+
+  - Project created on Vercel: andreas-vibe
+  - Latest deployment: READY
+  - Preview URL (last observed): https://andreas-vibe-equ7q5w48-echoexes-projects.vercel.app
+  - The client should load and API routes should be available under /api/* (e.g. /api/health, /api/services, /api/chat).
+
+  How to verify
+
+  - Health: open /api/health on the deployment URL. Should return status + env + demo info.
+  - Client app: open the root URL; navigate across routes; use Demo Controls and banner actions.
+  - Chat: use AI assistant; in demo mode, it streams fallback content; with OPENAI_API_KEY configured on Vercel env, it will be live.
+
+  Next steps (optional)
+
+  - Set env vars on Vercel
+      - OPENAI_API_KEY to enable live AI
+      - DEMO_SEED and DEMO_SCENARIO if you want a default demo state
+  - If you want custom domain, alias the deployment in Vercel
+
+  Do you want me to add Vercel env variables now (OPENAI_API_KEY, etc.) or set a production branch deploy hook?

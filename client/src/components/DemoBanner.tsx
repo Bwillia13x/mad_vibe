@@ -39,6 +39,7 @@ export default function DemoBanner() {
         {frozen && (
           <span className="ml-2">Time frozen at <strong>{new Date(freezeDate).toLocaleString()}</strong></span>
         )}
+        <span className="ml-3 opacity-80">Tip: Click Reset to restore the default demo state.</span>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         <span>Switch scenario:</span>

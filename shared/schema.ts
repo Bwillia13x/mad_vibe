@@ -275,3 +275,61 @@ export type AiInsight = typeof aiInsights.$inferSelect;
 
 export type InsertPurchaseOrder = z.infer<typeof insertPurchaseOrderSchema>;
 export type PurchaseOrder = typeof purchaseOrders.$inferSelect;
+
+// Lightweight demo-only types (not persisted via Drizzle in this demo)
+export type PosLineItem = {
+  kind: 'service' | 'product'
+  id: string
+  name: string
+  quantity: number
+  unitPrice: string
+  subtotal: string
+}
+
+export type InsertPosSale = {
+  items: Array<{ kind: 'service' | 'product'; id: string; quantity: number }>
+  discountPct?: number | null
+  taxPct?: number | null
+}
+
+export type PosSale = {
+  id: string
+  items: PosLineItem[]
+  subtotal: string
+  discount: string
+  tax: string
+  total: string
+  createdAt: Date
+}
+
+export type InsertCampaign = {
+  name: string
+  description?: string | null
+  channel?: 'email' | 'social' | 'sms' | 'in-store' | null
+  status?: 'draft' | 'active' | 'paused'
+}
+
+export type Campaign = {
+  id: string
+  name: string
+  description: string | null
+  channel: 'email' | 'social' | 'sms' | 'in-store' | null
+  status: 'draft' | 'active' | 'paused'
+  createdAt: Date
+}
+
+export type InsertLoyaltyEntry = {
+  customerId: string
+  type: 'points' | 'reward'
+  points?: number
+  note?: string
+}
+
+export type LoyaltyEntry = {
+  id: string
+  customerId: string
+  type: 'points' | 'reward'
+  points: number | null
+  note: string | null
+  createdAt: Date
+}

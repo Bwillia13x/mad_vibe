@@ -32,6 +32,21 @@ What’s Included
 - Client: Vite + React + Tailwind UI (shadcn based components).
 - Data: In-memory store with seeded demo data (services, staff, customers, appointments, inventory, analytics).
 - AI Assistant: Optional OpenAI integration with streaming (SSE). Falls back to informative demo responses when no API key is set.
+- Business Tools: Chat, Scheduling, Inventory, Staff, Analytics plus custom POS, Marketing, Loyalty pages.
+
+Demo Pages
+
+- `/` Chat (AI business assistant)
+- `/pos` POS — checkout with cart, discount/tax presets, printable receipt
+- `/marketing` Campaigns — create/activate/pause, performance charts and metrics
+- `/loyalty` Rewards — add rewards/points, entries, top customers
+- `/scheduling`, `/inventory`, `/staff`, `/analytics`
+
+Key API Endpoints (demo)
+
+- POS: `GET /api/pos/sales`, `POST /api/pos/sales`, `DELETE /api/pos/sales/:id`
+- Marketing: `GET/POST /api/marketing/campaigns`, `PATCH /api/marketing/campaigns/:id`, `GET /api/marketing/performance`
+- Loyalty: `GET /api/loyalty/entries[?customerId]`, `POST /api/loyalty/entries`
 
 Testing
 
@@ -40,6 +55,16 @@ Testing
 - Smoke tests: `npm run smoke`
   - Builds the app, launches the server on an ephemeral port, probes `/api/health`, `/api/services`, `/api/staff`, `/api/appointments`, `/api/analytics`, and `/api/chat` (non-streaming), then shuts down.
   - Also validates streaming chat, CSV export, deterministic reseed (`seed`), time freeze, and demo reset.
+  - Exercises POS/Marketing/Loyalty endpoints for demo flows
+
+Navigation and smoke helpers
+
+- Dev smoke (dev server + Vite middleware): `npm run dev:smoke`
+  - Verifies SPA routes (`/`, `/scheduling`, `/inventory`, `/staff`, `/analytics`), key APIs, CSV export, and chat streaming in demo mode.
+- Prod smoke (alt runner): `npm run smoke:prod`
+  - Starts the built server and repeats health/route/API checks.
+- Navigation E2E: `npm run nav:e2e`
+  - Clicks sidebar buttons (Chat, Scheduling, Inventory, Staff, Analytics), asserts active highlight updates, toggles the sidebar, and validates tooltip on hover when collapsed.
 
 Demo Controls & Links
 
@@ -65,6 +90,20 @@ Notes
 
 - `npm run check` TypeScript checks will flag Next.js files under `app/` that are not required for this demo. You can ignore that command for the demo or remove the `app/` and top-level `components/` Next-specific files.
 - Built assets are emitted to `dist/public`; the server bundles to `dist/index.js`.
+
+Demo Walkthrough
+
+- Script: see `demo/DEMO-SCRIPT.md`
+- Video outline: see `demo/VIDEO-OUTLINE.md`
+- Generate screenshots for your deck: `npm run demo:screens` (screens saved to `demo/assets/screens`)
+
+Browserslist
+
+You may see a `caniuse-lite` “browsers data is old” warning during build. To refresh locally:
+
+```
+npm run browserslist:update
+```
 
 Common Issues
 

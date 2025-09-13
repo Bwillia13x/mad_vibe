@@ -216,3 +216,19 @@
   border-radius: 0 0 0.5rem 0.5rem;
   z-index: 1000;
 }
+/* Print-only narrow receipt styling for POS dialog */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  body * { visibility: hidden !important; }
+  .receipt, .receipt * { visibility: visible !important; }
+  .receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    margin: 0 auto;
+    font-size: 12px;
+    background: #fff !important;
+    color: #000 !important;
+  }
+}

@@ -26,6 +26,10 @@ export default function AnalyticsPage() {
   const { data: analyticsSnapshots, isLoading, error, refetch } = useQuery<AnalyticsSnapshot[]>({
     queryKey: ['/api/analytics'],
   })
+  const { data: campaigns = [] } = useQuery<any[]>({ queryKey: ['/api/marketing/campaigns'] })
+  const { data: loyaltyEntries = [] } = useQuery<any[]>({ queryKey: ['/api/loyalty/entries'] })
+  const { data: posSales = [] } = useQuery<any[]>({ queryKey: ['/api/pos/sales'] })
+  const { data: marketingPerf } = useQuery<any>({ queryKey: ['/api/marketing/performance'] })
 
   // Sort analytics snapshots by date client-side for robustness
   const snapshots = [...(analyticsSnapshots || [])].sort((a, b) => +new Date(b.date) - +new Date(a.date))
@@ -81,6 +85,9 @@ export default function AnalyticsPage() {
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['/api/analytics'] })
+    queryClient.invalidateQueries({ queryKey: ['/api/marketing/campaigns'] })
+    queryClient.invalidateQueries({ queryKey: ['/api/loyalty/entries'] })
+    queryClient.invalidateQueries({ queryKey: ['/api/pos/sales'] })
   }
 
   const formatCurrency = (value: number) => {
@@ -268,6 +275,56 @@ export default function AnalyticsPage() {
             </Card>
           </div>
 
+          {/* Operational Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Active Campaigns</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {Array.isArray(campaigns) ? campaigns.filter((c: any) => c.status === 'active').length : 0}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Loyalty Entries (This Month)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {Array.isArray(loyaltyEntries) ? (() => { const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth(), 1); const next = new Date(now.getFullYear(), now.getMonth()+1, 1); return loyaltyEntries.filter((e: any) => { const d = new Date(e.createdAt); return d >= start && d < next }).length })() : 0}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-gray-600 dark:text-gray-400">POS Sales (Today)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {Array.isArray(posSales) ? (() => { const now = new Date(); const start = new Date(now); start.setHours(0,0,0,0); const end = new Date(now); end.setHours(23,59,59,999); return posSales.filter((s: any) => { const d = new Date(s.createdAt); return d >= start && d <= end }).length })() : 0}
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  {Array.isArray(posSales) ? (() => { const now = new Date(); const start = new Date(now); start.setHours(0,0,0,0); const end = new Date(now); end.setHours(23,59,59,999); const total = posSales.filter((s: any) => { const d = new Date(s.createdAt); return d >= start && d <= end }).reduce((sum: number, s: any) => sum + parseFloat(s.total || '0'), 0); return `Revenue: $${total.toFixed(2)}` })() : 'Revenue: $0.00'}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-gray-600 dark:text-gray-400">POS Sales (This Week)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {Array.isArray(posSales) ? (() => { const now = new Date(); const day = now.getDay(); const diff = (day === 0 ? 6 : day - 1); const start = new Date(now); start.setDate(now.getDate() - diff); start.setHours(0,0,0,0); const end = new Date(start); end.setDate(start.getDate() + 7); end.setHours(0,0,0,0); return posSales.filter((s: any) => { const d = new Date(s.createdAt); return d >= start && d < end }).length })() : 0}
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  {Array.isArray(posSales) ? (() => { const now = new Date(); const day = now.getDay(); const diff = (day === 0 ? 6 : day - 1); const start = new Date(now); start.setDate(now.getDate() - diff); start.setHours(0,0,0,0); const end = new Date(start); end.setDate(start.getDate() + 7); end.setHours(0,0,0,0); const total = posSales.filter((s: any) => { const d = new Date(s.createdAt); return d >= start && d < end }).reduce((sum: number, s: any) => sum + parseFloat(s.total || '0'), 0); return `Revenue: $${total.toFixed(2)}` })() : 'Revenue: $0.00'}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <Card>
@@ -333,6 +390,81 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Campaign Performance */}
+          {marketingPerf && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Total Impressions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {marketingPerf.summary?.impressions?.toLocaleString?.() || marketingPerf.summary?.impressions || 0}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Clicks · CTR</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {(marketingPerf.summary?.clicks || 0).toLocaleString?.()}
+                    <span className="text-sm text-gray-500 ml-2">({marketingPerf.summary?.ctr || 0}%)</span>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Conversions · Rate</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {(marketingPerf.summary?.conversions || 0).toLocaleString?.()}
+                    <span className="text-sm text-gray-500 ml-2">({marketingPerf.summary?.convRate || 0}%)</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Campaign Conversions */}
+          {marketingPerf?.campaigns?.length ? (
+            <div className="grid grid-cols-1 gap-6 mb-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Campaign Conversions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <ChartContainer
+                      config={{
+                        conversions: { label: 'Conversions', color: 'hsl(var(--chart-3))' },
+                      }}
+                    >
+                      <BarChart data={marketingPerf.campaigns.map((c: any) => ({ name: c.name, conversions: c.conversions, ctr: c.ctr }))}>
+                        <XAxis dataKey="name" hide={false} tickFormatter={(s: string) => (s.length > 10 ? s.slice(0, 10) + '…' : s)} />
+                        <YAxis />
+                        <ChartTooltip content={({ active, payload }) => {
+                          if (!active || !payload || !payload.length) return null;
+                          const d: any = payload[0].payload;
+                          return (
+                            <div className="rounded-md border bg-popover px-3 py-2 text-sm shadow-md">
+                              <div className="font-medium">{d.name}</div>
+                              <div>Conversions: {d.conversions}</div>
+                              <div>CTR: {d.ctr}%</div>
+                            </div>
+                          );
+                        }} />
+                        <Bar dataKey="conversions" fill="var(--color-conversions)" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ChartContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : null}
 
           {/* AI Insights */}
           <Card>

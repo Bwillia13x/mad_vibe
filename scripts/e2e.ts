@@ -19,7 +19,7 @@ async function waitForPortFile(portFile: string, timeoutMs = 20000): Promise<num
 }
 
 async function main() {
-  const outDir = path.resolve('.local', 'screens')
+  const outDir = path.resolve('demo', 'assets', 'screens')
   fs.mkdirSync(outDir, { recursive: true })
   const portFile = path.resolve('.local', 'e2e_port')
   try { if (fs.existsSync(portFile)) fs.unlinkSync(portFile) } catch {}
@@ -68,6 +68,21 @@ async function main() {
     await page.waitForSelector('[data-testid="heading-staff"]', { timeout: 10000 })
     await page.screenshot({ path: path.join(outDir, 'staff.png') })
 
+    // POS
+    await page.goto(base + '/pos')
+    await page.waitForSelector('[data-testid="heading-pos"]', { timeout: 10000 })
+    await page.screenshot({ path: path.join(outDir, 'pos.png') })
+
+    // Marketing
+    await page.goto(base + '/marketing')
+    await page.waitForSelector('[data-testid="heading-marketing"]', { timeout: 10000 })
+    await page.screenshot({ path: path.join(outDir, 'marketing.png') })
+
+    // Loyalty
+    await page.goto(base + '/loyalty')
+    await page.waitForSelector('[data-testid="heading-loyalty"]', { timeout: 10000 })
+    await page.screenshot({ path: path.join(outDir, 'loyalty.png') })
+
     await browser.close()
     console.log(`E2E screenshots saved to ${outDir}`)
   } finally {
@@ -76,4 +91,3 @@ async function main() {
 }
 
 main().catch((err) => { console.error('E2E failed:', err); process.exit(1) })
-

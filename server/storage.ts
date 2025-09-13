@@ -14,7 +14,13 @@ import {
   type InventoryItem,
   type InsertInventoryItem,
   type AnalyticsSnapshot,
-  type InsertAnalyticsSnapshot
+  type InsertAnalyticsSnapshot,
+  type PosSale,
+  type InsertPosSale,
+  type Campaign,
+  type InsertCampaign,
+  type LoyaltyEntry,
+  type InsertLoyaltyEntry
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -72,6 +78,20 @@ export interface IStorage {
   getAnalytics(id: string): Promise<AnalyticsSnapshot | undefined>;
   createAnalytics(analytics: InsertAnalyticsSnapshot): Promise<AnalyticsSnapshot>;
   
+  // POS
+  getAllSales(): Promise<PosSale[]>;
+  createSale(sale: InsertPosSale): Promise<PosSale>;
+  deleteSale(id: string): Promise<boolean>;
+
+  // Marketing
+  getAllCampaigns(): Promise<Campaign[]>;
+  createCampaign(campaign: InsertCampaign): Promise<Campaign>;
+  updateCampaign(id: string, patch: Partial<InsertCampaign>): Promise<Campaign | undefined>;
+
+  // Loyalty
+  getLoyaltyEntries(customerId?: string): Promise<LoyaltyEntry[]>;
+  createLoyaltyEntry(entry: InsertLoyaltyEntry): Promise<LoyaltyEntry>;
+  
   // Seed method
   seedDemoData(scenario?: string): Promise<void>;
   getCurrentScenario?(): string;
@@ -86,6 +106,9 @@ export class MemStorage implements IStorage {
   private appointments: Map<string, Appointment>;
   private inventoryItems: Map<string, InventoryItem>;
   private analytics: Map<string, AnalyticsSnapshot>;
+  private sales: Map<string, PosSale>;
+  private campaigns: Map<string, Campaign>;
+  private loyaltyEntries: Map<string, LoyaltyEntry>;
   private scenario: string = 'default';
   private seed: number = 12345;
   private rng: (() => number) | null = null;
@@ -98,6 +121,9 @@ export class MemStorage implements IStorage {
     this.appointments = new Map();
     this.inventoryItems = new Map();
     this.analytics = new Map();
+    this.sales = new Map();
+    this.campaigns = new Map();
+    this.loyaltyEntries = new Map();
   }
 
   // User methods
@@ -423,6 +449,130 @@ export class MemStorage implements IStorage {
     };
     this.analytics.set(id, newAnalytics);
     return newAnalytics;
+  }
+
+  // POS methods
+  async getAllSales(): Promise<PosSale[]> {
+    return Array.from(this.sales.values()).sort((a, b) => +b.createdAt - +a.createdAt);
+  }
+
+  async createSale(sale: InsertPosSale): Promise<PosSale> {
+    const id = randomUUID();
+    const createdAt = new Date();
+    const items: import('@shared/schema').PosLineItem[] = [];
+    let subtotalNum = 0;
+
+    for (const it of sale.items || []) {
+      if (!it || (it.kind !== 'service' && it.kind !== 'product')) {
+        throw new Error('Invalid line item');
+      }
+      const qty = Math.max(1, Math.floor(it.quantity || 1));
+      if (it.kind === 'service') {
+        const svc = await this.getService(it.id);
+        if (!svc) throw new Error('Service not found');
+        const unit = parseFloat(String(svc.price));
+        const subtotal = unit * qty;
+        items.push({ kind: 'service', id: svc.id, name: svc.name, quantity: qty, unitPrice: unit.toFixed(2), subtotal: subtotal.toFixed(2) });
+        subtotalNum += subtotal;
+      } else {
+        const prod = await this.getInventoryItem(it.id);
+        if (!prod) throw new Error('Product not found');
+        const unit = parseFloat(String(prod.retailPrice ?? prod.unitCost));
+        const subtotal = unit * qty;
+        items.push({ kind: 'product', id: prod.id, name: prod.name, quantity: qty, unitPrice: unit.toFixed(2), subtotal: subtotal.toFixed(2) });
+        subtotalNum += subtotal;
+        // decrement stock and update status
+        const newStock = Math.max(0, (prod.currentStock ?? 0) - qty);
+        let status: InventoryItem['status'] = 'in-stock';
+        if (newStock === 0) status = 'out-of-stock' as any;
+        else if (newStock <= (prod.minStock ?? 0)) status = 'low' as any;
+        await this.updateInventoryItem(prod.id, { currentStock: newStock as any, status: status as any });
+      }
+    }
+
+    const discountPct = typeof sale.discountPct === 'number' ? Math.max(0, sale.discountPct) : 0;
+    const taxPct = typeof sale.taxPct === 'number' ? Math.max(0, sale.taxPct) : 0;
+    const discountAmt = subtotalNum * (discountPct / 100);
+    const taxableBase = subtotalNum - discountAmt;
+    const taxAmt = taxableBase * (taxPct / 100);
+    const totalNum = taxableBase + taxAmt;
+    const record: PosSale = { id, items, subtotal: subtotalNum.toFixed(2), discount: discountAmt.toFixed(2), tax: taxAmt.toFixed(2), total: totalNum.toFixed(2), createdAt };
+    this.sales.set(id, record);
+    return record;
+  }
+
+  async deleteSale(id: string): Promise<boolean> {
+    const existing = this.sales.get(id);
+    if (!existing) return false;
+    // Restock products
+    for (const li of existing.items) {
+      if (li.kind === 'product') {
+        const prod = await this.getInventoryItem(li.id);
+        if (prod) {
+          const newStock = (prod.currentStock ?? 0) + (li.quantity || 0);
+          let status: InventoryItem['status'] = 'in-stock';
+          if (newStock === 0) status = 'out-of-stock' as any;
+          else if (newStock <= (prod.minStock ?? 0)) status = 'low' as any;
+          await this.updateInventoryItem(prod.id, { currentStock: newStock as any, status: status as any });
+        }
+      }
+    }
+    this.sales.delete(id);
+    return true;
+  }
+
+  // Marketing methods
+  async getAllCampaigns(): Promise<Campaign[]> {
+    return Array.from(this.campaigns.values()).sort((a, b) => +b.createdAt - +a.createdAt);
+  }
+
+  async createCampaign(campaign: InsertCampaign): Promise<Campaign> {
+    const id = randomUUID();
+    const createdAt = new Date();
+    const rec: Campaign = {
+      id,
+      name: campaign.name,
+      description: campaign.description ?? null,
+      channel: campaign.channel ?? 'email',
+      status: campaign.status ?? 'draft',
+      createdAt,
+    };
+    this.campaigns.set(id, rec);
+    return rec;
+  }
+
+  async updateCampaign(id: string, patch: Partial<InsertCampaign>): Promise<Campaign | undefined> {
+    const existing = this.campaigns.get(id);
+    if (!existing) return undefined;
+    const updated: Campaign = {
+      ...existing,
+      ...patch,
+    } as Campaign;
+    this.campaigns.set(id, updated);
+    return updated;
+  }
+
+  // Loyalty methods
+  async getLoyaltyEntries(customerId?: string): Promise<LoyaltyEntry[]> {
+    const all = Array.from(this.loyaltyEntries.values()).sort((a, b) => +b.createdAt - +a.createdAt);
+    return customerId ? all.filter(e => e.customerId === customerId) : all;
+  }
+
+  async createLoyaltyEntry(entry: InsertLoyaltyEntry): Promise<LoyaltyEntry> {
+    const id = randomUUID();
+    const createdAt = new Date();
+    const customer = await this.getCustomer(entry.customerId);
+    if (!customer) throw new Error('Customer not found');
+    const rec: LoyaltyEntry = {
+      id,
+      customerId: entry.customerId,
+      type: entry.type,
+      points: typeof entry.points === 'number' ? entry.points : null,
+      note: entry.note ?? null,
+      createdAt,
+    };
+    this.loyaltyEntries.set(id, rec);
+    return rec;
   }
 
   getCurrentScenario() { return this.scenario; }

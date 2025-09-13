@@ -68,9 +68,14 @@ jobs:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "false"
         run: npm run e2e
 
+      - name: Run Navigation E2E (headless)
+        env:
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "false"
+        run: npm run nav:e2e
+
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-screenshots
-          path: .local/screens
+          path: demo/assets/screens

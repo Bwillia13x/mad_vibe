@@ -252,6 +252,193 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POS endpoints
+  app.get("/api/pos/sales", async (_req, res) => {
+    try {
+      const sales = await storage.getAllSales();
+      res.json(sales);
+    } catch (error) {
+      console.error("Error getting sales:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // POS sales CSV export
+  app.get("/api/pos/sales/export", async (_req, res) => {
+    try {
+      const sales = await storage.getAllSales();
+      const header = [
+        'id','createdAt','subtotal','discount','tax','total','items'
+      ];
+      const rows = sales.map(s => [
+        s.id,
+        new Date(s.createdAt).toISOString(),
+        s.subtotal ?? '',
+        s.discount ?? '',
+        s.tax ?? '',
+        s.total,
+        (s.items || []).map(i => `${i.kind}:${i.name}x${i.quantity}@${i.unitPrice}`).join('; ')
+      ]);
+      const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="pos-sales.csv"');
+      res.send(csv);
+    } catch (error) {
+      console.error("Error exporting sales:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/pos/sales", async (req, res) => {
+    try {
+      const items = Array.isArray(req.body?.items) ? req.body.items : [];
+      if (!items.length) return res.status(400).json({ message: 'No items provided' });
+      const discountPct = typeof req.body?.discountPct === 'number' ? req.body.discountPct : undefined;
+      const taxPct = typeof req.body?.taxPct === 'number' ? req.body.taxPct : undefined;
+      const sale = await storage.createSale({ items, discountPct, taxPct });
+      res.json(sale);
+    } catch (error: any) {
+      console.error("Error creating sale:", error);
+      res.status(400).json({ message: error?.message || "Failed to create sale" });
+    }
+  });
+
+  app.delete("/api/pos/sales/:id", async (req, res) => {
+    try {
+      const ok = await storage.deleteSale(req.params.id);
+      if (!ok) return res.status(404).json({ message: 'Sale not found' });
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error deleting sale:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Marketing endpoints
+  app.get("/api/marketing/campaigns", async (_req, res) => {
+    try {
+      const campaigns = await storage.getAllCampaigns();
+      res.json(campaigns);
+    } catch (error) {
+      console.error("Error getting campaigns:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/marketing/campaigns", async (req, res) => {
+    try {
+      const { name, description, channel, status } = req.body || {};
+      if (!name || typeof name !== 'string') return res.status(400).json({ message: 'Name is required' });
+      const campaign = await storage.createCampaign({ name, description, channel, status });
+      res.json(campaign);
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/marketing/campaigns/:id", async (req, res) => {
+    try {
+      const { status, name, description, channel } = req.body || {};
+      const updated = await storage.updateCampaign(req.params.id, { status, name, description, channel });
+      if (!updated) return res.status(404).json({ message: 'Campaign not found' });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating campaign:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Marketing performance (mock metrics derived deterministically)
+  app.get("/api/marketing/performance", async (_req, res) => {
+    try {
+      const campaigns = await storage.getAllCampaigns();
+      function hashToFloat(s: string): number {
+        let h = 2166136261 >>> 0;
+        for (let i = 0; i < s.length; i++) {
+          h ^= s.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return (h % 1000) / 1000;
+      }
+      const list = campaigns.map((c) => {
+        const base = 3000 + Math.floor(hashToFloat(c.id + 'imp') * 12000); // 3k-15k
+        const ctr = 0.02 + hashToFloat(c.id + 'ctr') * 0.06; // 2%-8%
+        const clicks = Math.max(1, Math.floor(base * ctr));
+        const convRate = 0.03 + hashToFloat(c.id + 'conv') * 0.12; // 3%-15%
+        const conversions = Math.max(0, Math.floor(clicks * convRate));
+        return {
+          id: c.id,
+          name: c.name,
+          impressions: base,
+          clicks,
+          ctr: +(ctr * 100).toFixed(2),
+          conversions,
+          convRate: +(convRate * 100).toFixed(2),
+        };
+      });
+      const summary = list.reduce((acc, x) => {
+        acc.impressions += x.impressions;
+        acc.clicks += x.clicks;
+        acc.conversions += x.conversions;
+        return acc;
+      }, { impressions: 0, clicks: 0, conversions: 0, ctr: 0, convRate: 0 });
+      summary.ctr = summary.impressions ? +(summary.clicks / summary.impressions * 100).toFixed(2) : 0;
+      summary.convRate = summary.clicks ? +(summary.conversions / summary.clicks * 100).toFixed(2) : 0;
+      res.json({ summary, campaigns: list });
+    } catch (error) {
+      console.error('Error generating marketing performance:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Loyalty endpoints
+  app.get("/api/loyalty/entries", async (req, res) => {
+    try {
+      const customerId = typeof req.query.customerId === 'string' ? req.query.customerId : undefined;
+      const entries = await storage.getLoyaltyEntries(customerId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error getting loyalty entries:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Loyalty CSV export
+  app.get("/api/loyalty/entries/export", async (_req, res) => {
+    try {
+      const entries = await storage.getLoyaltyEntries();
+      const header = ['id','customerId','type','points','note','createdAt'];
+      const rows = entries.map(e => [
+        e.id,
+        e.customerId,
+        e.type,
+        String(e.points ?? ''),
+        (e.note ?? '').replace(/,/g, ';'),
+        new Date(e.createdAt).toISOString()
+      ]);
+      const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="loyalty-entries.csv"');
+      res.send(csv);
+    } catch (error) {
+      console.error('Error exporting loyalty entries:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post("/api/loyalty/entries", async (req, res) => {
+    try {
+      const { customerId, type, points, note } = req.body || {};
+      if (!customerId || !type) return res.status(400).json({ message: 'customerId and type are required' });
+      const entry = await storage.createLoyaltyEntry({ customerId, type, points, note });
+      res.json(entry);
+    } catch (error: any) {
+      console.error("Error creating loyalty entry:", error);
+      res.status(400).json({ message: error?.message || "Failed to create loyalty entry" });
+    }
+  });
+
   app.get("/api/analytics/:id", async (req, res) => {
     try {
       const analyticsData = await storage.getAnalytics(req.params.id);
