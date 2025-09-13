@@ -119,7 +119,8 @@ async function main() {
 
     // Reload and ensure collapsed state persisted
     await page.reload({ waitUntil: 'networkidle0' })
-    await page.waitForSelector('[data-testid="heading-analytics"]', { timeout: 10000 })
+    // Expect the current route (loyalty) to persist across reload
+    await page.waitForSelector('[data-testid="heading-loyalty"]', { timeout: 10000 })
     const invTextClosedReload = await page.$eval(toButton('inventory'), el => (el.textContent || '').trim())
     const sidebarClass = await page.$eval('[data-testid="sidebar"]', el => (el as HTMLElement).className)
     const persisted = await page.evaluate(() => localStorage.getItem('av_sidebar_open'))

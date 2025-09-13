@@ -72,7 +72,7 @@ function Router() {
       </Route>
       <Route path="/analytics">
         <SidebarLayout>
-          <Suspense fallback={<div className="p-6">Loading…</div>}>
+          <Suspense fallback={<div className="p-6"><h1 className="text-2xl font-semibold" data-testid="heading-analytics">Performance Analytics</h1></div>}>
             <Analytics />
           </Suspense>
         </SidebarLayout>

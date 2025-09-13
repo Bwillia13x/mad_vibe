@@ -114,6 +114,9 @@ export default function AnalyticsPage() {
   if (error) {
     return (
       <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4" data-testid="heading-analytics">
+          Performance Analytics
+        </h1>
         <Alert className="max-w-md mx-auto" data-testid="error-analytics">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="ml-2">
@@ -130,6 +133,9 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return (
       <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4" data-testid="heading-analytics">
+          Performance Analytics
+        </h1>
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -145,6 +151,9 @@ export default function AnalyticsPage() {
   if (snapshots.length < 2) {
     return (
       <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4" data-testid="heading-analytics">
+          Performance Analytics
+        </h1>
         <Alert className="max-w-md mx-auto">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="ml-2">

@@ -6,6 +6,7 @@ import type { Customer } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useMemo, useState } from "react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Card as UCard, CardContent as UCardContent, CardHeader as UCardHeader, CardTitle as UCardTitle } from "@/components/ui/card";
 
 export default function LoyaltyPage() {

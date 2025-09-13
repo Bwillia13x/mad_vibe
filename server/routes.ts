@@ -353,14 +353,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/marketing/performance", async (_req, res) => {
     try {
       const campaigns = await storage.getAllCampaigns();
-      function hashToFloat(s: string): number {
+      const hashToFloat = (s: string): number => {
         let h = 2166136261 >>> 0;
         for (let i = 0; i < s.length; i++) {
           h ^= s.charCodeAt(i);
           h = Math.imul(h, 16777619);
         }
         return (h % 1000) / 1000;
-      }
+      };
       const list = campaigns.map((c) => {
         const base = 3000 + Math.floor(hashToFloat(c.id + 'imp') * 12000); // 3k-15k
         const ctr = 0.02 + hashToFloat(c.id + 'ctr') * 0.06; // 2%-8%
