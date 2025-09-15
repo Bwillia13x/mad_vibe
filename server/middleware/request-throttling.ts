@@ -133,8 +133,6 @@ export class RequestThrottler {
 
     // Calculate requests per minute/hour
     const now = Date.now();
-    const oneMinuteAgo = now - 60000;
-    const oneHourAgo = now - 3600000;
 
     // Clean up old rate limit windows
     for (const [key, window] of this.rateLimitWindows.entries()) {

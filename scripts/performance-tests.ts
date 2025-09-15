@@ -4,7 +4,6 @@
  * Executes load testing, response time testing, and memory monitoring
  */
 
-import { TestOrchestrator } from '../test/orchestrator/test-orchestrator.js';
 import { loadTestConfig, validateTestConfig } from '../test/config/test-config.js';
 import { PerformanceTestSuite, createDefaultPerformanceConfig } from '../test/performance/performance-test-suite.js';
 

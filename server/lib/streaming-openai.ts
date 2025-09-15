@@ -1,5 +1,4 @@
 import OpenAI from "openai";
-import { Readable } from "stream";
 
 import { getEnvVar } from '../../lib/env-security';
 

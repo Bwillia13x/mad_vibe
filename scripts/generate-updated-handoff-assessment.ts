@@ -12,7 +12,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 // Import validation modules
-import { runClientHandoffValidation } from './client-handoff-validation.js';
 
 interface AssessmentResult {
   timestamp: string;
@@ -61,7 +60,7 @@ async function runComprehensiveValidation(): Promise<AssessmentResult> {
   console.log('🎯 Generating Updated Client Handoff Assessment');
   console.log('===============================================');
   
-  const startTime = Date.now();
+  const _startTime = Date.now();
   const portFile = path.resolve('.local', 'handoff_assessment_port');
   
   // Clean up port file
@@ -192,7 +191,7 @@ async function runFunctionalValidation(baseUrl: string): Promise<TestCategoryRes
         issues.push(`UI Module ${module}: Not serving HTML`);
         console.log(`    ❌ UI Module: ${module}`);
       }
-    } catch (error) {
+    } catch {
       issues.push(`UI Module ${module}: Connection failed`);
       console.log(`    ❌ UI Module: ${module}`);
     }
@@ -222,7 +221,7 @@ async function runPerformanceValidation(baseUrl: string): Promise<TestCategoryRe
   // Test 1: API Response Times
   try {
     const start = Date.now();
-    const response = await fetch(`${baseUrl}/api/health`);
+    const _response = await fetch(`${baseUrl}/api/health`);
     const responseTime = Date.now() - start;
     
     if (responseTime < 500) {
@@ -242,7 +241,7 @@ async function runPerformanceValidation(baseUrl: string): Promise<TestCategoryRe
   // Test 2: Page Load Times
   try {
     const start = Date.now();
-    const response = await fetch(`${baseUrl}/`);
+    const _response = await fetch(`${baseUrl}/`);
     const loadTime = Date.now() - start;
     
     if (loadTime < 3000) {
@@ -381,7 +380,7 @@ async function runSecurityValidation(baseUrl: string): Promise<TestCategoryResul
       }
     }
     tests.push('Input Validation');
-  } catch (error) {
+  } catch {
     // Network error is acceptable for security testing
     passedTests++;
     console.log(`    ✅ Input Validation: Request properly blocked`);
@@ -553,7 +552,7 @@ function calculateOverallAssessment(results: AssessmentResult['summary']): Asses
   let recommendation: string;
   
   const criticalFailures = categories.filter(cat => cat.status === 'FAILED').length;
-  const partialPasses = categories.filter(cat => cat.status === 'PARTIAL_PASS').length;
+  const _partialPasses = categories.filter(cat => cat.status === 'PARTIAL_PASS').length;
   
   if (overallScore >= 98 && criticalFailures === 0) {
     overallStatus = 'GREENLIGHT';
@@ -628,7 +627,7 @@ function generateRecommendations(results: AssessmentResult['summary'], issues: s
   return recommendations;
 }
 
-function generateNextSteps(status: 'GREENLIGHT' | 'YELLOWLIGHT' | 'REDLIGHT', results: AssessmentResult['summary']): string[] {
+function generateNextSteps(status: 'GREENLIGHT' | 'YELLOWLIGHT' | 'REDLIGHT', _results: AssessmentResult['summary']): string[] {
   const steps: string[] = [];
   
   switch (status) {
@@ -658,7 +657,7 @@ function generateNextSteps(status: 'GREENLIGHT' | 'YELLOWLIGHT' | 'REDLIGHT', re
 }
 
 async function generateAssessmentReport(assessment: AssessmentResult): Promise<void> {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const _timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const reportPath = `CLIENT_HANDOFF_ASSESSMENT_UPDATED.md`;
   
   const statusEmoji = assessment.overallStatus === 'GREENLIGHT' ? '🟢' : 

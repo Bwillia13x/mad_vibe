@@ -8,7 +8,6 @@
  */
 
 import fs from 'node:fs';
-import path from 'node:path';
 
 interface AssessmentResult {
   timestamp: string;
@@ -44,7 +43,7 @@ async function generateSimpleAssessment(): Promise<AssessmentResult> {
   const buildStatus = checkBuildArtifacts();
   
   // Check configuration files
-  const configStatus = checkConfiguration();
+  const _configStatus = checkConfiguration();
   
   // Check deployment readiness
   const deploymentStatus = checkDeploymentReadiness();
@@ -242,7 +241,7 @@ function calculateAssessment(results: AssessmentResult['summary']): AssessmentRe
   let recommendation: string;
   
   const criticalFailures = categories.filter(cat => cat.status === 'FAILED').length;
-  const partialPasses = categories.filter(cat => cat.status === 'PARTIAL_PASS').length;
+  const _partialPasses = categories.filter(cat => cat.status === 'PARTIAL_PASS').length;
   
   if (overallScore >= 95 && criticalFailures === 0) {
     overallStatus = 'GREENLIGHT';
@@ -311,7 +310,7 @@ function generateRecommendations(results: AssessmentResult['summary'], issues: s
   return recommendations;
 }
 
-function generateNextSteps(status: 'GREENLIGHT' | 'YELLOWLIGHT' | 'REDLIGHT', results: AssessmentResult['summary']): string[] {
+function generateNextSteps(status: 'GREENLIGHT' | 'YELLOWLIGHT' | 'REDLIGHT', _results: AssessmentResult['summary']): string[] {
   const steps: string[] = [];
   
   switch (status) {

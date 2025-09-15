@@ -19,7 +19,7 @@ async function setupSecretsRotation() {
     configureRotation({
       key: 'ADMIN_TOKEN',
       rotationIntervalHours: 24 * 7, // Weekly
-      rotationCallback: async (newToken) => {
+      rotationCallback: async (_newToken) => {
         console.log('🔑 Admin token rotated successfully');
         // In production, you would update external systems here
         // await updateLoadBalancerConfig(newToken);
@@ -33,7 +33,7 @@ async function setupSecretsRotation() {
     configureRotation({
       key: 'OPENAI_API_KEY',
       rotationIntervalHours: 24 * 30, // Monthly
-      rotationCallback: async (newKey) => {
+      rotationCallback: async (_newKey) => {
         console.log('🔑 OpenAI API key rotated successfully');
         // In production, you would update the OpenAI client here
         // await reinitializeOpenAIClient(newKey);

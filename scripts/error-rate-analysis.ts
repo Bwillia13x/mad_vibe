@@ -6,12 +6,11 @@
 
 import { TestHttpClient, startTestServer, type TestEnvironment } from '../test/utils/test-environment.js';
 import { loadTestConfig } from '../test/config/test-config.js';
-import { 
-  LoadTestingFramework, 
-  createDefaultLoadTestConfig,
+import {
+  LoadTestingFramework,
   createDynamicLoadTestConfig,
   type LoadTestResult,
-  type LoadTestError 
+  type LoadTestError
 } from '../test/performance/load-testing-framework.js';
 
 interface ErrorAnalysis {

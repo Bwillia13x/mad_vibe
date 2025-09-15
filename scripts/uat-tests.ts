@@ -25,7 +25,7 @@ async function runUATTests() {
   console.log('🎯 Starting User Acceptance Testing Suite');
   console.log('   This comprehensive test validates all demo scenarios, user workflows, and acceptance criteria');
   
-  const startTime = Date.now();
+  const _startTime = Date.now();
   const portFile = path.resolve('.local', 'uat_port');
   
   // Clean up port file

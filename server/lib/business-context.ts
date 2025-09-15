@@ -13,15 +13,13 @@ export async function getBusinessContext(): Promise<string> {
   try {
     // Fetch all relevant business data concurrently
     const [
-      businessProfile,
-      todaysAppointments, 
+      todaysAppointments,
       allStaff,
       allServices,
       inventoryItems,
       recentAnalytics,
       allCustomers
     ] = await Promise.all([
-      storage.getBusinessProfile(),
       storage.getAppointmentsByDay(new Date()),
       storage.getAllStaff(),
       storage.getAllServices(),

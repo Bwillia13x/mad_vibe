@@ -2,7 +2,6 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { UserWorkflowTests } from '../test/e2e/user-workflow-tests';
-import { startTestServer, TestHttpClient, TestDataManager } from '../test/utils/test-environment';
 import { TestReporter } from '../test/reporting/test-reporter';
 import { TestConfig } from '../test/config/test-config';
 
@@ -61,31 +60,6 @@ async function runEnhancedE2ETests() {
     console.log(`✅ Server started on ${baseUrl}`);
 
     // Initialize test environment and reporter
-    const testConfig: TestConfig = {
-      environment: 'production',
-      testSuites: [],
-      thresholds: {
-        maxResponseTime: 200,
-        maxMemoryUsage: 512,
-        minConcurrentUsers: 50,
-        maxErrorRate: 1
-      },
-      security: {
-        enableVulnerabilityScanning: false,
-        enablePenetrationTesting: false,
-        checkDependencies: false
-      },
-      reporting: {
-        generateHtml: true,
-        generateJson: true,
-        outputDir: 'test-results'
-      },
-      server: {
-        portFile: portFile,
-        startupTimeoutMs: 20000,
-        env: {}
-      }
-    };
 
     // Create a simple test environment object using the already started server
     const testEnv = {

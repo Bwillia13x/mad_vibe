@@ -313,7 +313,7 @@ async function main() {
     console.log('\n=== Security Validation ===')
     
     // Test security headers
-    const securityHeaders = health
+    const _securityHeaders = health
     const healthResponse = await fetch(`${base}/api/health`)
     const headers = healthResponse.headers
     
@@ -345,7 +345,7 @@ async function main() {
       } else {
         console.log('✓ Chat endpoint properly handles XSS payload')
       }
-    } catch (err) {
+    } catch {
       console.log('✓ Chat endpoint rejected malicious input')
     }
     
@@ -358,7 +358,7 @@ async function main() {
       } else {
         console.warn('⚠️  Appointments endpoint may not properly validate input')
       }
-    } catch (err) {
+    } catch {
       console.log('✓ Appointments endpoint rejected malicious input')
     }
     
@@ -381,7 +381,7 @@ async function main() {
       } else if (largeTest.ok) {
         console.warn('⚠️  Server accepts very large payloads without limits')
       }
-    } catch (err) {
+    } catch {
       console.log('✓ Server rejected oversized payload')
     }
     
@@ -398,7 +398,7 @@ async function main() {
       } else {
         console.warn('⚠️  Server may not properly validate JSON input')
       }
-    } catch (err) {
+    } catch {
       console.log('✓ Server rejected invalid JSON')
     }
     

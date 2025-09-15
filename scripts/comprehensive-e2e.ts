@@ -2,11 +2,8 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { UserWorkflowTests } from '../test/e2e/user-workflow-tests';
-import { AccessibilityTests } from '../test/accessibility/accessibility-tests';
-import { BrowserCompatibilityTests } from '../test/browser-compatibility/browser-compatibility-tests';
 import { type TestEnvironment } from '../test/utils/test-environment';
 import { TestReporter } from '../test/reporting/test-reporter';
-import { TestConfig } from '../test/config/test-config';
 
 async function delay(ms: number) { 
   return new Promise(r => setTimeout(r, ms)); 
@@ -80,31 +77,6 @@ async function runComprehensiveE2ETests(): Promise<void> {
     console.log(`✅ Server started on ${baseUrl}`);
 
     // Initialize test environment and reporter
-    const testConfig: TestConfig = {
-      environment: 'production',
-      testSuites: [],
-      thresholds: {
-        maxResponseTime: 200,
-        maxMemoryUsage: 512,
-        minConcurrentUsers: 50,
-        maxErrorRate: 1
-      },
-      security: {
-        enableVulnerabilityScanning: false,
-        enablePenetrationTesting: false,
-        checkDependencies: false
-      },
-      reporting: {
-        generateHtml: true,
-        generateJson: true,
-        outputDir: 'test-results'
-      },
-      server: {
-        portFile: portFile,
-        startupTimeoutMs: 20000,
-        env: {}
-      }
-    };
 
     // Use the server we just started rather than starting a second one
     const testEnv: TestEnvironment = {

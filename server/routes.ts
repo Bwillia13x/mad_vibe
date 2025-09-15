@@ -1,25 +1,23 @@
-import type { Express, Request } from "express";
+import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import chatRouter from "./routes/chat";
 import { getNow, setFreeze, getFreeze } from "./lib/clock";
-import { requireAuth, optionalAuth, rateLimitedAuth, type AuthenticatedRequest } from "./middleware/auth";
+import { rateLimitedAuth, type AuthenticatedRequest } from "./middleware/auth";
 import { securityHeaders } from "./middleware/security-headers";
-import { 
-  inputValidation, 
-  strictInputValidation, 
-  validateContentType, 
-  validateRequestSize,
-  type SanitizedRequest 
+import {
+  inputValidation,
+  strictInputValidation,
+  validateContentType,
+  validateRequestSize
 } from "./middleware/input-validation";
-import { 
-  circuitBreakerMiddleware, 
-  enhancedErrorHandler, 
+import {
+  circuitBreakerMiddleware,
   requestTimeoutMiddleware,
   connectionMonitoringMiddleware,
   getCircuitBreakerStatus
 } from "./middleware/error-handling";
-import { getEnvVar, getSafeEnvConfig } from '../lib/env-security';
+import { getEnvVar } from '../lib/env-security';
 
 // Extend Express Request to include session
 declare module 'express-session' {
