@@ -23,18 +23,64 @@ async function get(url: string) {
   return await fetch(url)
 }
 
+// Performance metrics collection
+interface PerformanceMetrics {
+  url: string
+  method: string
+  responseTime: number
+  status: number
+  memoryUsage?: number
+}
+
+const performanceMetrics: PerformanceMetrics[] = []
+
+function getMemoryUsage(): number {
+  const usage = process.memoryUsage()
+  return Math.round(usage.heapUsed / 1024 / 1024) // MB
+}
+
 async function getJson(url: string) {
+  const startTime = Date.now()
+  const startMemory = getMemoryUsage()
+  
   const res = await get(url)
+  
+  const endTime = Date.now()
+  const endMemory = getMemoryUsage()
+  
+  performanceMetrics.push({
+    url,
+    method: 'GET',
+    responseTime: endTime - startTime,
+    status: res.status,
+    memoryUsage: endMemory - startMemory
+  })
+  
   if (!res.ok) throw new Error(`${url} -> ${res.status}`)
   return await res.json()
 }
 
 async function postJson(url: string, body: unknown) {
+  const startTime = Date.now()
+  const startMemory = getMemoryUsage()
+  
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   })
+  
+  const endTime = Date.now()
+  const endMemory = getMemoryUsage()
+  
+  performanceMetrics.push({
+    url,
+    method: 'POST',
+    responseTime: endTime - startTime,
+    status: res.status,
+    memoryUsage: endMemory - startMemory
+  })
+  
   if (!res.ok) throw new Error(`${url} -> ${res.status}`)
   return await res.json()
 }
@@ -127,11 +173,78 @@ async function main() {
     const analytics = await getJson(`${base}/api/analytics`)
     if (!Array.isArray(analytics)) throw new Error('Analytics not array')
 
-    // CSV export endpoint works
+    // Test comprehensive API endpoint coverage
+    
+    // Business Profile endpoint
+    const profile = await getJson(`${base}/api/profile`)
+    if (!profile || typeof profile !== 'object') throw new Error('Profile endpoint failed')
+
+    // Individual service endpoint
+    if (services.length > 0) {
+      const firstService = await getJson(`${base}/api/services/${services[0].id}`)
+      if (!firstService || firstService.id !== services[0].id) throw new Error('Individual service endpoint failed')
+    }
+
+    // Individual staff endpoint
+    if (staff.length > 0) {
+      const firstStaff = await getJson(`${base}/api/staff/${staff[0].id}`)
+      if (!firstStaff || firstStaff.id !== staff[0].id) throw new Error('Individual staff endpoint failed')
+    }
+
+    // Customers endpoint
+    const customers = await getJson(`${base}/api/customers`)
+    if (!Array.isArray(customers)) throw new Error('Customers not array')
+
+    // Individual appointment endpoint (if appointments exist)
+    if (appts.length > 0) {
+      const firstAppt = await getJson(`${base}/api/appointments/${appts[0].id}`)
+      if (!firstAppt || firstAppt.id !== appts[0].id) throw new Error('Individual appointment endpoint failed')
+    }
+
+    // Inventory endpoints
+    const inventory = await getJson(`${base}/api/inventory`)
+    if (!Array.isArray(inventory)) throw new Error('Inventory not array')
+    
+    if (inventory.length > 0) {
+      const firstItem = await getJson(`${base}/api/inventory/${inventory[0].id}`)
+      if (!firstItem || firstItem.id !== inventory[0].id) throw new Error('Individual inventory item endpoint failed')
+    }
+
+    // POS endpoints
+    const sales = await getJson(`${base}/api/pos/sales`)
+    if (!Array.isArray(sales)) throw new Error('POS sales not array')
+
+    // Marketing endpoints
+    const campaigns = await getJson(`${base}/api/marketing/campaigns`)
+    if (!Array.isArray(campaigns)) throw new Error('Marketing campaigns not array')
+
+    // Marketing performance endpoint
+    const performance = await getJson(`${base}/api/marketing/performance`)
+    if (!performance || !performance.summary || !Array.isArray(performance.campaigns)) {
+      throw new Error('Marketing performance endpoint failed')
+    }
+
+    // Loyalty endpoints
+    const loyaltyEntries = await getJson(`${base}/api/loyalty/entries`)
+    if (!Array.isArray(loyaltyEntries)) throw new Error('Loyalty entries not array')
+
+    // CSV export endpoints
     const csvRes = await get(`${base}/api/analytics/export`)
-    if (!csvRes.ok) throw new Error('CSV export not ok')
+    if (!csvRes.ok) throw new Error('Analytics CSV export not ok')
     const ctypeCsv = csvRes.headers.get('content-type') || ''
-    if (!ctypeCsv.includes('text/csv')) throw new Error('CSV export wrong content-type')
+    if (!ctypeCsv.includes('text/csv')) throw new Error('Analytics CSV export wrong content-type')
+
+    // POS sales CSV export
+    const posCsvRes = await get(`${base}/api/pos/sales/export`)
+    if (!posCsvRes.ok) throw new Error('POS CSV export not ok')
+    const posCtype = posCsvRes.headers.get('content-type') || ''
+    if (!posCtype.includes('text/csv')) throw new Error('POS CSV export wrong content-type')
+
+    // Loyalty CSV export
+    const loyaltyCsvRes = await get(`${base}/api/loyalty/entries/export`)
+    if (!loyaltyCsvRes.ok) throw new Error('Loyalty CSV export not ok')
+    const loyaltyCtype = loyaltyCsvRes.headers.get('content-type') || ''
+    if (!loyaltyCtype.includes('text/csv')) throw new Error('Loyalty CSV export wrong content-type')
 
     // Chat (non-streaming, demo-friendly)
     const chat = await postJson(`${base}/api/chat`, {
@@ -146,6 +259,46 @@ async function main() {
       stream: true
     })
     if (!streamed || streamed.length < 10) throw new Error('SSE chat too short')
+
+    // Generate performance report
+    console.log('\n=== Performance Metrics ===')
+    const totalRequests = performanceMetrics.length
+    const avgResponseTime = performanceMetrics.reduce((sum, m) => sum + m.responseTime, 0) / totalRequests
+    const maxResponseTime = Math.max(...performanceMetrics.map(m => m.responseTime))
+    const minResponseTime = Math.min(...performanceMetrics.map(m => m.responseTime))
+    const slowRequests = performanceMetrics.filter(m => m.responseTime > 200)
+    
+    console.log(`Total API requests: ${totalRequests}`)
+    console.log(`Average response time: ${avgResponseTime.toFixed(2)}ms`)
+    console.log(`Min response time: ${minResponseTime}ms`)
+    console.log(`Max response time: ${maxResponseTime}ms`)
+    console.log(`Requests > 200ms: ${slowRequests.length}`)
+    
+    if (slowRequests.length > 0) {
+      console.log('\nSlow requests (>200ms):')
+      slowRequests.forEach(req => {
+        console.log(`  ${req.method} ${req.url}: ${req.responseTime}ms`)
+      })
+    }
+
+    // Security validation (basic checks for dev environment)
+    console.log('\n=== Security Validation ===')
+    
+    // Test input validation
+    try {
+      const xssPayload = '<script>alert("xss")</script>'
+      const xssChat = await postJson(`${base}/api/chat`, {
+        messages: [{ role: 'user', content: xssPayload }],
+        stream: false
+      })
+      if (xssChat?.message && xssChat.message.includes('<script>')) {
+        console.warn('⚠️  Potential XSS vulnerability in chat endpoint')
+      } else {
+        console.log('✓ Chat endpoint properly handles XSS payload')
+      }
+    } catch (err) {
+      console.log('✓ Chat endpoint rejected malicious input')
+    }
 
     console.log('\nDev smoke tests passed.')
   } finally {

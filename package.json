@@ -21,6 +21,19 @@
     "nav:e2e": "npm run build && node --import tsx scripts/nav-e2e.ts",
     "browserslist:update": "npx update-browserslist-db@latest",
     "test": "npm run smoke",
+    "test:comprehensive": "npm run build && tsx scripts/comprehensive-test.ts",
+    "test:functional": "npm run build && tsx scripts/functional-tests.ts",
+    "test:performance": "npm run build && tsx scripts/performance-tests.ts",
+    "test:security": "npm run build && tsx scripts/security-tests.ts",
+    "security:validate": "npm run build && tsx scripts/comprehensive-security-validation.ts",
+    "test:deployment": "npm run build && tsx scripts/deployment-tests.ts",
+    "test:e2e:enhanced": "npm run build && tsx scripts/enhanced-e2e.ts",
+    "test:e2e:comprehensive": "npm run build && tsx scripts/comprehensive-e2e.ts",
+    "validate-config": "tsx scripts/validate-config.ts",
+    "run:func:timeout": "node scripts/run-with-timeout.mjs 600 'npm run test:functional'",
+    "run:e2e:timeout": "node scripts/run-with-timeout.mjs 600 'npm run test:e2e:comprehensive'",
+    "run:smoke:timeout": "node scripts/run-with-timeout.mjs 300 'npm run smoke'",
+    "validate:performance": "tsx scripts/performance-validation-report.ts",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
@@ -100,9 +113,6 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "prettier": "^3.3.3",
-    "puppeteer": "^23.6.0",
     "@replit/vite-plugin-cartographer": "^0.3.0",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.15",
@@ -118,13 +128,16 @@
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
-    "drizzle-kit": "^0.30.6",
+    "drizzle-kit": "^0.31.4",
     "esbuild": "^0.25.0",
+    "eslint": "^8.57.0",
     "postcss": "^8.4.47",
+    "prettier": "^3.3.3",
+    "puppeteer": "^23.6.0",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
-    "vite": "^5.4.19"
+    "vite": "^7.1.5"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

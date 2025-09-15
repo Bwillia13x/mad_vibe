@@ -1,0 +1,30 @@
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+transforming...
+✓ 3354 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                       2.42 kB │ gzip:   0.92 kB
+../dist/public/assets/index-B52fWKlG.css       70.33 kB │ gzip:  12.42 kB
+../dist/public/assets/input-DTh9FO78.js         0.62 kB │ gzip:   0.37 kB
+../dist/public/assets/not-found-DHsg-N0R.js     0.72 kB │ gzip:   0.41 kB
+../dist/public/assets/card-CCpIX1gV.js          1.03 kB │ gzip:   0.39 kB
+../dist/public/assets/select-DbUZ0Jw7.js        3.11 kB │ gzip:   1.14 kB
+../dist/public/assets/chart-DLmIzyqq.js         4.59 kB │ gzip:   1.94 kB
+../dist/public/assets/home-RDarpIEi.js          5.97 kB │ gzip:   2.06 kB
+../dist/public/assets/scheduling-CmD-jkTR.js    8.69 kB │ gzip:   2.41 kB
+../dist/public/assets/marketing-s5EdLQ0x.js     8.94 kB │ gzip:   2.78 kB
+../dist/public/assets/staff-DBDinTXc.js         9.13 kB │ gzip:   2.24 kB
+../dist/public/assets/inventory-BdwTlebz.js     9.29 kB │ gzip:   2.52 kB
+../dist/public/assets/loyalty-D2cSzbZT.js       9.59 kB │ gzip:   2.87 kB
+../dist/public/assets/pos-mZNjMqXd.js          14.40 kB │ gzip:   4.04 kB
+../dist/public/assets/icons-CUuMniuQ.js        15.81 kB │ gzip:   3.25 kB
+../dist/public/assets/analytics-BVIYQDfh.js    17.74 kB │ gzip:   4.14 kB
+../dist/public/assets/index-C0RAkEYh.js        32.81 kB │ gzip:   9.63 kB
+../dist/public/assets/query-CyeIJ-bU.js        36.17 kB │ gzip:  10.92 kB
+../dist/public/assets/charts-f_bXvggi.js      241.78 kB │ gzip:  56.48 kB
+../dist/public/assets/vendor-DvMHagaH.js      458.15 kB │ gzip: 151.33 kB
+✓ built in 8.49s

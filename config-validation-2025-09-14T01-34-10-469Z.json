@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-09-14T01:34:10.468Z",
+  "environment": "development",
+  "overallStatus": "PASS",
+  "basicValidation": {
+    "isValid": true,
+    "errors": []
+  },
+  "advancedValidation": {
+    "valid": true,
+    "errors": []
+  },
+  "securityAudit": {
+    "configuredKeys": [
+      "PORT",
+      "NODE_ENV",
+      "OPENAI_API_KEY",
+      "OPERATIONS_WS_PORT"
+    ],
+    "sensitiveKeys": [
+      "OPENAI_API_KEY"
+    ],
+    "missingRecommended": [],
+    "weakConfigurations": []
+  },
+  "configurationSummary": {
+    "totalKeys": 3,
+    "validatedKeys": 5,
+    "rotatingSecrets": 0,
+    "lastValidation": "2025-09-14T01:34:10.467Z",
+    "validationStatus": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  "recommendations": []
+}

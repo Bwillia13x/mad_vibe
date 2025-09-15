@@ -104,8 +104,10 @@ export function getWebSocketStatus(): WebSocketStatus {
   }
 }
 
+import { getEnvVar } from './env-security';
+
 function getPort(): number {
-  return parseInt(process.env.OPERATIONS_WS_PORT || '8080', 10)
+  return getEnvVar('OPERATIONS_WS_PORT') || 8080
 }
 
 // Broadcast message to all connected clients

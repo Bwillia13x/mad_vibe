@@ -1,0 +1,154 @@
+{
+  "timestamp": "2025-09-13T15:42:21.190Z",
+  "environment": "local",
+  "configuration": {
+    "thresholds": {
+      "maxResponseTime": 200,
+      "maxMemoryUsage": 512,
+      "minConcurrentUsers": 50,
+      "maxErrorRate": 1
+    },
+    "testSuites": [
+      {
+        "name": "smoke-tests",
+        "type": "functional",
+        "enabled": true,
+        "config": {
+          "timeout": 30000,
+          "retries": 2
+        }
+      },
+      {
+        "name": "api-tests",
+        "type": "functional",
+        "enabled": true,
+        "config": {
+          "timeout": 15000,
+          "retries": 1
+        }
+      },
+      {
+        "name": "e2e-tests",
+        "type": "functional",
+        "enabled": true,
+        "config": {
+          "timeout": 60000,
+          "retries": 1,
+          "headless": true
+        }
+      }
+    ]
+  },
+  "summary": {
+    "totalTests": 9,
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 321,
+    "passRate": 100
+  },
+  "suiteResults": [
+    {
+      "suiteName": "smoke-tests",
+      "suiteType": "functional",
+      "startTime": "2025-09-13T15:42:20.667Z",
+      "endTime": "2025-09-13T15:42:20.988Z",
+      "duration": 321,
+      "tests": [
+        {
+          "suiteType": "functional",
+          "testName": "health-check",
+          "status": "pass",
+          "duration": 2,
+          "startTime": "2025-09-13T15:42:20.667Z",
+          "endTime": "2025-09-13T15:42:20.669Z"
+        },
+        {
+          "suiteType": "functional",
+          "testName": "services-endpoint",
+          "status": "pass",
+          "duration": 2,
+          "startTime": "2025-09-13T15:42:20.669Z",
+          "endTime": "2025-09-13T15:42:20.671Z"
+        },
+        {
+          "suiteType": "functional",
+          "testName": "staff-endpoint",
+          "status": "pass",
+          "duration": 2,
+          "startTime": "2025-09-13T15:42:20.671Z",
+          "endTime": "2025-09-13T15:42:20.673Z"
+        },
+        {
+          "suiteType": "functional",
+          "testName": "appointments-endpoint",
+          "status": "pass",
+          "duration": 3,
+          "startTime": "2025-09-13T15:42:20.673Z",
+          "endTime": "2025-09-13T15:42:20.676Z"
+        },
+        {
+          "suiteType": "functional",
+          "testName": "csv-export",
+          "status": "pass",
+          "duration": 2,
+          "startTime": "2025-09-13T15:42:20.676Z",
+          "endTime": "2025-09-13T15:42:20.678Z"
+        },
+        {
+          "suiteType": "functional",
+          "testName": "chat-non-streaming",
+          "status": "pass",
+          "duration": 176,
+          "startTime": "2025-09-13T15:42:20.678Z",
+          "endTime": "2025-09-13T15:42:20.854Z"
+        },
+        {
+          "suiteType": "functional",
+          "testName": "chat-streaming",
+          "status": "pass",
+          "duration": 128,
+          "startTime": "2025-09-13T15:42:20.854Z",
+          "endTime": "2025-09-13T15:42:20.982Z"
+        },
+        {
+          "suiteType": "functional",
+          "testName": "demo-scenarios",
+          "status": "pass",
+          "duration": 5,
+          "startTime": "2025-09-13T15:42:20.982Z",
+          "endTime": "2025-09-13T15:42:20.987Z"
+        },
+        {
+          "suiteType": "functional",
+          "testName": "error-handling",
+          "status": "pass",
+          "duration": 1,
+          "startTime": "2025-09-13T15:42:20.987Z",
+          "endTime": "2025-09-13T15:42:20.988Z"
+        }
+      ],
+      "summary": {
+        "totalTests": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "passRate": 100,
+        "duration": 321
+      },
+      "config": {
+        "timeout": 30000,
+        "retries": 2
+      }
+    }
+  ],
+  "performanceMetrics": [],
+  "recommendations": [],
+  "readinessScore": 100,
+  "metadata": {
+    "nodeVersion": "v22.19.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "totalMemory": 8192
+  }
+}

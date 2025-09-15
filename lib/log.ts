@@ -1,3 +1,5 @@
+import { getEnvVar } from './env-security';
+
 interface LogContext {
   [key: string]: unknown
 }
@@ -18,7 +20,7 @@ export function log(message: string, context?: LogContext): void {
   }
   
   // In development, also log to console
-  if (process.env.NODE_ENV === 'development') {
+  if (getEnvVar('NODE_ENV') === 'development') {
     console.log(`[${entry.timestamp}] ${entry.message}`, context ? context : '')
   }
   

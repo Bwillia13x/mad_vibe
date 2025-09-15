@@ -23,6 +23,7 @@ import {
   type InsertLoyaltyEntry
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { getEnvVar } from '../lib/env-security';
 
 // modify the interface with any CRUD methods
 // you might need
@@ -379,6 +380,11 @@ export class MemStorage implements IStorage {
   async createInventoryItem(item: InsertInventoryItem): Promise<InventoryItem> {
     const id = randomUUID();
     const now = new Date();
+    const stock = item.currentStock ?? 0;
+    const min = item.minStock ?? 0;
+    let computedStatus: any = 'in-stock';
+    if (stock === 0) computedStatus = 'out-of-stock';
+    else if (stock <= min) computedStatus = 'low';
     const newItem: InventoryItem = {
       name: item.name,
       sku: item.sku,
@@ -390,7 +396,7 @@ export class MemStorage implements IStorage {
       maxStock: item.maxStock ?? 100,
       unitCost: item.unitCost,
       retailPrice: item.retailPrice ?? null,
-      status: item.status ?? 'in-stock',
+      status: computedStatus,
       description: item.description ?? null,
       id,
       createdAt: now,
@@ -580,8 +586,8 @@ export class MemStorage implements IStorage {
 
   // Seed method
   async seedDemoData(scenario?: string, seedArg?: number): Promise<void> {
-    this.scenario = scenario || process.env.DEMO_SCENARIO || 'default';
-    const envSeed = process.env.DEMO_SEED ? parseInt(process.env.DEMO_SEED, 10) : undefined;
+    this.scenario = scenario || getEnvVar('DEMO_SCENARIO') || 'default';
+    const envSeed = getEnvVar('DEMO_SEED');
     this.seed = Number.isFinite(seedArg as number) ? (seedArg as number) : (Number.isFinite(envSeed) ? (envSeed as number) : 12345);
     const { createRng } = await import('./lib/rng.js');
     this.rng = createRng(this.seed);
@@ -638,16 +644,23 @@ export class MemStorage implements IStorage {
     // Determine appointments based on scenario
     let appointmentSource = demoData.appointmentsData;
     if (this.scenario === 'busy_day') {
-      // duplicate appointments to simulate a crowded schedule
+      // Duplicate appointments to simulate a crowded schedule without overlaps
       appointmentSource = [
         ...demoData.appointmentsData,
-        ...demoData.appointmentsData.map(a => ({
-          ...a,
-          scheduledStart: new Date(new Date(a.scheduledStart as any as Date).getTime() + 60*60*1000),
-          scheduledEnd: new Date(new Date(a.scheduledEnd as any as Date).getTime() + 60*60*1000),
-          status: 'scheduled'
-        }))
-      ]
+        ...demoData.appointmentsData.map(a => {
+          const start = new Date(a.scheduledStart as any as Date);
+          const end = new Date(a.scheduledEnd as any as Date);
+          const durationMs = Math.max(15, (end.getTime() - start.getTime()) / (1000 * 60)) * 60 * 1000; // minutes -> ms
+          const shiftedStart = new Date(end.getTime() + 5 * 60 * 1000); // start 5 minutes after original end
+          const shiftedEnd = new Date(shiftedStart.getTime() + durationMs);
+          return {
+            ...a,
+            scheduledStart: shiftedStart,
+            scheduledEnd: shiftedEnd,
+            status: 'scheduled'
+          };
+        })
+      ];
     } else if (this.scenario === 'appointment_gaps') {
       // create gaps: only every other appointment kept
       appointmentSource = demoData.appointmentsData.filter((_, idx) => idx % 2 === 0)

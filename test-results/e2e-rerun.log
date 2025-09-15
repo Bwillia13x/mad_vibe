@@ -1,0 +1,290 @@
+
+> rest-express@1.0.0 test:e2e:comprehensive
+> npm run build && tsx scripts/comprehensive-e2e.ts
+
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+transforming...
+✓ 3354 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                       2.42 kB │ gzip:   0.92 kB
+../dist/public/assets/index-B52fWKlG.css       70.33 kB │ gzip:  12.42 kB
+../dist/public/assets/input-DTh9FO78.js         0.62 kB │ gzip:   0.37 kB
+../dist/public/assets/not-found-DHsg-N0R.js     0.72 kB │ gzip:   0.41 kB
+../dist/public/assets/card-CCpIX1gV.js          1.03 kB │ gzip:   0.39 kB
+../dist/public/assets/select-DbUZ0Jw7.js        3.11 kB │ gzip:   1.14 kB
+../dist/public/assets/chart-DLmIzyqq.js         4.59 kB │ gzip:   1.94 kB
+../dist/public/assets/home-RDarpIEi.js          5.97 kB │ gzip:   2.06 kB
+../dist/public/assets/scheduling-CmD-jkTR.js    8.69 kB │ gzip:   2.41 kB
+../dist/public/assets/marketing-s5EdLQ0x.js     8.94 kB │ gzip:   2.78 kB
+../dist/public/assets/staff-DBDinTXc.js         9.13 kB │ gzip:   2.24 kB
+../dist/public/assets/inventory-BdwTlebz.js     9.29 kB │ gzip:   2.52 kB
+../dist/public/assets/loyalty-D2cSzbZT.js       9.59 kB │ gzip:   2.87 kB
+../dist/public/assets/pos-mZNjMqXd.js          14.40 kB │ gzip:   4.04 kB
+../dist/public/assets/icons-CUuMniuQ.js        15.81 kB │ gzip:   3.25 kB
+../dist/public/assets/analytics-BVIYQDfh.js    17.74 kB │ gzip:   4.14 kB
+../dist/public/assets/index-C0RAkEYh.js        32.81 kB │ gzip:   9.63 kB
+../dist/public/assets/query-CyeIJ-bU.js        36.17 kB │ gzip:  10.92 kB
+../dist/public/assets/charts-f_bXvggi.js      241.78 kB │ gzip:  56.48 kB
+../dist/public/assets/vendor-DvMHagaH.js      458.15 kB │ gzip: 151.33 kB
+✓ built in 15.48s
+🚀 Starting Comprehensive E2E Tests with User Workflows, Accessibility & Browser Compatibility
+🔧 Starting test server...
+{"timestamp":"2025-09-14T13:54:10.866Z","level":"info","message":"Performance monitoring started","context":{"interval":15000,"alerting":true}}
+{"timestamp":"2025-09-14T13:54:10.882Z","level":"info","message":"Performance optimizer started","context":{"memoryLeakDetection":true,"performanceDegradation":true,"maintenanceTasks":true,"autoOptimization":true}}
+Demo data seeded successfully
+7:54:10 AM [express] Demo data initialized successfully
+7:54:10 AM [express] serving on port 51365 with enhanced connection handling
+7:54:10 AM [express] Server configuration: keepAlive=65000ms, maxConnections=1000
+✅ Server started on http://127.0.0.1:51365
+
+🧪 Running User Workflow Tests...
+7:54:14 AM [express] POST /api/demo/seed 400 in 2ms :: {"message":"Content-Type header is required",…
+{"timestamp":"2025-09-14T13:54:14.689Z","level":"info","message":"Scaling policy added","context":{"name":"high-cpu-scale-up","metric":"cpu","threshold":80,"action":"scale-up"}}
+{"timestamp":"2025-09-14T13:54:14.689Z","level":"info","message":"Scaling policy added","context":{"name":"low-cpu-scale-down","metric":"cpu","threshold":30,"action":"scale-down"}}
+{"timestamp":"2025-09-14T13:54:14.689Z","level":"info","message":"Scaling policy added","context":{"name":"high-memory-scale-up","metric":"memory","threshold":85,"action":"scale-up"}}
+{"timestamp":"2025-09-14T13:54:14.689Z","level":"info","message":"Scaling policy added","context":{"name":"high-response-time-scale-up","metric":"response-time","threshold":2000,"action":"scale-up"}}
+{"timestamp":"2025-09-14T13:54:14.689Z","level":"info","message":"Scaling policy added","context":{"name":"high-error-rate-scale-up","metric":"error-rate","threshold":5,"action":"scale-up"}}
+7:54:14 AM [express] GET /api/health 200 in 3ms :: {"status":"ok","env":"production","timestamp":"20…
+7:54:14 AM [express] GET /api/services 200 in 1ms :: [{"name":"Executive Cut","description":"Precisi…
+7:54:14 AM [express] GET /api/inventory 200 in 2ms :: [{"name":"Feather Artist Club SS Blade","sku":…
+7:54:14 AM [express] GET /api/pos/sales 200 in 2ms :: []
+7:54:14 AM [express] GET /api/inventory 200 in 1ms :: [{"name":"Feather Artist Club SS Blade","sku":…
+7:54:15 AM [express] GET /api/appointments 200 in 1ms :: [{"customerId":"c8e4c146-8129-46bf-b0e7-6ca…
+7:54:15 AM [express] GET /api/staff 200 in 1ms :: [{"name":"Andreas Kowalski","email":"andreas@andre…
+7:54:15 AM [express] GET /api/customers 200 in 2ms :: [{"id":"c8e4c146-8129-46bf-b0e7-6ca4a474328a",…
+7:54:15 AM [express] GET /api/health 200 in 1ms :: {"status":"ok","env":"production","timestamp":"20…
+7:54:15 AM [express] GET /api/services 200 in 1ms :: [{"name":"Executive Cut","description":"Precisi…
+7:54:15 AM [express] GET /api/inventory 200 in 1ms :: [{"name":"Feather Artist Club SS Blade","sku":…
+7:54:15 AM [express] GET /api/pos/sales 200 in 2ms :: []
+{"timestamp":"2025-09-14T13:54:15.910Z","level":"info","message":"Authentication failed: No authorization header provided","context":{"path":"/api/pos/sales","method":"POST","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.0.0 Safari/537.36"}}
+7:54:15 AM [express] POST /api/pos/sales 401 in 2ms :: {"message":"Authentication required","error":…
+7:54:19 AM [express] GET /api/health 200 in 3ms :: {"status":"ok","env":"production","timestamp":"20…
+7:54:19 AM [express] GET /api/analytics 200 in 1ms :: [{"date":"2025-09-01T00:00:00.000Z","totalReve…
+7:54:19 AM [express] GET /api/marketing/performance 200 in 3ms :: {"summary":{"impressions":0,"click…
+7:54:20 AM [express] GET /api/marketing/campaigns 200 in 1ms :: []
+{"timestamp":"2025-09-14T13:54:20.078Z","level":"info","message":"Authentication failed: No authorization header provided","context":{"path":"/api/marketing/campaigns","method":"POST","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.0.0 Safari/537.36"}}
+7:54:20 AM [express] POST /api/marketing/campaigns 401 in 2ms :: {"message":"Authentication required…
+7:54:22 AM [express] GET /api/health 200 in 4ms :: {"status":"degraded","env":"production","timestam…
+7:54:22 AM [express] GET /api/customers 200 in 1ms :: [{"id":"c8e4c146-8129-46bf-b0e7-6ca4a474328a",…
+7:54:22 AM [express] GET /api/loyalty/entries 200 in 1ms :: []
+{"timestamp":"2025-09-14T13:54:22.273Z","level":"info","message":"Authentication failed: No authorization header provided","context":{"path":"/api/loyalty/entries","method":"POST","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.0.0 Safari/537.36"}}
+7:54:22 AM [express] POST /api/loyalty/entries 401 in 1ms :: {"message":"Authentication required","e…
+{"timestamp":"2025-09-14T13:54:23.910Z","level":"info","message":"Authentication failed: No authorization header provided","context":{"path":"/api/loyalty/entries","method":"POST","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.0.0 Safari/537.36"}}
+7:54:23 AM [express] POST /api/loyalty/entries 401 in 1ms :: {"message":"Authentication required","e…
+{"timestamp":"2025-09-14T13:54:25.867Z","level":"info","message":"High heap utilization detected","context":{"heapUtilization":"84.57","heapUsed":20,"heapTotal":23}}
+7:54:26 AM [express] GET /api/health 200 in 3ms :: {"status":"degraded","env":"production","timestam…
+7:54:26 AM [express] GET /api/appointments 200 in 0ms :: [{"customerId":"c8e4c146-8129-46bf-b0e7-6ca…
+7:54:26 AM [express] GET /api/services 200 in 0ms :: [{"name":"Executive Cut","description":"Precisi…
+7:54:26 AM [express] GET /api/staff 200 in 1ms :: [{"name":"Andreas Kowalski","email":"andreas@andre…
+7:54:26 AM [express] GET /api/customers 200 in 1ms :: [{"id":"c8e4c146-8129-46bf-b0e7-6ca4a474328a",…
+7:54:26 AM [express] GET /api/inventory 200 in 2ms :: [{"name":"Feather Artist Club SS Blade","sku":…
+{"timestamp":"2025-09-14T13:54:26.157Z","level":"info","message":"Connection metrics","context":{"activeConnections":-98,"totalConnections":100,"timestamp":"2025-09-14T13:54:26.157Z"}}
+7:54:26 AM [express] GET /api/inventory 200 in 2ms :: [{"name":"Feather Artist Club SS Blade","sku":…
+7:54:26 AM [express] GET /api/pos/sales 200 in 0ms :: []
+{"timestamp":"2025-09-14T13:54:26.215Z","level":"info","message":"Authentication failed: No authorization header provided","context":{"path":"/api/pos/sales","method":"POST","ip":"127.0.0.1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.0.0 Safari/537.36"}}
+7:54:26 AM [express] POST /api/pos/sales 401 in 3ms :: {"message":"Authentication required","error":…
+   ✅ Completed 5 workflow tests
+
+♿ Accessibility/Usability tests disabled for this run
+
+🌐 Browser compatibility/responsive tests disabled for this run
+
+📊 Generating comprehensive test reports...
+
+📋 Comprehensive E2E Test Results Summary:
+   Total Tests: 5
+   ✅ Passed: 5
+   ❌ Failed: 0
+   ⏭️  Skipped: 0
+   📊 Success Rate: 100.0%
+   ⏱️  Total Duration: 20.94s
+
+📝 Test Suite Breakdown:
+   🧪 User Workflows: 5/5 passed
+   ♿ Accessibility: 0/0 passed
+   🎯 Usability: 0/0 passed
+   🌐 Browser Compatibility: 0/0 passed
+   📱 Responsive Design: 0/0 passed
+
+🎯 Comprehensive E2E Tests completed!
+📄 Detailed reports generated in: test-results/
+
+🎉 All tests passed successfully!
+{"timestamp":"2025-09-14T13:54:31.336Z","level":"info","message":"Request throttler shutdown complete"}
+{"timestamp":"2025-09-14T13:54:31.336Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T13:54:31.336Z","level":"info","message":"Resource manager shutdown complete"}
+{"timestamp":"2025-09-14T13:54:31.337Z","level":"info","message":"Load balancer shutdown complete"}
+{"timestamp":"2025-09-14T13:54:31.337Z","level":"info","message":"Session manager shutdown","context":{"activeSessionsCount":0}}
+{"timestamp":"2025-09-14T13:54:31.337Z","level":"info","message":"Auto-scaler shutdown complete","context":{"finalInstanceCount":1,"totalEvents":0}}
+{"timestamp":"2025-09-14T13:54:31.337Z","level":"info","message":"Request throttler shutdown complete"}
+{"timestamp":"2025-09-14T13:54:31.337Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T13:54:31.337Z","level":"info","message":"Resource manager shutdown complete"}
+{"timestamp":"2025-09-14T13:54:31.337Z","level":"info","message":"Load balancer shutdown complete"}
+{"timestamp":"2025-09-14T13:54:31.337Z","level":"info","message":"Session manager shutdown","context":{"activeSessionsCount":0}}
+{"timestamp":"2025-09-14T13:54:31.337Z","level":"info","message":"Auto-scaler shutdown complete","context":{"finalInstanceCount":1,"totalEvents":0}}
+{"timestamp":"2025-09-14T13:55:10.901Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":108,"successful":102,"failed":6,"errorRate":5.555555555555555,"requestsPerSecond":1.8},"responseTime":{"average":6,"p95":23},"system":{"memory":21,"heap":95}}}
+{"timestamp":"2025-09-14T13:55:10.953Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T13:55:10.955Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T13:55:10.958Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T13:55:10.960Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T13:55:10.963Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T13:55:10.972Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T13:55:10.972Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T13:55:10.974Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T13:55:10.978Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T13:56:10.958Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":96}}}
+{"timestamp":"2025-09-14T13:57:10.921Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T13:57:10.945Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T13:57:10.946Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T13:57:10.946Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T13:57:10.947Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":20}}
+{"timestamp":"2025-09-14T13:57:10.947Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T13:57:10.947Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T13:57:10.948Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T13:57:10.948Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T13:57:10.978Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":20,"heap":87}}}
+{"timestamp":"2025-09-14T13:58:11.013Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":87}}}
+{"timestamp":"2025-09-14T13:59:10.951Z","level":"info","message":"Running maintenance tasks","context":{"garbageCollection":true,"cacheCleanup":true,"connectionCleanup":true,"logRotation":false,"metricsPurge":true}}
+{"timestamp":"2025-09-14T13:59:11.035Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T13:59:11.037Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T13:59:11.077Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T13:59:11.077Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T13:59:11.077Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T13:59:11.078Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T13:59:11.082Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T13:59:11.082Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T13:59:11.082Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T13:59:11.082Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T13:59:11.082Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T13:59:11.082Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":88}}}
+{"timestamp":"2025-09-14T14:00:11.095Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":88}}}
+{"timestamp":"2025-09-14T14:01:11.199Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:01:11.345Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:01:11.345Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:01:11.351Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:01:11.359Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T14:01:11.359Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:01:11.359Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:01:11.359Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:01:11.359Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:01:11.401Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":89}}}
+{"timestamp":"2025-09-14T14:02:11.380Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:02:11.440Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:02:11.441Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:02:11.441Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:02:11.444Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T14:02:11.445Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:02:11.445Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:02:11.446Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:02:11.448Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:02:11.545Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":89}}}
+{"timestamp":"2025-09-14T14:03:11.754Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":89}}}
+{"timestamp":"2025-09-14T14:04:11.010Z","level":"info","message":"Running maintenance tasks","context":{"garbageCollection":true,"cacheCleanup":true,"connectionCleanup":true,"logRotation":false,"metricsPurge":true}}
+{"timestamp":"2025-09-14T14:04:11.157Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:04:11.162Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:04:11.351Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:04:11.352Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:04:11.352Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:04:11.352Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:04:11.355Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T14:04:11.355Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:04:11.355Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:04:11.355Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:04:11.355Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:04:11.778Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":90}}}
+{"timestamp":"2025-09-14T14:04:42.753Z","level":"info","message":"Starting performance optimization","context":{"aggressive":true}}
+{"timestamp":"2025-09-14T14:04:42.764Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:04:42.765Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:04:42.765Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:04:42.781Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T14:04:42.782Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:04:42.782Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:04:42.809Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:04:42.809Z","level":"info","message":"Performance optimization completed","context":{"aggressive":true}}
+{"timestamp":"2025-09-14T14:05:12.859Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":90}}}
+{"timestamp":"2025-09-14T14:06:11.438Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:06:11.498Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:06:11.499Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:06:11.499Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:06:11.500Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":20}}
+{"timestamp":"2025-09-14T14:06:11.500Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:06:11.500Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:06:11.500Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:06:11.500Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:06:12.884Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":20,"heap":91}}}
+{"timestamp":"2025-09-14T14:07:12.962Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":91}}}
+{"timestamp":"2025-09-14T14:08:11.467Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:08:11.482Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:08:11.482Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:08:11.482Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:08:11.484Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T14:08:11.487Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:08:11.487Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:08:11.487Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:08:11.487Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:08:12.956Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":92}}}
+{"timestamp":"2025-09-14T14:09:11.029Z","level":"info","message":"Running maintenance tasks","context":{"garbageCollection":true,"cacheCleanup":true,"connectionCleanup":true,"logRotation":false,"metricsPurge":true}}
+{"timestamp":"2025-09-14T14:09:11.031Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:09:11.031Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:09:12.983Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":92}}}
+{"timestamp":"2025-09-14T14:10:11.501Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:10:11.525Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:10:11.525Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:10:11.525Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:10:11.541Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T14:10:11.544Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:10:11.555Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:10:11.555Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:10:11.555Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:10:13.010Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":92}}}
+{"timestamp":"2025-09-14T14:11:13.006Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":93}}}
+{"timestamp":"2025-09-14T14:12:11.498Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:12:11.503Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:12:11.503Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:12:11.503Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:12:11.505Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T14:12:11.505Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:12:11.505Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:12:11.505Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:12:11.505Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:12:13.012Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":93}}}
+{"timestamp":"2025-09-14T14:13:13.027Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":93}}}
+{"timestamp":"2025-09-14T14:14:11.037Z","level":"info","message":"Running maintenance tasks","context":{"garbageCollection":true,"cacheCleanup":true,"connectionCleanup":true,"logRotation":false,"metricsPurge":true}}
+{"timestamp":"2025-09-14T14:14:11.040Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:14:11.040Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:14:11.495Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:14:11.495Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:14:11.495Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:14:11.495Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:14:11.495Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T14:14:11.495Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:14:11.495Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:14:11.495Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:14:11.495Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:14:13.036Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":94}}}
+{"timestamp":"2025-09-14T14:15:11.502Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:15:11.505Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:15:11.505Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:15:11.505Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:15:11.506Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T14:15:11.506Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:15:11.507Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:15:11.507Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:15:11.507Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:15:13.046Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":94}}}
+{"timestamp":"2025-09-14T14:16:11.536Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:16:11.558Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:16:11.558Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:16:11.558Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:16:11.559Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":21}}
+{"timestamp":"2025-09-14T14:16:11.559Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:16:11.559Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:16:11.559Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:16:11.559Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:16:13.058Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":94}}}
+{"timestamp":"2025-09-14T14:17:13.097Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":21,"heap":94}}}

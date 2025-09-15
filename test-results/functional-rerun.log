@@ -1,0 +1,274 @@
+
+> rest-express@1.0.0 test:functional
+> npm run build && tsx scripts/functional-tests.ts
+
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+transforming...
+✓ 3354 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                       2.42 kB │ gzip:   0.92 kB
+../dist/public/assets/index-B52fWKlG.css       70.33 kB │ gzip:  12.42 kB
+../dist/public/assets/input-DTh9FO78.js         0.62 kB │ gzip:   0.37 kB
+../dist/public/assets/not-found-DHsg-N0R.js     0.72 kB │ gzip:   0.41 kB
+../dist/public/assets/card-CCpIX1gV.js          1.03 kB │ gzip:   0.39 kB
+../dist/public/assets/select-DbUZ0Jw7.js        3.11 kB │ gzip:   1.14 kB
+../dist/public/assets/chart-DLmIzyqq.js         4.59 kB │ gzip:   1.94 kB
+../dist/public/assets/home-RDarpIEi.js          5.97 kB │ gzip:   2.06 kB
+../dist/public/assets/scheduling-CmD-jkTR.js    8.69 kB │ gzip:   2.41 kB
+../dist/public/assets/marketing-s5EdLQ0x.js     8.94 kB │ gzip:   2.78 kB
+../dist/public/assets/staff-DBDinTXc.js         9.13 kB │ gzip:   2.24 kB
+../dist/public/assets/inventory-BdwTlebz.js     9.29 kB │ gzip:   2.52 kB
+../dist/public/assets/loyalty-D2cSzbZT.js       9.59 kB │ gzip:   2.87 kB
+../dist/public/assets/pos-mZNjMqXd.js          14.40 kB │ gzip:   4.04 kB
+../dist/public/assets/icons-CUuMniuQ.js        15.81 kB │ gzip:   3.25 kB
+../dist/public/assets/analytics-BVIYQDfh.js    17.74 kB │ gzip:   4.14 kB
+../dist/public/assets/index-C0RAkEYh.js        32.81 kB │ gzip:   9.63 kB
+../dist/public/assets/query-CyeIJ-bU.js        36.17 kB │ gzip:  10.92 kB
+../dist/public/assets/charts-f_bXvggi.js      241.78 kB │ gzip:  56.48 kB
+../dist/public/assets/vendor-DvMHagaH.js      458.15 kB │ gzip: 151.33 kB
+✓ built in 23.84s
+🚀 Starting Functional Test Suite
+=================================
+📡 Starting test server...
+✅ Test server running on port 50816
+🎯 Running all functional tests...
+
+🚀 Starting Comprehensive Functional Test Suite
+================================================
+
+📡 Phase 1: API Endpoint Testing
+--------------------------------
+
+=== API Endpoint Testing Suite ===
+
+--- Basic Endpoint Tests ---
+Running API test: Health Check
+✅ Health Check (3ms)
+Running API test: Get Business Profile
+✅ Get Business Profile (3ms)
+Running API test: Get All Services
+✅ Get All Services (5ms)
+Running API test: Get All Staff
+✅ Get All Staff (4ms)
+Running API test: Get All Customers
+✅ Get All Customers (4ms)
+Running API test: Get All Appointments
+✅ Get All Appointments (5ms)
+Running API test: Get Today Appointments
+✅ Get Today Appointments (11ms)
+Running API test: Get Appointments by Date
+✅ Get Appointments by Date (6ms)
+Running API test: Get All Inventory
+✅ Get All Inventory (6ms)
+Running API test: Get All Analytics
+✅ Get All Analytics (4ms)
+Running API test: Get All Sales
+✅ Get All Sales (3ms)
+Running API test: Create POS Sale
+Running API test: Get All Campaigns
+✅ Get All Campaigns (3ms)
+Running API test: Create Marketing Campaign
+Running API test: Get Marketing Performance
+✅ Get Marketing Performance (2ms)
+Running API test: Get All Loyalty Entries
+✅ Get All Loyalty Entries (3ms)
+Running API test: Analytics CSV Export
+✅ Analytics CSV Export (1ms)
+Running API test: POS Sales CSV Export
+✅ POS Sales CSV Export (1ms)
+Running API test: Loyalty Entries CSV Export
+✅ Loyalty Entries CSV Export (2ms)
+Running API test: Chat Non-Streaming
+✅ Chat Non-Streaming (3ms)
+Running API test: Demo Seed
+✅ Demo Seed (4ms)
+Running API test: Demo Time Freeze
+✅ Demo Time Freeze (3ms)
+Running API test: Demo Reset
+✅ Demo Reset (3ms)
+
+--- Individual Resource Tests ---
+Running API test: Get Individual Service
+⏭️  Get Individual Service (skipped)
+Running API test: Get Individual Staff Member
+⏭️  Get Individual Staff Member (skipped)
+Running API test: Get Individual Appointment
+⏭️  Get Individual Appointment (skipped)
+Running API test: Get Individual Inventory Item
+⏭️  Get Individual Inventory Item (skipped)
+Running API test: Get Individual Analytics
+⏭️  Get Individual Analytics (skipped)
+
+--- Error Scenario Tests ---
+Running error scenario: Service Not Found
+✅ Service Not Found (3ms)
+Running error scenario: Staff Not Found
+✅ Staff Not Found (3ms)
+Running error scenario: Appointment Not Found
+✅ Appointment Not Found (5ms)
+Running error scenario: Inventory Item Not Found
+✅ Inventory Item Not Found (3ms)
+Running error scenario: Analytics Not Found
+✅ Analytics Not Found (4ms)
+Running error scenario: Campaign Not Found
+✅ Campaign Not Found (6ms)
+Running error scenario: Sale Not Found
+✅ Sale Not Found (5ms)
+Running error scenario: Invalid Date Format
+✅ Invalid Date Format (4ms)
+Running error scenario: Missing Required Fields - Campaign
+✅ Missing Required Fields - Campaign (4ms)
+Running error scenario: Missing Required Fields - Sale
+✅ Missing Required Fields - Sale (4ms)
+Running error scenario: Empty Items Array - Sale
+✅ Empty Items Array - Sale (4ms)
+Running error scenario: Missing Required Fields - Loyalty Entry
+✅ Missing Required Fields - Loyalty Entry (3ms)
+Running error scenario: Invalid JSON - Campaign
+✅ Invalid JSON - Campaign (4ms)
+Running error scenario: XSS Attempt in Campaign Name
+Running error scenario: SQL Injection Attempt in Date Filter
+✅ SQL Injection Attempt in Date Filter (2ms)
+Running error scenario: Oversized Payload - Campaign
+Running error scenario: Nonexistent Endpoint
+
+--- CSV Export Validation ---
+✅ Analytics CSV: Valid CSV export
+✅ POS Sales CSV: Valid CSV export
+✅ Loyalty CSV: Valid CSV export
+
+--- Streaming Functionality ---
+Testing streaming chat...
+✅ Streaming chat: Received 436 characters
+
+=== API Test Suite Summary ===
+Total Tests: undefined
+✅ Passed: 21
+❌ Failed: 0
+⏭️  Skipped: 0
+⏱️  Average Response Time: 3.76ms
+
+✅ API Test Suite PASSED
+
+--- CRUD Operations Tests ---
+✅ Marketing Campaign CRUD: Create and update operations successful
+✅ Loyalty Entry CRUD: Create and filter operations successful
+
+🧮 Phase 2: Business Logic Validation
+------------------------------------
+
+=== Business Logic Validation Tests ===
+
+--- POS Transaction Calculation Tests ---
+✅ Basic Service Sale Calculation (5ms)
+✅ Multiple Items Calculation (4ms)
+✅ Discount Calculation (3ms)
+✅ Tax Calculation (5ms)
+✅ Combined Discount and Tax Calculation (5ms)
+
+--- Inventory Management Tests ---
+✅ Inventory Status Calculation (2ms)
+✅ Low Inventory Scenario Validation (15ms)
+✅ Product Sale Inventory Deduction (10ms)
+
+--- Scheduling and Staff Assignment Tests ---
+✅ Appointment Time Validation (1ms)
+✅ Staff Assignment Validation (4ms)
+✅ Service Assignment Validation (6ms)
+✅ Appointment Gaps Scenario Validation (5ms)
+
+--- Loyalty Program Tests ---
+✅ Loyalty Entry Creation (3ms)
+✅ Customer Loyalty Filtering (8ms)
+✅ Loyalty Entry Types Validation (6ms)
+
+--- Marketing Campaign Tests ---
+✅ Campaign Creation and Status Management (4ms)
+✅ Marketing Performance Calculation (1ms)
+✅ Campaign Performance Determinism (3ms)
+
+=== Business Logic Test Summary ===
+Total Tests: 20
+✅ Passed: 18
+❌ Failed: 2
+⏱️  Average Duration: 5.10ms
+
+❌ Failed Tests:
+   • Busy Day Scenario Validation: Scheduling conflict detected for staff ae82fe08-2e95-4008-af90-9b6b2857a8c3: Sun Sep 14 2025 11:30:00 GMT-0600 (Mountain Daylight Time) - Sun Sep 14 2025 12:45:00 GMT-0600 (Mountain Daylight Time) overlaps with Sun Sep 14 2025 10:30:00 GMT-0600 (Mountain Daylight Time) - Sun Sep 14 2025 11:45:00 GMT-0600 (Mountain Daylight Time)
+   • Invalid Loyalty Entry Validation: Validation failures: Unexpected error: Error: POST /api/loyalty/entries -> 400; Unexpected error: Error: POST /api/loyalty/entries -> 400; Unexpected error: Error: POST /api/loyalty/entries -> 400
+
+❌ Business Logic Tests FAILED
+
+🖥️  Phase 3: UI Component Integration
+-----------------------------------
+
+=== UI Component Integration Tests ===
+✅ Page Loading and Initial Render (23ms)
+✅ Sidebar Navigation (1063ms)
+✅ Chat Interface Functionality (848ms)
+✅ POS Interface Functionality (1211ms)
+✅ Analytics Interface Functionality (853ms)
+✅ Form Validation (721ms)
+✅ Keyboard Shortcuts (867ms)
+✅ Responsive Design (1590ms)
+✅ Accessibility Features (594ms)
+
+=== UI Component Test Summary ===
+Total Tests: 9
+✅ Passed: 9
+❌ Failed: 0
+⏱️  Average Duration: 863.33ms
+
+✅ UI Component Tests PASSED
+
+
+🏁 COMPREHENSIVE FUNCTIONAL TEST SUITE RESULTS
+==============================================
+
+📊 Overall Summary:
+   Total Tests: NaN
+   ✅ Passed: 48
+   ❌ Failed: 2
+   ⏭️  Skipped: 0
+   ⏱️  Total Duration: 13.91s
+   📈 Avg Response Time: 4.00ms
+
+📡 API Test Results:
+   Tests: undefined
+   Passed: 21
+   Failed: 0
+   Avg Response: 3.76ms
+
+🧮 Business Logic Test Results:
+   Tests: 20
+   Passed: 18
+   Failed: 2
+
+🖥️  UI Component Test Results:
+   Tests: 9
+   Passed: 9
+   Failed: 0
+
+📈 Performance Insights:
+   Total Requests: 40
+   Fast Requests (<100ms): 40
+   Slow Requests (>500ms): 0
+
+❌ Failed Tests Summary:
+   Business Logic Failures:
+     • Busy Day Scenario Validation: Scheduling conflict detected for staff ae82fe08-2e95-4008-af90-9b6b2857a8c3: Sun Sep 14 2025 11:30:00 GMT-0600 (Mountain Daylight Time) - Sun Sep 14 2025 12:45:00 GMT-0600 (Mountain Daylight Time) overlaps with Sun Sep 14 2025 10:30:00 GMT-0600 (Mountain Daylight Time) - Sun Sep 14 2025 11:45:00 GMT-0600 (Mountain Daylight Time)
+     • Invalid Loyalty Entry Validation: Validation failures: Unexpected error: Error: POST /api/loyalty/entries -> 400; Unexpected error: Error: POST /api/loyalty/entries -> 400; Unexpected error: Error: POST /api/loyalty/entries -> 400
+
+🎯 Final Verdict:
+   ❌ FUNCTIONAL TESTS FAILED
+   🔧 Platform requires fixes before deployment
+   🚨 Major issues detected - significant work needed
+
+==============================================
+
+❌ Some functional tests failed.

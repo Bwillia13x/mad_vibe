@@ -2,22 +2,89 @@ import { Router } from "express";
 import { generateBusinessResponse, type BusinessChatMessage } from "../lib/openai";
 import { generateStreamingBusinessResponse } from "../lib/streaming-openai";
 import { getBusinessContext, getSpecificContext } from "../lib/business-context";
+import { inputValidation, validateContentType, validateRequestSize } from "../middleware/input-validation";
 
 const router = Router();
+
+// Apply input validation middleware to chat routes
+router.use(inputValidation);
+router.use(validateContentType(['application/json']));
+router.use(validateRequestSize(1024 * 1024)); // 1MB limit for chat
 
 router.post("/chat", async (req, res) => {
   try {
     const { messages, stream } = req.body;
 
+    // Enhanced input validation
     if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: "Messages array is required" });
+      return res.status(400).json({ 
+        error: "Messages array is required",
+        code: "INVALID_MESSAGES_FORMAT"
+      });
     }
 
-    // Validate message format
-    const validMessages: BusinessChatMessage[] = messages.map((msg: any) => ({
-      role: msg.role === "user" || msg.role === "assistant" ? msg.role : "user",
-      content: String(msg.content || "")
-    }));
+    // Validate array size to prevent DoS
+    if (messages.length > 100) {
+      return res.status(400).json({ 
+        error: "Too many messages in conversation",
+        code: "MESSAGES_LIMIT_EXCEEDED",
+        limit: 100
+      });
+    }
+
+    // Validate and sanitize message format
+    const validMessages: BusinessChatMessage[] = [];
+    
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+      
+      // Validate message structure
+      if (!msg || typeof msg !== 'object') {
+        return res.status(400).json({ 
+          error: `Invalid message format at index ${i}`,
+          code: "INVALID_MESSAGE_STRUCTURE"
+        });
+      }
+
+      // Validate role
+      if (!msg.role || (msg.role !== "user" && msg.role !== "assistant")) {
+        return res.status(400).json({ 
+          error: `Invalid role at message index ${i}. Must be 'user' or 'assistant'`,
+          code: "INVALID_MESSAGE_ROLE"
+        });
+      }
+
+      // Validate content
+      if (typeof msg.content !== 'string') {
+        return res.status(400).json({ 
+          error: `Invalid content type at message index ${i}. Must be string`,
+          code: "INVALID_MESSAGE_CONTENT"
+        });
+      }
+
+      // Validate content length
+      if (msg.content.length > 10000) {
+        return res.status(400).json({ 
+          error: `Message content too long at index ${i}`,
+          code: "MESSAGE_TOO_LONG",
+          limit: 10000
+        });
+      }
+
+      // Content is already sanitized by input validation middleware
+      validMessages.push({
+        role: msg.role,
+        content: msg.content.trim()
+      });
+    }
+
+    // Validate stream parameter
+    if (stream !== undefined && typeof stream !== 'boolean') {
+      return res.status(400).json({ 
+        error: "Stream parameter must be boolean",
+        code: "INVALID_STREAM_PARAMETER"
+      });
+    }
 
     // Generate business context based on the user's message
     console.log('Generating business context for AI assistant...');

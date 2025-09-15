@@ -1,8 +1,10 @@
 let freezeDate: Date | null = null;
 
+import { getEnvVar } from '../../lib/env-security';
+
 export function getNow(): Date {
   if (freezeDate) return new Date(freezeDate.getTime());
-  const env = process.env.DEMO_DATE;
+  const env = getEnvVar('DEMO_DATE');
   if (env && env.trim().length > 0) {
     const d = new Date(env);
     if (!Number.isNaN(d.getTime())) return d;

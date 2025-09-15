@@ -2,6 +2,7 @@ import { exec } from 'child_process'
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import { log } from '../log'
+import { getEnvVar } from '../env-security'
 
 const BACKUP_DIR = join(process.cwd(), 'backups')
 
@@ -20,7 +21,7 @@ export async function createBackup(): Promise<string> {
     const filename = `backup-${timestamp}.sql`
     const filepath = join(BACKUP_DIR, filename)
     
-    const databaseUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL
+    const databaseUrl = getEnvVar('POSTGRES_URL') || getEnvVar('DATABASE_URL')
     if (!databaseUrl) {
       throw new Error('Database URL not configured')
     }

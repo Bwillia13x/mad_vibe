@@ -1,0 +1,75 @@
+{
+  "environment": "local",
+  "testSuites": [
+    {
+      "name": "smoke-tests",
+      "type": "functional",
+      "enabled": true,
+      "config": {
+        "timeout": 30000,
+        "retries": 2
+      }
+    },
+    {
+      "name": "api-tests",
+      "type": "functional",
+      "enabled": true,
+      "config": {
+        "timeout": 15000,
+        "retries": 1
+      }
+    },
+    {
+      "name": "e2e-tests",
+      "type": "functional",
+      "enabled": true,
+      "config": {
+        "timeout": 60000,
+        "retries": 1,
+        "headless": true
+      }
+    },
+    {
+      "name": "performance-tests",
+      "type": "performance",
+      "enabled": false,
+      "config": {
+        "duration": 60000,
+        "concurrency": 10
+      }
+    },
+    {
+      "name": "security-tests",
+      "type": "security",
+      "enabled": false,
+      "config": {
+        "timeout": 30000
+      }
+    }
+  ],
+  "thresholds": {
+    "maxResponseTime": 200,
+    "maxMemoryUsage": 512,
+    "minConcurrentUsers": 50,
+    "maxErrorRate": 1
+  },
+  "security": {
+    "enableVulnerabilityScanning": true,
+    "enableInputValidationTests": true,
+    "enableAuthenticationTests": true,
+    "maxSecurityRiskLevel": "medium"
+  },
+  "reporting": {
+    "outputDir": "test-results",
+    "formats": ["html", "json"],
+    "includeScreenshots": true,
+    "includeMetrics": true
+  },
+  "server": {
+    "startupTimeoutMs": 20000,
+    "portFile": ".local/test_port",
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
+}

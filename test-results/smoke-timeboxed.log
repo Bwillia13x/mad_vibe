@@ -1,0 +1,185 @@
+vite v5.4.19 building for production...
+transforming...
+✓ 3354 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                       2.42 kB │ gzip:   0.92 kB
+../dist/public/assets/index-B52fWKlG.css       70.33 kB │ gzip:  12.42 kB
+../dist/public/assets/input-DTh9FO78.js         0.62 kB │ gzip:   0.37 kB
+../dist/public/assets/not-found-DHsg-N0R.js     0.72 kB │ gzip:   0.41 kB
+../dist/public/assets/card-CCpIX1gV.js          1.03 kB │ gzip:   0.39 kB
+../dist/public/assets/select-DbUZ0Jw7.js        3.11 kB │ gzip:   1.14 kB
+../dist/public/assets/chart-DLmIzyqq.js         4.59 kB │ gzip:   1.94 kB
+../dist/public/assets/home-RDarpIEi.js          5.97 kB │ gzip:   2.06 kB
+../dist/public/assets/scheduling-CmD-jkTR.js    8.69 kB │ gzip:   2.41 kB
+../dist/public/assets/marketing-s5EdLQ0x.js     8.94 kB │ gzip:   2.78 kB
+../dist/public/assets/staff-DBDinTXc.js         9.13 kB │ gzip:   2.24 kB
+../dist/public/assets/inventory-BdwTlebz.js     9.29 kB │ gzip:   2.52 kB
+../dist/public/assets/loyalty-D2cSzbZT.js       9.59 kB │ gzip:   2.87 kB
+../dist/public/assets/pos-mZNjMqXd.js          14.40 kB │ gzip:   4.04 kB
+../dist/public/assets/icons-CUuMniuQ.js        15.81 kB │ gzip:   3.25 kB
+../dist/public/assets/analytics-BVIYQDfh.js    17.74 kB │ gzip:   4.14 kB
+../dist/public/assets/index-C0RAkEYh.js        32.81 kB │ gzip:   9.63 kB
+../dist/public/assets/query-CyeIJ-bU.js        36.17 kB │ gzip:  10.92 kB
+../dist/public/assets/charts-f_bXvggi.js      241.78 kB │ gzip:  56.48 kB
+../dist/public/assets/vendor-DvMHagaH.js      458.15 kB │ gzip: 151.33 kB
+✓ built in 10.51s
+{"timestamp":"2025-09-14T14:10:17.443Z","level":"info","message":"Performance monitoring started","context":{"interval":15000,"alerting":true}}
+{"timestamp":"2025-09-14T14:10:17.449Z","level":"info","message":"Performance optimizer started","context":{"memoryLeakDetection":true,"performanceDegradation":true,"maintenanceTasks":true,"autoOptimization":true}}
+Demo data seeded successfully
+8:10:17 AM [express] Demo data initialized successfully
+8:10:17 AM [express] serving on port 56312 with enhanced connection handling
+8:10:17 AM [express] Server configuration: keepAlive=65000ms, maxConnections=1000
+{"timestamp":"2025-09-14T14:10:17.679Z","level":"info","message":"Scaling policy added","context":{"name":"high-cpu-scale-up","metric":"cpu","threshold":80,"action":"scale-up"}}
+{"timestamp":"2025-09-14T14:10:17.679Z","level":"info","message":"Scaling policy added","context":{"name":"low-cpu-scale-down","metric":"cpu","threshold":30,"action":"scale-down"}}
+{"timestamp":"2025-09-14T14:10:17.679Z","level":"info","message":"Scaling policy added","context":{"name":"high-memory-scale-up","metric":"memory","threshold":85,"action":"scale-up"}}
+{"timestamp":"2025-09-14T14:10:17.679Z","level":"info","message":"Scaling policy added","context":{"name":"high-response-time-scale-up","metric":"response-time","threshold":2000,"action":"scale-up"}}
+{"timestamp":"2025-09-14T14:10:17.679Z","level":"info","message":"Scaling policy added","context":{"name":"high-error-rate-scale-up","metric":"error-rate","threshold":5,"action":"scale-up"}}
+8:10:17 AM [express] GET /api/health 200 in 19ms :: {"status":"ok","env":"production","timestamp":"2…
+8:10:17 AM [express] GET /api/services 200 in 6ms :: [{"name":"Executive Cut","description":"Precisi…
+8:10:17 AM [express] GET /api/staff 200 in 5ms :: [{"name":"Andreas Kowalski","email":"andreas@andre…
+8:10:17 AM [express] GET /api/appointments 200 in 21ms :: [{"customerId":"96f21efd-0d76-47c4-80fe-5a…
+8:10:17 AM [express] GET /api/analytics 200 in 3ms :: [{"date":"2025-09-01T00:00:00.000Z","totalReve…
+8:10:17 AM [express] GET /api/profile 200 in 0ms :: {"name":"Andreas For Men","description":"Calgary…
+8:10:17 AM [express] GET /api/services/622179d0-d405-44ff-a2c8-c6a89fc4fbcf 200 in 0ms :: {"name":"E…
+8:10:17 AM [express] GET /api/staff/4aca191f-1887-4e5c-9dc0-26f1064c5c3e 200 in 1ms :: {"name":"Andr…
+8:10:17 AM [express] GET /api/customers 200 in 5ms :: [{"id":"96f21efd-0d76-47c4-80fe-5afbfb000d18",…
+8:10:17 AM [express] GET /api/appointments/befff054-3a9f-4330-a4cb-3bb231e30636 200 in 1ms :: {"cust…
+8:10:17 AM [express] GET /api/inventory 200 in 1ms :: [{"name":"Feather Artist Club SS Blade","sku":…
+8:10:17 AM [express] GET /api/inventory/8ba0ab3a-ef04-42f1-b38d-0b78a1dd643e 200 in 5ms :: {"name":"…
+8:10:17 AM [express] GET /api/analytics/f55373b9-fce9-441f-91b1-c124827fd124 200 in 16ms :: {"date":…
+8:10:17 AM [express] GET /api/pos/sales 200 in 3ms :: []
+{"timestamp":"2025-09-14T14:10:17.925Z","level":"info","message":"Admin access granted via smoke mode - SECURITY WARNING","context":{"smokeMode":true,"timestamp":"2025-09-14T14:10:17.925Z","tokenProvided":true,"tokenLength":10}}
+{"timestamp":"2025-09-14T14:10:17.925Z","level":"info","message":"Authentication successful","context":{"path":"/api/pos/sales","method":"POST","userId":"admin-1","ip":"127.0.0.1","userAgent":"node","timestamp":"2025-09-14T14:10:17.925Z"}}
+8:10:17 AM [express] POST /api/pos/sales 200 in 2ms :: {"id":"17ed6144-6fad-4c28-b7fd-3ea01900c58b",…
+{"timestamp":"2025-09-14T14:10:17.928Z","level":"info","message":"Admin access granted via smoke mode - SECURITY WARNING","context":{"smokeMode":true,"timestamp":"2025-09-14T14:10:17.928Z","tokenProvided":true,"tokenLength":10}}
+{"timestamp":"2025-09-14T14:10:17.928Z","level":"info","message":"Authentication successful","context":{"path":"/api/pos/sales/17ed6144-6fad-4c28-b7fd-3ea01900c58b","method":"DELETE","userId":"admin-1","ip":"127.0.0.1","userAgent":"node","timestamp":"2025-09-14T14:10:17.928Z"}}
+8:10:17 AM [express] DELETE /api/pos/sales/17ed6144-6fad-4c28-b7fd-3ea01900c58b 200 in 1ms :: {"ok":…
+8:10:17 AM [express] GET /api/marketing/campaigns 200 in 1ms :: []
+{"timestamp":"2025-09-14T14:10:17.934Z","level":"info","message":"Admin access granted via smoke mode - SECURITY WARNING","context":{"smokeMode":true,"timestamp":"2025-09-14T14:10:17.934Z","tokenProvided":true,"tokenLength":10}}
+{"timestamp":"2025-09-14T14:10:17.934Z","level":"info","message":"Authentication successful","context":{"path":"/api/marketing/campaigns","method":"POST","userId":"admin-1","ip":"127.0.0.1","userAgent":"node","timestamp":"2025-09-14T14:10:17.934Z"}}
+8:10:17 AM [express] POST /api/marketing/campaigns 200 in 2ms :: {"id":"81d4149c-ea25-4226-9e1b-4f8b…
+{"timestamp":"2025-09-14T14:10:17.939Z","level":"info","message":"Admin access granted via smoke mode - SECURITY WARNING","context":{"smokeMode":true,"timestamp":"2025-09-14T14:10:17.939Z","tokenProvided":true,"tokenLength":10}}
+{"timestamp":"2025-09-14T14:10:17.939Z","level":"info","message":"Authentication successful","context":{"path":"/api/marketing/campaigns/81d4149c-ea25-4226-9e1b-4f8bee60f0e1","method":"PATCH","userId":"admin-1","ip":"127.0.0.1","userAgent":"node","timestamp":"2025-09-14T14:10:17.939Z"}}
+8:10:17 AM [express] PATCH /api/marketing/campaigns/81d4149c-ea25-4226-9e1b-4f8bee60f0e1 200 in 2ms …
+8:10:17 AM [express] GET /api/marketing/performance 200 in 4ms :: {"summary":{"impressions":-1188,"c…
+8:10:17 AM [express] GET /api/loyalty/entries 200 in 1ms :: []
+{"timestamp":"2025-09-14T14:10:17.953Z","level":"info","message":"Admin access granted via smoke mode - SECURITY WARNING","context":{"smokeMode":true,"timestamp":"2025-09-14T14:10:17.953Z","tokenProvided":true,"tokenLength":10}}
+{"timestamp":"2025-09-14T14:10:17.953Z","level":"info","message":"Authentication successful","context":{"path":"/api/loyalty/entries","method":"POST","userId":"admin-1","ip":"127.0.0.1","userAgent":"node","timestamp":"2025-09-14T14:10:17.953Z"}}
+8:10:17 AM [express] POST /api/loyalty/entries 200 in 2ms :: {"id":"8f733a06-d699-44ac-aa9f-6d2e92ff…
+8:10:17 AM [express] GET /api/loyalty/entries 200 in 2ms :: [{"id":"8f733a06-d699-44ac-aa9f-6d2e92ff…
+8:10:17 AM [express] GET /api/analytics/export 200 in 1ms
+8:10:17 AM [express] GET /api/pos/sales/export 200 in 1ms
+
+=== Security Validation ===
+8:10:17 AM [express] GET /api/loyalty/entries/export 200 in 2ms
+Security headers check:
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  Content-Type: application/json; charset=utf-8
+
+Testing input validation...
+8:10:17 AM [express] GET /api/health 200 in 1ms :: {"status":"ok","env":"production","timestamp":"20…
+{"timestamp":"2025-09-14T14:10:17.972Z","level":"info","message":"XSS attempt detected and blocked","context":{"pattern":"<script\\b[^<]*(?:(?!<\\/script>)<[^<]*)*<\\/script>","input":"<script>alert(\"xss\")</script>","timestamp":"2025-09-14T14:10:17.972Z"}}
+Generating business context for AI assistant...
+Business context generated successfully
+OpenAI not configured. Returning non-AI demo response.
+✓ Chat endpoint properly handles XSS payload
+8:10:17 AM [express] POST /api/chat 200 in 2ms :: {"message":"I'm ready to help you with your busine…
+{"timestamp":"2025-09-14T14:10:17.975Z","level":"info","message":"Malicious payload detected and blocked","context":{"pattern":"(union\\s+select|insert\\s+into|delete\\s+from|update\\s+set|drop\\s+table|create\\s+table|alter\\s+table|exec\\s+|execute\\s+)","input":"'; DROP TABLE users; --","timestamp":"2025-09-14T14:10:17.975Z"}}
+{"timestamp":"2025-09-14T14:10:17.975Z","level":"info","message":"Malicious payload detected and blocked","context":{"pattern":"('|;|--|\\/\\*|\\*\\/)","input":"'; DROP TABLE users; --","timestamp":"2025-09-14T14:10:17.975Z"}}
+{"timestamp":"2025-09-14T14:10:17.975Z","level":"info","message":"Malicious payload detected and blocked","context":{"pattern":"(\\||&|;|\\$\\(|`|<|>)","input":"'; DROP TABLE users; --","timestamp":"2025-09-14T14:10:17.975Z"}}
+{"timestamp":"2025-09-14T14:10:17.975Z","level":"info","message":"XSS attempt detected and blocked","context":{"pattern":"&#x?[0-9a-fA-F]+;?","input":"&#x27;; DROP TABLE users; --","timestamp":"2025-09-14T14:10:17.975Z"}}
+{"timestamp":"2025-09-14T14:10:17.975Z","level":"info","message":"Malicious payload detected and blocked","context":{"pattern":"(union\\s+select|insert\\s+into|delete\\s+from|update\\s+set|drop\\s+table|create\\s+table|alter\\s+table|exec\\s+|execute\\s+)","input":"; DROP TABLE users; --","timestamp":"2025-09-14T14:10:17.975Z"}}
+{"timestamp":"2025-09-14T14:10:17.976Z","level":"info","message":"Malicious payload detected and blocked","context":{"pattern":"('|;|--|\\/\\*|\\*\\/)","input":"; DROP TABLE users; --","timestamp":"2025-09-14T14:10:17.976Z"}}
+{"timestamp":"2025-09-14T14:10:17.976Z","level":"info","message":"Malicious payload detected and blocked","context":{"pattern":"(\\||&|;|\\$\\(|`|<|>)","input":"; DROP TABLE users; --","timestamp":"2025-09-14T14:10:17.976Z"}}
+✓ Appointments endpoint properly validates date input
+8:10:17 AM [express] GET /api/appointments 400 in 2ms :: {"message":"Invalid date format"}
+{"timestamp":"2025-09-14T14:10:17.984Z","level":"info","message":"Authentication failed: No authorization header provided","context":{"path":"/api/marketing/campaigns","method":"POST","ip":"127.0.0.1","userAgent":"node"}}
+8:10:17 AM [express] POST /api/marketing/campaigns 401 in 6ms :: {"message":"Authentication required…
+✓ Server properly handles invalid JSON
+
+CORS configuration:
+  Access-Control-Allow-Origin: NOT SET
+  Access-Control-Allow-Methods: NOT SET
+  Access-Control-Allow-Headers: NOT SET
+Security validation completed.
+8:10:18 AM [express] GET /api/nonexistent 200 in 15ms
+Generating business context for AI assistant...
+Business context generated successfully
+OpenAI not configured. Returning non-AI demo response.
+8:10:18 AM [express] POST /api/chat 200 in 6ms :: {"message":"I'm ready to help you with your busine…
+Generating business context for AI assistant...
+Business context generated successfully
+OpenAI not configured. Streaming demo response.
+8:10:18 AM [express] POST /api/chat 200 in 2ms
+8:10:18 AM [express] GET /api/appointments 400 in 1ms :: {"message":"Invalid date format"}
+{"timestamp":"2025-09-14T14:10:18.044Z","level":"info","message":"Admin access granted via smoke mode - SECURITY WARNING","context":{"smokeMode":true,"timestamp":"2025-09-14T14:10:18.044Z","tokenProvided":true,"tokenLength":10}}
+{"timestamp":"2025-09-14T14:10:18.044Z","level":"info","message":"Authentication successful","context":{"path":"/api/demo/seed","method":"POST","userId":"admin-1","ip":"127.0.0.1","userAgent":"node","timestamp":"2025-09-14T14:10:18.044Z"}}
+Demo data seeded successfully
+8:10:18 AM [express] POST /api/demo/seed 200 in 2ms :: {"ok":true,"scenario":"low_inventory","seed":…
+8:10:18 AM [express] GET /api/inventory 200 in 1ms :: [{"name":"Feather Artist Club SS Blade","sku":…
+{"timestamp":"2025-09-14T14:10:18.057Z","level":"info","message":"Admin access granted via smoke mode - SECURITY WARNING","context":{"smokeMode":true,"timestamp":"2025-09-14T14:10:18.057Z","tokenProvided":true,"tokenLength":10}}
+{"timestamp":"2025-09-14T14:10:18.057Z","level":"info","message":"Authentication successful","context":{"path":"/api/demo/seed","method":"POST","userId":"admin-1","ip":"127.0.0.1","userAgent":"node","timestamp":"2025-09-14T14:10:18.057Z"}}
+Demo data seeded successfully
+8:10:18 AM [express] POST /api/demo/seed 200 in 1ms :: {"ok":true,"scenario":"low_inventory","seed":…
+8:10:18 AM [express] GET /api/inventory 200 in 0ms :: [{"name":"Feather Artist Club SS Blade","sku":…
+{"timestamp":"2025-09-14T14:10:18.062Z","level":"info","message":"Admin access granted via smoke mode - SECURITY WARNING","context":{"smokeMode":true,"timestamp":"2025-09-14T14:10:18.062Z","tokenProvided":true,"tokenLength":10}}
+{"timestamp":"2025-09-14T14:10:18.062Z","level":"info","message":"Authentication successful","context":{"path":"/api/demo/time","method":"POST","userId":"admin-1","ip":"127.0.0.1","userAgent":"node","timestamp":"2025-09-14T14:10:18.062Z"}}
+Demo data seeded successfully
+8:10:18 AM [express] POST /api/demo/time 200 in 2ms :: {"ok":true,"freeze":{"frozen":true,"date":"20…
+8:10:18 AM [express] GET /api/health 200 in 1ms :: {"status":"ok","env":"production","timestamp":"20…
+{"timestamp":"2025-09-14T14:10:18.070Z","level":"info","message":"Admin access granted via smoke mode - SECURITY WARNING","context":{"smokeMode":true,"timestamp":"2025-09-14T14:10:18.070Z","tokenProvided":true,"tokenLength":10}}
+{"timestamp":"2025-09-14T14:10:18.070Z","level":"info","message":"Authentication successful","context":{"path":"/api/demo/reset","method":"POST","userId":"admin-1","ip":"127.0.0.1","userAgent":"node","timestamp":"2025-09-14T14:10:18.070Z"}}
+Demo data seeded successfully
+8:10:18 AM [express] POST /api/demo/reset 200 in 1ms :: {"ok":true,"scenario":"default","seed":12345…
+
+=== Performance Metrics ===
+Total API requests: 31
+Average response time: 11.55ms
+Min response time: 1ms
+Max response time: 90ms
+Requests > 200ms: 0
+
+Performance baseline saved to .local/performance-baseline.json
+
+Smoke tests passed.
+8:10:18 AM [express] GET /api/health 200 in 1ms :: {"status":"ok","env":"production","timestamp":"20…
+{"timestamp":"2025-09-14T14:10:18.077Z","level":"info","message":"Request throttler shutdown complete"}
+{"timestamp":"2025-09-14T14:10:18.078Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:10:18.078Z","level":"info","message":"Resource manager shutdown complete"}
+{"timestamp":"2025-09-14T14:10:18.078Z","level":"info","message":"Load balancer shutdown complete"}
+{"timestamp":"2025-09-14T14:10:18.078Z","level":"info","message":"Session manager shutdown","context":{"activeSessionsCount":0}}
+{"timestamp":"2025-09-14T14:10:18.078Z","level":"info","message":"Auto-scaler shutdown complete","context":{"finalInstanceCount":1,"totalEvents":0}}
+{"timestamp":"2025-09-14T14:11:17.453Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:11:17.455Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:11:17.455Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:11:17.455Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:11:17.455Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":19}}
+{"timestamp":"2025-09-14T14:11:17.456Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:11:17.456Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:11:17.456Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:11:17.456Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:11:17.458Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":42,"successful":39,"failed":3,"errorRate":7.142857142857142,"requestsPerSecond":0.7},"responseTime":{"average":4,"p95":16},"system":{"memory":19,"heap":89}}}
+{"timestamp":"2025-09-14T14:12:17.462Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:12:17.465Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:12:17.465Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:12:17.465Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:12:17.465Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":19}}
+{"timestamp":"2025-09-14T14:12:17.466Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:12:17.466Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:12:17.466Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:12:17.466Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:12:17.472Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":19,"heap":90}}}
+{"timestamp":"2025-09-14T14:13:17.476Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":20,"heap":90}}}
+{"timestamp":"2025-09-14T14:14:17.464Z","level":"info","message":"Starting performance optimization","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:14:17.465Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:14:17.465Z","level":"info","message":"Starting memory optimization"}
+{"timestamp":"2025-09-14T14:14:17.465Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:14:17.466Z","level":"info","message":"Memory optimization completed","context":{"memoryAfter":20}}
+{"timestamp":"2025-09-14T14:14:17.466Z","level":"info","message":"Cache cleared","context":{"entriesRemoved":0}}
+{"timestamp":"2025-09-14T14:14:17.466Z","level":"info","message":"Memory optimization completed"}
+{"timestamp":"2025-09-14T14:14:17.466Z","level":"info","message":"Connection cleanup completed"}
+{"timestamp":"2025-09-14T14:14:17.466Z","level":"info","message":"Performance optimization completed","context":{"aggressive":false}}
+{"timestamp":"2025-09-14T14:14:17.517Z","level":"info","message":"Performance metrics collected","context":{"requests":{"total":0,"successful":0,"failed":0,"errorRate":0,"requestsPerSecond":0},"responseTime":{"average":0,"p95":0},"system":{"memory":20,"heap":90}}}

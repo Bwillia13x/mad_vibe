@@ -1,9 +1,11 @@
 import OpenAI from "openai";
 import { Readable } from "stream";
 
+import { getEnvVar } from '../../lib/env-security';
+
 // Gracefully handle missing API key in demo environments
 let openai: OpenAI | null = null;
-const apiKey = process.env.OPENAI_API_KEY;
+const apiKey = getEnvVar('OPENAI_API_KEY');
 if (apiKey && apiKey.trim().length > 0) {
   try {
     // the newest OpenAI model is "gpt-5" which was released August 7, 2025.
