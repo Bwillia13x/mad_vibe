@@ -121,7 +121,7 @@ class PenetrationTester {
         if (text.includes('root:') || text.includes('localhost')) {
           vulnerabilityFound = true;
         }
-      } catch (error) {
+      } catch (_error) {
         // Expected for most payloads
       }
     }

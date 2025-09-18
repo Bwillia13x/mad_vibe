@@ -1,47 +1,19 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `server/`: Express API (`index.ts`, routes, middleware, storage, Vite/dev server glue).
-- `client/src/`: React app (Vite). Components in `components/`, pages in `pages/`.
-- `shared/`: Cross‑shared types and utilities.
-- `lib/`: Server utilities (env security, performance, db, logging).
-- `scripts/`: TS runners for smoke, e2e, performance, security, deployment tests.
-- `test/`: Test suites, configs, and assets. Reports in `test-results/`.
-- `dist/`: Build output (server bundle + client assets). Do not edit.
-- `docs/`: Reference docs and handoff material.
+Keep server logic in `server/` (Express API, middleware, storage). The Vite React front end lives in `client/src/` with components in `components/` and pages in `pages/`. Share types and utilities through `shared/`. Server-only helpers, env guards, logging, and database glue belong to `lib/`. Test runners and utilities sit in `scripts/`, while suite outputs land in `test-results/`. Treat `dist/` as build artifacts only—never edit directly.
 
 ## Build, Test, and Development Commands
-- `npm run dev` — Start API + Vite dev pipeline.
-- `npm run build` — Build client (Vite) and bundle server (esbuild) to `dist/`.
-- `npm start` — Run production server from `dist/`.
-- `npm test` — Fast smoke validation.
-- `npm run test:comprehensive` — Full suite (functional, e2e, perf, security).
-- `npm run lint` / `npm run format[:check]` — ESLint/Prettier.
-- `npm run check` — TypeScript type check only.
-- `npm run db:push` — Apply Drizzle schema changes.
+Use `npm run dev` for the combined API + Vite dev pipeline. Build production assets with `npm run build`, then serve them via `npm start`. For fast validation run `npm test`; for full parity suites use `npm run test:comprehensive`. Run `npm run lint`, `npm run format:check`, and `npm run check` before PRs to keep linting, formatting, and types clean.
 
 ## Coding Style & Naming Conventions
-- TypeScript strict mode; 2‑space indent; max line width 100.
-- Prettier: `semi: false`, `singleQuote: true`, `trailingComma: none`.
-- ESLint: TS recommended rules; no unused vars (prefix `_` to ignore).
-- React components: `PascalCase` files (e.g., `DemoBanner.tsx`).
-- Server/lib files: `kebab-case.ts` (e.g., `env-security.ts`).
-- Paths: prefer TS aliases from `tsconfig.json` (e.g., `@/lib/*`, `@shared/*`).
+TypeScript is in strict mode with 2-space indentation and max 100-character lines. Prettier is configured with `semi: false`, `singleQuote: true`, and no trailing commas. React files use PascalCase names (`DemoBanner.tsx`), while server/lib modules use kebab-case (`env-security.ts`). Prefer path aliases from `tsconfig.json` such as `@/lib/*` and `@shared/*`. Prefix unused variables with `_` to satisfy ESLint.
 
 ## Testing Guidelines
-- Primary runners live in `scripts/` (tsx‑executed). Place new scenario tests here.
-- Long‑lived fixtures, configs, and assets go under `test/`.
-- Quick checks: `npm test`. Full CI parity: `npm run test:comprehensive`.
-- Suite examples: `functional-tests.ts`, `e2e.ts`, `performance-tests.ts`, `security-tests.ts`.
-- Reports output to `test-results/` (HTML/JSON/CSV as configured).
+Tests and fixtures live under `test/`; orchestrators reside in `scripts/` (e.g., `scripts/functional-tests.ts`). Default to `npm test` for quick checks, and escalate to `npm run test:comprehensive` before releases. Commit new scenario tests as TS runners in `scripts/` and capture long-lived assets in `test/`. Store generated reports in `test-results/`.
 
 ## Commit & Pull Request Guidelines
-- Prefer Conventional Commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`.
-- Scope examples: `server:`, `client:`, `scripts:`, `lib:`.
-- PRs must include: purpose, scope, key changes, test plan (commands), and screenshots for UI.
-- Link related issues; note breaking changes and required env/config updates.
+Follow Conventional Commits (`feat:`, `fix:`, `chore:`) with optional scopes like `server:` or `client:`. PRs should outline purpose, scope, key changes, and test commands, plus screenshots for UI updates. Link related issues and call out breaking changes or required env/config updates.
 
 ## Security & Configuration Tips
-- Copy `.env.example` → `.env`; never commit secrets. Required: `PORT`, `SESSION_SECRET`, DB URL for Drizzle.
-- Use `getEnvVar` helpers from `lib/env-security.ts`; avoid inlining `process.env` in business logic.
-- After schema changes in `lib/db`, run `npm run db:push`.
+Duplicate `.env.example` into `.env` and populate `PORT`, `SESSION_SECRET`, and your Drizzle database URL. Always reach for the helpers in `lib/env-security.ts` instead of direct `process.env` reads in business code. After modifying schemas in `lib/db`, run `npm run db:push` to apply migrations.

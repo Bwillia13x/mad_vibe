@@ -20,10 +20,12 @@ import {
   type Campaign,
   type InsertCampaign,
   type LoyaltyEntry,
-  type InsertLoyaltyEntry
+  type InsertLoyaltyEntry,
+  researchLogEntries
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { getEnvVar } from '../lib/env-security';
+import { db } from '../lib/db';
 
 // modify the interface with any CRUD methods
 // you might need
@@ -604,6 +606,49 @@ export class MemStorage implements IStorage {
 
     // Create ID mappings for demo data relationships
     const tempIdToRealId = new Map<string, string>();
+
+    const databaseUrl = getEnvVar('DATABASE_URL');
+    if (databaseUrl) {
+      try {
+        await db.delete(researchLogEntries);
+        const now = new Date();
+        const minutesAgo = (mins: number) => new Date(now.getTime() - mins * 60 * 1000);
+        const logEntries = [
+          {
+            stageSlug: 'home',
+            stageTitle: 'Home / Daily Brief',
+            action: 'Stage opened',
+            details: 'Reviewed overnight alerts and resumed latest session',
+            timestamp: minutesAgo(45)
+          },
+          {
+            stageSlug: 'intake',
+            stageTitle: 'Idea Intake (Triage)',
+            action: 'Stage marked ready',
+            details: 'Thesis stub documented and disqualifier logged',
+            timestamp: minutesAgo(35)
+          },
+          {
+            stageSlug: 'one-pager',
+            stageTitle: 'One-Pager (Quick Look)',
+            action: 'Stage opened',
+            details: 'Running forensic checks before promoting to Dossier',
+            timestamp: minutesAgo(20)
+          },
+          {
+            stageSlug: 'dossier',
+            stageTitle: 'Company Dossier (Business Map)',
+            action: 'Stage opened',
+            details: 'Mapping segments and attaching first citations',
+            timestamp: minutesAgo(10)
+          }
+        ];
+
+        await db.insert(researchLogEntries).values(logEntries);
+      } catch (error) {
+        console.warn('Failed to seed research log entries', error);
+      }
+    }
 
     // Seed business profile
     if (demoData.businessProfileData) {

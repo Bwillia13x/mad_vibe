@@ -296,7 +296,7 @@ async function main() {
       } else {
         console.log('✓ Chat endpoint properly handles XSS payload')
       }
-    } catch (err) {
+    } catch (_err) {
       console.log('✓ Chat endpoint rejected malicious input')
     }
 

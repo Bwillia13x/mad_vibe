@@ -237,7 +237,7 @@ class PerformanceValidationReporter {
         score += 25;
         console.log('  ✅ Server connection optimizations configured');
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('  ⚠️  Could not analyze server configuration');
     }
 
@@ -432,7 +432,7 @@ class PerformanceValidationReporter {
       if (serverContent.includes('maxConnections')) {
         improvements.push('✅ Configured connection limits to prevent resource exhaustion');
       }
-    } catch (error) {
+    } catch (_error) {
       // Ignore if can't read server file
     }
 

@@ -34,7 +34,8 @@
     "run:e2e:timeout": "node scripts/run-with-timeout.mjs 600 'npm run test:e2e:comprehensive'",
     "run:smoke:timeout": "node scripts/run-with-timeout.mjs 300 'npm run smoke'",
     "validate:performance": "tsx scripts/performance-validation-report.ts",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "test:workflow": "vitest run client/test/integration/workflow-research-log-api.test.ts client/test/integration/storage-research-log-seed.test.ts client/test/integration/workflow-memo-state-api.test.ts client/test/integration/workflow-normalization-state-api.test.ts client/test/integration/workflow-valuation-state-api.test.ts client/test/integration/workflow-monitoring-state-api.test.ts client/test/integration/workflow-presence-api.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -137,7 +138,8 @@
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
-    "vite": "^7.1.5"
+    "vite": "^7.1.5",
+    "vitest": "^3.2.4"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

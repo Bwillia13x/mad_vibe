@@ -218,8 +218,8 @@ class PerformanceValidator {
       if (process.env.TEST_VERBOSE) process.stderr.write(d);
     });
 
-    let exitCode: number | null = null;
-    this.serverProcess.on('exit', (code) => { exitCode = code ?? 0; });
+    let _exitCode: number | null = null;
+    this.serverProcess.on('exit', (code) => { _exitCode = code ?? 0; });
 
     // Wait for server to start and get port
     const port = await waitForPortFile(portFile, 20000);
@@ -264,7 +264,7 @@ class PerformanceValidator {
             return;
           }
         }
-      } catch (error) {
+      } catch (_error) {
         // Server not ready yet, continue waiting
       }
       
@@ -424,7 +424,7 @@ class PerformanceValidator {
         
         // Small delay between requests to avoid overwhelming
         await delay(50 + Math.random() * 100);
-      } catch (error) {
+      } catch (_error) {
         const responseTime = Date.now() - startTime;
         results.push({ 
           success: false, 
@@ -479,7 +479,7 @@ class PerformanceValidator {
           
           // Small delay between requests
           await delay(25);
-        } catch (error) {
+        } catch (_error) {
           const responseTime = Date.now() - startTime;
           responseTimes.push(responseTime);
           allResponseTimes.push(responseTime);

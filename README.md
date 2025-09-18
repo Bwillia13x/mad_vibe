@@ -22,17 +22,21 @@ Environment Variables
 
 Copy `.env.example` to `.env` and fill as needed:
 
-- `OPENAI_API_KEY` (optional) – enables live AI responses for the chat assistant. When absent, the app runs in demo mode with safe fallbacks.
+- `DATABASE_URL` – PostgreSQL connection used for persisting workflow research log entries (e.g., `postgres://valor_user:valorpass@localhost:5432/valor_vibe`). If unset the workflow UI will fall back to local-memory logging only for the current session.
+- `SESSION_SECRET` – required for production-grade session security.
 - `PORT` (optional) – server port (default `5000`).
-- `POSTGRES_URL` / `DATABASE_URL` (optional, not required for the demo) – Postgres connection for the Drizzle DB layer. The demo uses in-memory storage and seeds sample data on startup.
+- `OPENAI_API_KEY` (optional) – enables live AI responses; without it the assistant stays in demo mode.
 
 What’s Included
 
 - Server: Express with `/api` routes and structured logging.
 - Client: Vite + React + Tailwind UI (shadcn based components).
 - Data: In-memory store with seeded demo data (services, staff, customers, appointments, inventory, analytics).
+- Workflow research log entries are pre-seeded in Postgres so the new IDE shell renders recent activity on startup.
 - AI Assistant: Optional OpenAI integration with streaming (SSE). Falls back to informative demo responses when no API key is set.
 - Business Tools: Chat, Scheduling, Inventory, Staff, Analytics plus custom POS, Marketing, Loyalty pages.
+- Workflow IDE: Data normalization, owner earnings bridge, valuation workbench, memo composer (Markdown + styled PDF/HTML export with exhibits and reviewer threads), scenario lab, monitoring dashboard.
+- Collaboration niceties: live stage presence indicators and per-stage history timelines for memo work.
 
 Demo Pages
 
@@ -47,6 +51,7 @@ Key API Endpoints (demo)
 - POS: `GET /api/pos/sales`, `POST /api/pos/sales`, `DELETE /api/pos/sales/:id`
 - Marketing: `GET/POST /api/marketing/campaigns`, `PATCH /api/marketing/campaigns/:id`, `GET /api/marketing/performance`
 - Loyalty: `GET /api/loyalty/entries[?customerId]`, `POST /api/loyalty/entries`
+- Workflow: `GET/PUT /api/workflow/memo-state`, `GET/PUT /api/workflow/normalization-state`, `GET/PUT /api/workflow/valuation-state`, `GET/PUT /api/workflow/monitoring-state`, `GET/POST /api/workflow/research-log`
 
 Testing
 
@@ -56,6 +61,8 @@ Testing
   - Builds the app, launches the server on an ephemeral port, probes `/api/health`, `/api/services`, `/api/staff`, `/api/appointments`, `/api/analytics`, and `/api/chat` (non-streaming), then shuts down.
   - Also validates streaming chat, CSV export, deterministic reseed (`seed`), time freeze, and demo reset.
   - Exercises POS/Marketing/Loyalty endpoints for demo flows
+- Workflow persistence tests: `npm run test:workflow`
+  - Runs Vitest integration coverage for `/api/workflow/research-log`, `/api/workflow/memo-state`, `/api/workflow/normalization-state`, `/api/workflow/valuation-state`, `/api/workflow/monitoring-state`, and the demo seeding hook.
 
 Navigation and smoke helpers
 
@@ -110,3 +117,4 @@ Common Issues
 - Missing OpenAI key: The server will run in demo mode and the assistant will respond with non-AI fallback text.
 - Port busy or blocked: Set `PORT=5050` (or another free port) before running `npm start`, or use `npm run start:dynamic` to choose an ephemeral port and watch logs for the actual port.
 - Database not configured: Not needed for the demo; the app uses in-memory storage.
+- Workflow audit roadmap & collaboration planning lives in `docs/workflow-audit-collaboration.md`.

@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
-import * as schema from '@/shared/schema'
+import * as schema from '../../shared/schema'
 import { log } from '../log'
 import { connectionPool } from './connection-pool'
 

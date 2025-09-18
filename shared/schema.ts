@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, boolean, jsonb, decimal, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, boolean, jsonb, decimal, uuid, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -155,6 +155,107 @@ export const systemLogs = pgTable("system_logs", {
   context: jsonb("context"),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
+
+export const researchLogEntries = pgTable("research_log_entries", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  stageSlug: text("stage_slug").notNull(),
+  stageTitle: text("stage_title").notNull(),
+  action: text("action").notNull(),
+  details: text("details"),
+  timestamp: timestamp("timestamp").defaultNow().notNull()
+});
+
+export const memoComposerStates = pgTable(
+  "memo_composer_states",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    sessionId: text("session_id").notNull(),
+    state: jsonb("state").notNull(),
+    version: integer("version").notNull().default(0),
+    updatedAt: timestamp("updated_at").defaultNow().notNull()
+  },
+  (table) => ({
+    sessionIdx: uniqueIndex("memo_composer_states_session_id_idx").on(table.sessionId)
+  })
+)
+
+export const dataNormalizationStates = pgTable(
+  "data_normalization_states",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    sessionId: text("session_id").notNull(),
+    state: jsonb("state").notNull(),
+    version: integer("version").notNull().default(0),
+    updatedAt: timestamp("updated_at").defaultNow().notNull()
+  },
+  (table) => ({
+    sessionIdx: uniqueIndex("data_normalization_states_session_id_idx").on(table.sessionId)
+  })
+)
+
+export const valuationStates = pgTable(
+  "valuation_states",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    sessionId: text("session_id").notNull(),
+    state: jsonb("state").notNull(),
+    version: integer("version").notNull().default(0),
+    updatedAt: timestamp("updated_at").defaultNow().notNull()
+  },
+  (table) => ({
+    sessionIdx: uniqueIndex("valuation_states_session_id_idx").on(table.sessionId)
+  })
+)
+
+export const monitoringStates = pgTable(
+  "monitoring_states",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    sessionId: text("session_id").notNull(),
+    state: jsonb("state").notNull(),
+    version: integer("version").notNull().default(0),
+    updatedAt: timestamp("updated_at").defaultNow().notNull()
+  },
+  (table) => ({
+    sessionIdx: uniqueIndex("monitoring_states_session_id_idx").on(table.sessionId)
+  })
+)
+
+export const memoComposerStateEvents = pgTable("memo_composer_state_events", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: text("session_id").notNull(),
+  actorId: text("actor_id").notNull(),
+  version: integer("version").notNull(),
+  state: jsonb("state").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+})
+
+export const dataNormalizationStateEvents = pgTable("data_normalization_state_events", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: text("session_id").notNull(),
+  actorId: text("actor_id").notNull(),
+  version: integer("version").notNull(),
+  state: jsonb("state").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+})
+
+export const valuationStateEvents = pgTable("valuation_state_events", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: text("session_id").notNull(),
+  actorId: text("actor_id").notNull(),
+  version: integer("version").notNull(),
+  state: jsonb("state").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+})
+
+export const monitoringStateEvents = pgTable("monitoring_state_events", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: text("session_id").notNull(),
+  actorId: text("actor_id").notNull(),
+  version: integer("version").notNull(),
+  state: jsonb("state").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+})
 
 // Relations
 export const customersRelations = relations(customers, ({ many }) => ({

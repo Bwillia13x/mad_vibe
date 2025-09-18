@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import chatRouter from "./routes/chat";
+import createWorkflowRouter from "./routes/workflow";
 import { getNow, setFreeze, getFreeze } from "./lib/clock";
 import { rateLimitedAuth, type AuthenticatedRequest } from "./middleware/auth";
 import { securityHeaders } from "./middleware/security-headers";
@@ -53,6 +54,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Add chat route for AI business assistant
   app.use("/api", chatRouter);
+
+  // Workflow research log endpoints
+  app.use("/api/workflow", createWorkflowRouter());
 
   // Add performance monitoring routes
   const performanceRouter = await import("./routes/performance");
