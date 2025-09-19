@@ -1,19 +1,19 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Keep server logic in `server/` (Express API, middleware, storage). The Vite React front end lives in `client/src/` with components in `components/` and pages in `pages/`. Share types and utilities through `shared/`. Server-only helpers, env guards, logging, and database glue belong to `lib/`. Test runners and utilities sit in `scripts/`, while suite outputs land in `test-results/`. Treat `dist/` as build artifacts only—never edit directly.
+Server logic lives in `server/` for Express routes, middleware, and persistence helpers; shared server utilities stay in `lib/`. The Vite React app sits in `client/src/` with components in `client/src/components/` and routed pages in `client/src/pages/`. Cross-app types belong to `shared/`. Place runner scripts in `scripts/`, long-lived fixtures in `test/`, and suite outputs in `test-results/`. Generated artifacts such as `dist/` should never be edited.
 
 ## Build, Test, and Development Commands
-Use `npm run dev` for the combined API + Vite dev pipeline. Build production assets with `npm run build`, then serve them via `npm start`. For fast validation run `npm test`; for full parity suites use `npm run test:comprehensive`. Run `npm run lint`, `npm run format:check`, and `npm run check` before PRs to keep linting, formatting, and types clean.
+`npm run dev` starts the API and UI together. Ship-ready bundles come from `npm run build`, and `npm start` serves that build. Run `npm test` for the fast suite and `npm run test:comprehensive` before releases. Guard quality with `npm run lint`, `npm run format:check`, and `npm run check`. When Drizzle models change under `lib/db`, finalize with `npm run db:push`.
 
 ## Coding Style & Naming Conventions
-TypeScript is in strict mode with 2-space indentation and max 100-character lines. Prettier is configured with `semi: false`, `singleQuote: true`, and no trailing commas. React files use PascalCase names (`DemoBanner.tsx`), while server/lib modules use kebab-case (`env-security.ts`). Prefer path aliases from `tsconfig.json` such as `@/lib/*` and `@shared/*`. Prefix unused variables with `_` to satisfy ESLint.
+TypeScript runs in strict mode with 2-space indentation and a 100-character line limit. Prettier uses `semi: false`, `singleQuote: true`, and no trailing commas—invoke `npm run format` if layout drifts. React modules use PascalCase (`HeroBanner.tsx`); server and lib files use kebab-case (`session-store.ts`). Prefer aliases like `@/lib/env-security` and `@shared/types`, and prefix unused parameters with `_` to satisfy ESLint.
 
 ## Testing Guidelines
-Tests and fixtures live under `test/`; orchestrators reside in `scripts/` (e.g., `scripts/functional-tests.ts`). Default to `npm test` for quick checks, and escalate to `npm run test:comprehensive` before releases. Commit new scenario tests as TS runners in `scripts/` and capture long-lived assets in `test/`. Store generated reports in `test-results/`.
+Author specs in `test/` and orchestration scripts in `scripts/` (see `scripts/functional-tests.ts` for shape). Match filenames to the feature under test and mirror the folder hierarchy it touches. Persist deterministic assets nearby, and route generated output to `test-results/`. Run `npm test` before every push; schedule `npm run test:comprehensive` on PRs that modify critical flows.
 
 ## Commit & Pull Request Guidelines
-Follow Conventional Commits (`feat:`, `fix:`, `chore:`) with optional scopes like `server:` or `client:`. PRs should outline purpose, scope, key changes, and test commands, plus screenshots for UI updates. Link related issues and call out breaking changes or required env/config updates.
+Use Conventional Commits such as `feat:`, `fix:`, or `chore:` with optional scopes (`server:`, `client:`). Pull requests should restate purpose, list verification commands, link related issues, and add screenshots for UI changes. Flag schema or env updates so reviewers can update their setup quickly.
 
 ## Security & Configuration Tips
-Duplicate `.env.example` into `.env` and populate `PORT`, `SESSION_SECRET`, and your Drizzle database URL. Always reach for the helpers in `lib/env-security.ts` instead of direct `process.env` reads in business code. After modifying schemas in `lib/db`, run `npm run db:push` to apply migrations.
+Copy `.env.example` to `.env`, populate `PORT`, `SESSION_SECRET`, and the Drizzle database URL, then load values through `lib/env-security.ts`. After adjusting tables or enums in `lib/db`, run `npm run db:push` and verify the migration locally.
