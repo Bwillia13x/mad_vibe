@@ -238,6 +238,7 @@ export function WorkbenchLayout({
           presenceLabel={presenceSummary}
           inspectorExtras={combinedInspectorExtras}
           aiModes={activeStage.aiModes ?? []}
+          onPromptShortcut={handlePromptSubmit}
         />
       </div>
 
@@ -284,6 +285,7 @@ export function WorkbenchLayout({
             inspectorExtras={combinedInspectorExtras}
             aiModes={activeStage.aiModes ?? []}
             variant="drawer"
+            onPromptShortcut={handlePromptSubmit}
           />
         </DrawerContent>
       </Drawer>

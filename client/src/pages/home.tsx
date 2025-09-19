@@ -1,244 +1,248 @@
-import { useState } from "react";
-import { Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo } from 'react'
+import { ArrowRight, BarChart3, RefreshCw, Sparkles, Target } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Badge } from '@/components/ui/badge'
+import { useWorkflow } from '@/hooks/useWorkflow'
+import { useLocation } from 'wouter'
+import { resolveStatusTone, Chip } from '@/components/workbench/panels'
+
+const quickPrompts = [
+  'Surface the biggest deltas in the research log today',
+  'Draft an IC memo outline using the latest valuation inputs',
+  'Show me risks flagged by the team in the last 24 hours'
+]
 
 export default function Home() {
-  const { data: health } = useQuery<any>({ queryKey: ['/api/health'] })
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content: "Welcome to Andreas Vibe Business Management! I'm your AI business assistant. I can help you with scheduling, inventory management, staff coordination, analytics, and more. What would you like to work on today?",
-      timestamp: new Date(),
-      id: 0
-    }
-  ]);
+  const { data: systemHealth } = useQuery<{ status: string }>({ queryKey: ['/api/health'] })
+  const { stages, stageStatuses, activeStage, setActiveStage, researchLog } = useWorkflow()
+  const [, navigate] = useLocation()
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
+  const stageSummary = useMemo(
+    () =>
+      stages.map((stage) => ({
+        id: stage.id,
+        slug: stage.slug,
+        title: stage.title,
+        shortTitle: stage.shortTitle,
+        goal: stage.goal,
+        status: stageStatuses[stage.slug]
+      })),
+    [stages, stageStatuses]
+  )
 
-    const userMessage = {
-      role: "user" as const,
-      content: message,
-      timestamp: new Date(),
-      id: Date.now() - 1
-    };
+  const recentLog = useMemo(() => researchLog.slice(0, 6), [researchLog])
 
-    setMessages(prev => [...prev, userMessage]);
-    setMessage("");
-
-    // Add a placeholder for the streaming AI response
-    const aiMessageId = Date.now();
-    const placeholderAiMessage = {
-      role: "assistant" as const,
-      content: "",
-      timestamp: new Date(),
-      id: aiMessageId
-    };
-    
-    setMessages(prev => [...prev, placeholderAiMessage]);
-
-    try {
-      // Send message to OpenAI via our backend with streaming
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [...messages.filter(m => m.role !== 'assistant' || m.content !== "Welcome to Andreas Vibe Business Management! I'm your AI business assistant. I can help you with scheduling, inventory management, staff coordination, analytics, and more. What would you like to work on today?"), userMessage].map(({ role, content }) => ({ role, content })),
-          stream: true
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
-      }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedContent = "";
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') {
-                return;
-              }
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.content) {
-                  accumulatedContent += parsed.content;
-                  // Update the AI message in real-time
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === aiMessageId 
-                      ? { ...msg, content: accumulatedContent }
-                      : msg
-                  ));
-                }
-              } catch (e) {
-                // Ignore JSON parse errors for partial chunks
-              }
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error getting AI response:', error);
-      setMessages(prev => prev.map(msg => 
-        msg.id === aiMessageId 
-          ? { ...msg, content: "I'm having trouble connecting right now. Please try again in a moment." }
-          : msg
-      ));
-    }
-  };
+  const handleNavigateStage = (slug: string) => {
+    if (stageStatuses[slug] === 'locked') return
+    setActiveStage(slug)
+    navigate(`/${slug}`)
+  }
 
   return (
-    <>
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white" data-testid="heading-main">
-              Andreas Vibe Business Management
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Human/AI Business Management System</p>
-          </div>
-          <div className="text-sm text-gray-500">
-            [ready]
-          </div>
-        </div>
-      </div>
-
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4" data-testid="chat-messages">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            data-testid={`message-${msg.role}-${index}`}
-          >
-            <div
-              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                msg.role === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-              }`}
-            >
-              <p className="text-sm">{msg.content}</p>
-              <p className="text-xs opacity-70 mt-1">
-                {msg.timestamp.toLocaleTimeString()}
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-10">
+        <header className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-600/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-violet-200">
+                <Sparkles className="h-3 w-3" /> Value Venture Lab
+              </div>
+              <h1 className="text-3xl font-semibold text-slate-50">
+                Welcome back, let&apos;s move your thesis forward
+              </h1>
+              <p className="max-w-2xl text-sm text-slate-400">
+                Review pipeline momentum, pick up the next best task, or re-open the workbench right where you left
+                off. Omni-Prompt and the research log stay in sync across every stage.
               </p>
             </div>
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-3 text-right text-sm text-slate-300">
+              <div className="text-xs uppercase tracking-[0.18em] text-slate-500">System Status</div>
+              <div className="flex items-center justify-end gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
+                <span>{systemHealth?.status ?? 'Operational'}</span>
+              </div>
+            </div>
           </div>
-        ))}
-      </div>
-
-      {/* Quick Prompts */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Click and try one of these prompts:</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                className="text-left justify-start h-auto p-3"
-                onClick={() => setMessage("Show me today's schedule and upcoming appointments")}
-                data-testid="prompt-schedule"
-                aria-label="Use schedule prompt"
-              >
-                <div>
-                  <div className="font-medium text-sm">Show me today's schedule and upcoming appointments</div>
-                </div>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Paste into chat and send</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                className="text-left justify-start h-auto p-3"
-                onClick={() => setMessage("What inventory items are running low?")}
-                data-testid="prompt-inventory"
-                aria-label="Use inventory prompt"
-              >
-                <div>
-                  <div className="font-medium text-sm">What inventory items are running low?</div>
-                </div>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Paste into chat and send</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                className="text-left justify-start h-auto p-3"
-                onClick={() => setMessage("Generate a staff performance report for this month")}
-                data-testid="prompt-staff"
-                aria-label="Use staff performance prompt"
-              >
-                <div>
-                  <div className="font-medium text-sm">Generate a staff performance report for this month</div>
-                </div>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Paste into chat and send</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                className="text-left justify-start h-auto p-3"
-                onClick={() => setMessage("Show me revenue analytics and business insights")}
-                data-testid="prompt-analytics"
-                aria-label="Use analytics prompt"
-              >
-                <div>
-                  <div className="font-medium text-sm">Show me revenue analytics and business insights</div>
-                </div>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Paste into chat and send</TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
-
-      {/* Message Input */}
-      <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-        {health?.aiDemoMode && (
-          <div className="mb-2 flex items-center gap-2 text-xs text-yellow-700 dark:text-yellow-300">
-            <span className="px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-800/40">Demo Mode</span>
-            <span>AI live responses are disabled for this demo.</span>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              size="sm"
+              className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white shadow-[0_0_18px_rgba(99,102,241,0.4)] transition hover:bg-violet-500"
+              onClick={() => handleNavigateStage(activeStage.slug)}
+            >
+              Resume Workbench
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl border-slate-700/60 bg-slate-900/60 text-slate-200 hover:bg-slate-900"
+                  onClick={() => handleNavigateStage('memo')}
+                >
+                  Jump to Memo Composer
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Opens at the memo stage with live sync status</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl border-slate-700/60 bg-slate-900/60 text-slate-200 hover:bg-slate-900"
+                  onClick={() => handleNavigateStage('scenarios')}
+                >
+                  Explore Scenario Lab
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Direct link into scenario modelling with latest assumptions</TooltipContent>
+            </Tooltip>
           </div>
-        )}
-        <div className="flex space-x-3">
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1"
-            data-testid="input-message"
-            aria-label="Message input"
-          />
-          <Button type="submit" disabled={!message.trim()} data-testid="button-send" aria-label="Send message">
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </form>
-    </>
-  );
+        </header>
+
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+          <Card className="col-span-2 border-slate-800 bg-slate-900/60 shadow-[0_0_24px_rgba(15,23,42,0.45)]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle className="text-sm font-semibold text-slate-200">Stage Pipeline</CardTitle>
+                <p className="text-xs text-slate-500">Track downstream readiness and unlocks</p>
+              </div>
+              <Chip tone="violet">Active: {activeStage.shortTitle}</Chip>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {stageSummary.map((stage) => {
+                const tone = resolveStatusTone(stage.status)
+                const isActive = stage.slug === activeStage.slug
+                return (
+                  <button
+                    key={stage.slug}
+                    type="button"
+                    onClick={() => handleNavigateStage(stage.slug)}
+                    className="flex w-full items-center justify-between rounded-xl border border-slate-800/80 bg-slate-950/60 px-4 py-3 text-left transition hover:border-violet-500/50 hover:bg-slate-900"
+                    aria-label={`Navigate to ${stage.title} stage`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-slate-100">{stage.shortTitle}</span>
+                        {isActive && <Badge variant="outline">Current</Badge>}
+                      </div>
+                      <p className="text-xs text-slate-500">{stage.goal}</p>
+                    </div>
+                    <Chip tone={tone}>{stage.status}</Chip>
+                  </button>
+                )
+              })}
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-800 bg-slate-900/60 shadow-[0_0_24px_rgba(15,23,42,0.45)]">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold text-slate-200">Quick Prompts</CardTitle>
+              <p className="text-xs text-slate-500">Seed Omni-Prompt with analyst-ready templates</p>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {quickPrompts.map((prompt) => (
+                <Button
+                  key={prompt}
+                  variant="outline"
+                  className="w-full justify-start rounded-xl border-slate-800 bg-slate-950/60 text-left text-sm text-slate-200 hover:bg-slate-900"
+                  onClick={() => handleNavigateStage(activeStage.slug)}
+                >
+                  <Sparkles className="mr-2 h-4 w-4 text-violet-300" />
+                  {prompt}
+                </Button>
+              ))}
+              <p className="text-xs text-slate-500">
+                Use ⌘K or Ctrl+K to open Omni-Prompt anywhere in the workflow.
+              </p>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <Card className="border-slate-800 bg-slate-900/60 shadow-[0_0_24px_rgba(15,23,42,0.45)] lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle className="text-sm font-semibold text-slate-200">Research Log Highlights</CardTitle>
+                <p className="text-xs text-slate-500">Latest activity across analysts and AI assists</p>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl border-slate-700/60 bg-slate-950/60 text-slate-200 hover:bg-slate-900"
+                    onClick={() => handleNavigateStage(activeStage.slug)}
+                  >
+                    View full log
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Opens the inspector activity view inside the workbench</TooltipContent>
+              </Tooltip>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {recentLog.length === 0 && (
+                <div className="rounded-xl border border-dashed border-slate-800/80 px-4 py-6 text-center text-sm text-slate-500">
+                  No research events captured yet. The log updates as you collaborate and complete gates.
+                </div>
+              )}
+              {recentLog.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="flex items-start justify-between rounded-xl border border-slate-800/80 bg-slate-950/60 px-4 py-3"
+                >
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{entry.stageTitle}</div>
+                    <div className="text-sm text-slate-100">{entry.action}</div>
+                    {entry.details && <div className="text-xs text-slate-500">{entry.details}</div>}
+                  </div>
+                  <span className="text-xs text-slate-500">{new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-800 bg-slate-900/60 shadow-[0_0_24px_rgba(15,23,42,0.45)]">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold text-slate-200">Next Best Actions</CardTitle>
+              <p className="text-xs text-slate-500">AI suggestions based on current stage position</p>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-slate-200">
+              <div className="flex items-start gap-3 rounded-xl border border-slate-800/80 bg-slate-950/60 px-3 py-2">
+                <Target className="mt-0.5 h-4 w-4 text-violet-300" />
+                <div>
+                  <div className="font-medium">Review stage gate checklist</div>
+                  <p className="text-xs text-slate-500">
+                    Ensure the current stage requirements are checked off before advancing to keep downstream tabs unlocked.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 rounded-xl border border-slate-800/80 bg-slate-950/60 px-3 py-2">
+                <BarChart3 className="mt-0.5 h-4 w-4 text-violet-300" />
+                <div>
+                  <div className="font-medium">Sync valuation scenarios</div>
+                  <p className="text-xs text-slate-500">
+                    Re-open Scenario Lab to adjust bull, base, and bear assumptions ahead of memo drafting.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 rounded-xl border border-slate-800/80 bg-slate-950/60 px-3 py-2">
+                <RefreshCw className="mt-0.5 h-4 w-4 text-violet-300" />
+                <div>
+                  <div className="font-medium">Log a progress note</div>
+                  <p className="text-xs text-slate-500">
+                    Capture a short update in the research log so collaborators see the latest context when they join.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      </div>
+    </div>
+  )
 }

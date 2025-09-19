@@ -373,18 +373,30 @@ export class EnhancedConnectionPool {
     
     log('Database connection pool shutdown complete');
   }
+
+  /**
+   * Expose the underlying pg Pool for integrations that require it (e.g. drizzle)
+   */
+  getRawPool(): Pool {
+    return this.pool;
+  }
 }
 
 // Create and export the enhanced connection pool
 const databaseUrl = getEnvVar('POSTGRES_URL') || getEnvVar('DATABASE_URL');
 
-if (!databaseUrl) {
+// In development/demo mode, allow missing database URL and fall back to in-memory storage
+const isDevelopment = getEnvVar('NODE_ENV') === 'development';
+const isDemoMode = !databaseUrl && isDevelopment;
+
+if (!databaseUrl && !isDemoMode) {
   throw new Error(
     "POSTGRES_URL or DATABASE_URL must be set. Did you forget to provision a database?",
   );
 }
 
-export const connectionPool = new EnhancedConnectionPool({
+// Only create connection pool if database URL is provided
+export const connectionPool = databaseUrl ? new EnhancedConnectionPool({
   connectionString: databaseUrl,
   min: 5,
   max: 25,
@@ -393,13 +405,17 @@ export const connectionPool = new EnhancedConnectionPool({
   connectionTimeoutMillis: 5000,
   enableMonitoring: true,
   healthCheckInterval: 30000
-});
+}) : null;
 
 // Graceful shutdown handling
 process.on('SIGTERM', async () => {
-  await connectionPool.shutdown();
+  if (connectionPool) {
+    await connectionPool.shutdown();
+  }
 });
 
 process.on('SIGINT', async () => {
-  await connectionPool.shutdown();
+  if (connectionPool) {
+    await connectionPool.shutdown();
+  }
 });

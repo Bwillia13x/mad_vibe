@@ -5,9 +5,13 @@ import { log } from '../log'
 async function runMigration() {
   try {
     log('Starting database migration...', { timestamp: new Date().toISOString() })
-    
+
+    if (!db || !pool) {
+      throw new Error('Database connection is not configured; cannot run migrations.')
+    }
+
     await migrate(db, { migrationsFolder: './migrations' })
-    
+
     log('Database migration completed successfully', { timestamp: new Date().toISOString() })
   } catch (error) {
     log('Database migration failed', { 
@@ -16,7 +20,9 @@ async function runMigration() {
     })
     throw error
   } finally {
-    await pool.end()
+    if (pool) {
+      await pool.end()
+    }
   }
 }
 

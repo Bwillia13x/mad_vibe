@@ -1,13 +1,27 @@
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import {
+  DollarSign,
+  Calendar,
+  Users,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  Download,
+  RefreshCw,
+  AlertCircle,
+  Minus,
+  Sparkles
+} from 'lucide-react'
+import type { AnalyticsSnapshot } from '@shared/schema'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { DollarSign, Calendar, Users, TrendingUp, TrendingDown, BarChart3, Download, RefreshCw, AlertCircle, Minus } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import { queryClient } from '@/lib/queryClient'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { BarChart, XAxis, YAxis, Bar, LineChart, Line } from 'recharts'
-import type { AnalyticsSnapshot } from '@shared/schema'
+import { queryClient } from '@/lib/queryClient'
+import { PageContainer, PageHeader, GlassCard } from '@/components/layout/Page'
 
 interface AnalyticsData {
   revenue: { value: number; change: number }
@@ -24,56 +38,56 @@ interface ChartData {
 
 export default function AnalyticsPage() {
   const { data: analyticsSnapshots, isLoading, error, refetch } = useQuery<AnalyticsSnapshot[]>({
-    queryKey: ['/api/analytics'],
+    queryKey: ['/api/analytics']
   })
   const { data: campaigns = [] } = useQuery<any[]>({ queryKey: ['/api/marketing/campaigns'] })
   const { data: loyaltyEntries = [] } = useQuery<any[]>({ queryKey: ['/api/loyalty/entries'] })
   const { data: posSales = [] } = useQuery<any[]>({ queryKey: ['/api/pos/sales'] })
   const { data: marketingPerf } = useQuery<any>({ queryKey: ['/api/marketing/performance'] })
 
-  // Sort analytics snapshots by date client-side for robustness
-  const snapshots = [...(analyticsSnapshots || [])].sort((a, b) => +new Date(b.date) - +new Date(a.date))
+  const snapshots = useMemo(
+    () => [...(analyticsSnapshots ?? [])].sort((a, b) => +new Date(b.date) - +new Date(a.date)),
+    [analyticsSnapshots]
+  )
 
-  // Process analytics data to get current month and previous month for comparisons
-  const currentMonthData = snapshots[0] // Most recent (September 2025)
-  const previousMonthData = snapshots[1] // Previous month (August 2025)
-  
-  // Calculate percentage changes
+  const currentMonthData = snapshots[0]
+  const previousMonthData = snapshots[1]
+
   const calculateChange = (current: string | number, previous: string | number): number => {
     const currentNum = typeof current === 'string' ? parseFloat(current) : current
     const previousNum = typeof previous === 'string' ? parseFloat(previous) : previous
-    if (previousNum === 0) return 0
+    if (!previousNum) return 0
     return ((currentNum - previousNum) / previousNum) * 100
   }
 
-  // Transform data for UI
-  const analytics: AnalyticsData | null = currentMonthData && previousMonthData ? {
-    revenue: {
-      value: parseFloat(currentMonthData.totalRevenue),
-      change: calculateChange(currentMonthData.totalRevenue, previousMonthData.totalRevenue)
-    },
-    appointments: {
-      value: currentMonthData.totalAppointments,
-      change: calculateChange(currentMonthData.totalAppointments, previousMonthData.totalAppointments)
-    },
-    customerSatisfaction: {
-      value: parseFloat(currentMonthData.customerSatisfaction) * 5, // Convert to 5-point scale
-      change: calculateChange(
-        parseFloat(currentMonthData.customerSatisfaction) * 5,
-        parseFloat(previousMonthData.customerSatisfaction) * 5
-      )
-    },
-    staffUtilization: {
-      value: parseFloat(currentMonthData.utilizationRate) * 100, // Convert to percentage
-      change: calculateChange(
-        parseFloat(currentMonthData.utilizationRate) * 100,
-        parseFloat(previousMonthData.utilizationRate) * 100
-      )
-    }
-  } : null
+  const analytics: AnalyticsData | null = currentMonthData && previousMonthData
+    ? {
+        revenue: {
+          value: parseFloat(currentMonthData.totalRevenue),
+          change: calculateChange(currentMonthData.totalRevenue, previousMonthData.totalRevenue)
+        },
+        appointments: {
+          value: currentMonthData.totalAppointments,
+          change: calculateChange(currentMonthData.totalAppointments, previousMonthData.totalAppointments)
+        },
+        customerSatisfaction: {
+          value: parseFloat(currentMonthData.customerSatisfaction) * 5,
+          change: calculateChange(
+            parseFloat(currentMonthData.customerSatisfaction) * 5,
+            parseFloat(previousMonthData.customerSatisfaction) * 5
+          )
+        },
+        staffUtilization: {
+          value: parseFloat(currentMonthData.utilizationRate) * 100,
+          change: calculateChange(
+            parseFloat(currentMonthData.utilizationRate) * 100,
+            parseFloat(previousMonthData.utilizationRate) * 100
+          )
+        }
+      }
+    : null
 
-  // Transform data for charts (last 3 months)
-  const chartData: ChartData[] = snapshots.slice(0, 3).reverse().map((snapshot, index) => {
+  const chartData: ChartData[] = snapshots.slice(0, 3).reverse().map((snapshot) => {
     const date = new Date(snapshot.date)
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     return {
@@ -90,14 +104,13 @@ export default function AnalyticsPage() {
     queryClient.invalidateQueries({ queryKey: ['/api/pos/sales'] })
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-CA', {
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('en-CA', {
       style: 'currency',
       currency: 'CAD',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(value)
-  }
 
   const getChangeIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="h-4 w-4" />
@@ -106,90 +119,102 @@ export default function AnalyticsPage() {
   }
 
   const getChangeColor = (change: number) => {
-    if (change > 0) return "text-green-600 dark:text-green-400"
-    if (change < 0) return "text-red-600 dark:text-red-400"
-    return "text-gray-600 dark:text-gray-400"
+    if (change > 0) return 'text-emerald-300'
+    if (change < 0) return 'text-rose-300'
+    return 'text-slate-400'
   }
 
   if (error) {
     return (
-      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4" data-testid="heading-analytics">
-          Performance Analytics
-        </h1>
-        <Alert className="max-w-md mx-auto" data-testid="error-analytics">
+      <PageContainer>
+        <PageHeader title="Performance Analytics" subtitle="AI-powered business insights and metrics" />
+        <Alert className="border-slate-800 bg-slate-900/60" data-testid="error-analytics">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="ml-2">
+          <AlertDescription className="ml-2 flex items-center gap-2 text-slate-200">
             Failed to load analytics data. Please try again.
-            <Button variant="outline" size="sm" className="ml-2" onClick={() => refetch()}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-slate-700/60 bg-slate-900/60 text-slate-200 hover:bg-slate-900"
+              onClick={() => refetch()}
+            >
               Retry
             </Button>
           </AlertDescription>
         </Alert>
-      </div>
+      </PageContainer>
     )
   }
 
   if (isLoading) {
     return (
-      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4" data-testid="heading-analytics">
-          Performance Analytics
-        </h1>
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+      <PageContainer>
+        <PageHeader title="Performance Analytics" subtitle="AI-powered business insights and metrics" />
+        <GlassCard className="animate-pulse p-6">
+          <div className="h-4 w-32 rounded bg-slate-800" />
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="h-28 rounded-xl bg-slate-800/70" />
             ))}
           </div>
-        </div>
-      </div>
+        </GlassCard>
+      </PageContainer>
     )
   }
 
   if (snapshots.length < 2) {
     return (
-      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4" data-testid="heading-analytics">
-          Performance Analytics
-        </h1>
-        <Alert className="max-w-md mx-auto">
+      <PageContainer>
+        <PageHeader title="Performance Analytics" subtitle="AI-powered business insights and metrics" />
+        <Alert className="border-slate-800 bg-slate-900/60">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="ml-2">
-            Insufficient data for analytics. At least 2 months of data are required for trend analysis.
+          <AlertDescription className="ml-2 text-slate-200">
+            Insufficient data for analytics. At least two months of data are required for trend analysis.
           </AlertDescription>
         </Alert>
-      </div>
+      </PageContainer>
     )
   }
 
   return (
-    <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white" data-testid="heading-analytics">
-              Performance Analytics
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">AI-powered business insights and metrics</p>
-          </div>
-          <div className="flex gap-2 no-print">
+    <PageContainer>
+      <PageHeader
+        title="Performance Analytics"
+        subtitle="AI-powered operating metrics surfaced for the investment workflow."
+        badge={
+          <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-600/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-violet-200">
+            <Sparkles className="h-3 w-3" /> Value Venture Lab
+          </span>
+        }
+        actions={
+          <>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="button-refresh" onClick={handleRefresh} aria-label="Refresh analytics">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl border-slate-700/60 bg-slate-900/60 text-slate-200 hover:bg-slate-900"
+                  data-testid="button-refresh"
+                  aria-label="Refresh analytics"
+                  onClick={handleRefresh}
+                >
+                  <RefreshCw className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Reload latest analytics</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button asChild variant="outline" size="sm" data-testid="button-export" aria-label="Export analytics as CSV">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl border-slate-700/60 bg-slate-900/60 text-slate-200 hover:bg-slate-900"
+                  data-testid="button-export"
+                  aria-label="Export analytics as CSV"
+                >
                   <a href="/api/analytics/export" download>
-                    <Download className="h-4 w-4 mr-2" />
-                    Export CSV
+                    <Download className="h-4 w-4" />
                   </a>
                 </Button>
               </TooltipTrigger>
@@ -197,340 +222,256 @@ export default function AnalyticsPage() {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={() => window.print()} data-testid="button-print-report" aria-label="Print analytics report">
-                  Print Report
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl border-slate-700/60 bg-slate-900/60 text-slate-200 hover:bg-slate-900"
+                  data-testid="button-print-report"
+                  aria-label="Print analytics report"
+                  onClick={() => window.print()}
+                >
+                  <BarChart3 className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Open print dialog</TooltipContent>
+              <TooltipContent>Print snapshot</TooltipContent>
             </Tooltip>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {analytics && (
         <>
-          {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Revenue
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="revenue-value">
-                  {formatCurrency(analytics.revenue.value)}
-                </div>
-                <p className={`text-xs flex items-center gap-1 ${getChangeColor(analytics.revenue.change)}`} data-testid="revenue-change">
-                  {getChangeIcon(analytics.revenue.change)}
-                  {analytics.revenue.change > 0 ? '+' : ''}{analytics.revenue.change.toFixed(1)}% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Appointments
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="appointments-value">
-                  {analytics.appointments.value}
-                </div>
-                <p className={`text-xs flex items-center gap-1 ${getChangeColor(analytics.appointments.change)}`} data-testid="appointments-change">
-                  {getChangeIcon(analytics.appointments.change)}
-                  {analytics.appointments.change > 0 ? '+' : ''}{analytics.appointments.change.toFixed(1)}% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-                  <Users className="h-4 w-4 mr-2" />
-                  Satisfaction
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="satisfaction-value">
-                  {analytics.customerSatisfaction.value}/5.0
-                </div>
-                <p className={`text-xs flex items-center gap-1 ${getChangeColor(analytics.customerSatisfaction.change)}`} data-testid="satisfaction-change">
-                  {getChangeIcon(analytics.customerSatisfaction.change)}
-                  {analytics.customerSatisfaction.change > 0 ? '+' : ''}{analytics.customerSatisfaction.change.toFixed(1)}% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Staff Utilization
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="utilization-value">
-                  {analytics.staffUtilization.value.toFixed(0)}%
-                </div>
-                <p className={`text-xs flex items-center gap-1 ${getChangeColor(analytics.staffUtilization.change)}`} data-testid="utilization-change">
-                  {getChangeIcon(analytics.staffUtilization.change)}
-                  {analytics.staffUtilization.change > 0 ? '+' : ''}{analytics.staffUtilization.change.toFixed(1)}% from last month
-                </p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {[
+              {
+                label: 'Total Revenue',
+                icon: <DollarSign className="h-4 w-4 text-slate-500" />,
+                value: formatCurrency(analytics.revenue.value),
+                change: analytics.revenue.change
+              },
+              {
+                label: 'Appointments',
+                icon: <Calendar className="h-4 w-4 text-slate-500" />,
+                value: analytics.appointments.value.toLocaleString(),
+                change: analytics.appointments.change
+              },
+              {
+                label: 'Satisfaction',
+                icon: <Users className="h-4 w-4 text-slate-500" />,
+                value: `${analytics.customerSatisfaction.value.toFixed(1)}/5.0`,
+                change: analytics.customerSatisfaction.change
+              },
+              {
+                label: 'Staff Utilization',
+                icon: <BarChart3 className="h-4 w-4 text-slate-500" />,
+                value: `${analytics.staffUtilization.value.toFixed(0)}%`,
+                change: analytics.staffUtilization.change
+              }
+            ].map((metric) => (
+              <GlassCard key={metric.label}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm text-slate-200">{metric.label}</CardTitle>
+                  {metric.icon}
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-semibold text-slate-50">{metric.value}</div>
+                  <div className={`mt-1 flex items-center gap-1 text-xs font-medium ${getChangeColor(metric.change)}`}>
+                    {getChangeIcon(metric.change)}
+                    {metric.change > 0 ? '+' : ''}
+                    {Math.abs(metric.change).toFixed(1)}%
+                  </div>
+                </CardContent>
+              </GlassCard>
+            ))}
           </div>
 
-          {/* Operational Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <Card>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <GlassCard>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Active Campaigns</CardTitle>
+                <CardTitle className="text-sm text-slate-200">Active Campaigns</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {Array.isArray(campaigns) ? campaigns.filter((c: any) => c.status === 'active').length : 0}
+                <div className="text-2xl font-semibold text-slate-50">
+                  {Array.isArray(campaigns) ? campaigns.filter((campaign: any) => campaign.status === 'active').length : 0}
                 </div>
               </CardContent>
-            </Card>
-            <Card>
+            </GlassCard>
+            <GlassCard>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Loyalty Entries (This Month)</CardTitle>
+                <CardTitle className="text-sm text-slate-200">New Loyalty Entries</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {Array.isArray(loyaltyEntries) ? (() => { const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth(), 1); const next = new Date(now.getFullYear(), now.getMonth()+1, 1); return loyaltyEntries.filter((e: any) => { const d = new Date(e.createdAt); return d >= start && d < next }).length })() : 0}
-                </div>
+                <div className="text-2xl font-semibold text-slate-50">{loyaltyEntries.length}</div>
               </CardContent>
-            </Card>
-            <Card>
+            </GlassCard>
+            <GlassCard>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600 dark:text-gray-400">POS Sales (Today)</CardTitle>
+                <CardTitle className="text-sm text-slate-200">POS Sales (Month)</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {Array.isArray(posSales) ? (() => { const now = new Date(); const start = new Date(now); start.setHours(0,0,0,0); const end = new Date(now); end.setHours(23,59,59,999); return posSales.filter((s: any) => { const d = new Date(s.createdAt); return d >= start && d <= end }).length })() : 0}
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                  {Array.isArray(posSales) ? (() => { const now = new Date(); const start = new Date(now); start.setHours(0,0,0,0); const end = new Date(now); end.setHours(23,59,59,999); const total = posSales.filter((s: any) => { const d = new Date(s.createdAt); return d >= start && d <= end }).reduce((sum: number, s: any) => sum + parseFloat(s.total || '0'), 0); return `Revenue: $${total.toFixed(2)}` })() : 'Revenue: $0.00'}
+                <div className="text-2xl font-semibold text-slate-50">
+                  {Array.isArray(posSales)
+                    ? formatCurrency(
+                        posSales.reduce((total: number, sale: any) => total + parseFloat(sale.total ?? '0'), 0)
+                      )
+                    : '$0'}
                 </div>
               </CardContent>
-            </Card>
-            <Card>
+            </GlassCard>
+            <GlassCard>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600 dark:text-gray-400">POS Sales (This Week)</CardTitle>
+                <CardTitle className="text-sm text-slate-200">Weekly POS Transactions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {Array.isArray(posSales) ? (() => { const now = new Date(); const day = now.getDay(); const diff = (day === 0 ? 6 : day - 1); const start = new Date(now); start.setDate(now.getDate() - diff); start.setHours(0,0,0,0); const end = new Date(start); end.setDate(start.getDate() + 7); end.setHours(0,0,0,0); return posSales.filter((s: any) => { const d = new Date(s.createdAt); return d >= start && d < end }).length })() : 0}
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                  {Array.isArray(posSales) ? (() => { const now = new Date(); const day = now.getDay(); const diff = (day === 0 ? 6 : day - 1); const start = new Date(now); start.setDate(now.getDate() - diff); start.setHours(0,0,0,0); const end = new Date(start); end.setDate(start.getDate() + 7); end.setHours(0,0,0,0); const total = posSales.filter((s: any) => { const d = new Date(s.createdAt); return d >= start && d < end }).reduce((sum: number, s: any) => sum + parseFloat(s.total || '0'), 0); return `Revenue: $${total.toFixed(2)}` })() : 'Revenue: $0.00'}
+                <div className="text-2xl font-semibold text-slate-50">
+                  {Array.isArray(posSales)
+                    ? (() => {
+                        const now = new Date()
+                        const day = now.getDay()
+                        const diff = day === 0 ? 6 : day - 1
+                        const start = new Date(now)
+                        start.setDate(now.getDate() - diff)
+                        start.setHours(0, 0, 0, 0)
+                        const end = new Date(start)
+                        end.setDate(start.getDate() + 7)
+                        end.setHours(0, 0, 0, 0)
+                        return posSales.filter((sale: any) => {
+                          const date = new Date(sale.createdAt)
+                          return date >= start && date < end
+                        }).length
+                      })()
+                    : 0}
                 </div>
               </CardContent>
-            </Card>
+            </GlassCard>
           </div>
 
-          {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <Card>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <GlassCard>
               <CardHeader>
-                <CardTitle>Revenue Trend</CardTitle>
+                <CardTitle className="text-sm text-slate-200">Revenue Trend</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-64" data-testid="revenue-chart">
                   <ChartContainer
                     config={{
-                      revenue: {
-                        label: "Revenue",
-                        color: "hsl(var(--chart-1))",
-                      },
+                      revenue: { label: 'Revenue', color: 'hsl(var(--chart-1))' }
                     }}
                   >
                     <BarChart data={chartData}>
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent />}
-                        formatter={(value: number) => [formatCurrency(value), "Revenue"]}
-                      />
-                      <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
+                      <XAxis dataKey="month" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
+                      <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
+                      <ChartTooltip content={<ChartTooltipContent />} formatter={(value: number) => [formatCurrency(value), 'Revenue']} />
+                      <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ChartContainer>
                 </div>
               </CardContent>
-            </Card>
-
-            <Card>
+            </GlassCard>
+            <GlassCard>
               <CardHeader>
-                <CardTitle>Appointment Volume</CardTitle>
+                <CardTitle className="text-sm text-slate-200">Appointment Volume</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-64" data-testid="appointments-chart">
                   <ChartContainer
                     config={{
-                      appointments: {
-                        label: "Appointments",
-                        color: "hsl(var(--chart-2))",
-                      },
+                      appointments: { label: 'Appointments', color: 'hsl(var(--chart-2))' }
                     }}
                   >
                     <LineChart data={chartData}>
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent />}
-                        formatter={(value: number) => [value, "Appointments"]}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="appointments" 
-                        stroke="var(--color-appointments)" 
+                      <XAxis dataKey="month" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
+                      <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
+                      <ChartTooltip content={<ChartTooltipContent />} formatter={(value: number) => [value, 'Appointments']} />
+                      <Line
+                        type="monotone"
+                        dataKey="appointments"
+                        stroke="var(--color-appointments)"
                         strokeWidth={3}
-                        dot={{ fill: "var(--color-appointments)", strokeWidth: 0, r: 4 }}
+                        dot={{ fill: 'var(--color-appointments)', strokeWidth: 0, r: 4 }}
                         activeDot={{ r: 6, strokeWidth: 0 }}
                       />
                     </LineChart>
                   </ChartContainer>
                 </div>
               </CardContent>
-            </Card>
+            </GlassCard>
           </div>
 
-          {/* Campaign Performance */}
-          {marketingPerf && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Total Impressions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {marketingPerf.summary?.impressions?.toLocaleString?.() || marketingPerf.summary?.impressions || 0}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Clicks · CTR</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {(marketingPerf.summary?.clicks || 0).toLocaleString?.()}
-                    <span className="text-sm text-gray-500 ml-2">({marketingPerf.summary?.ctr || 0}%)</span>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Conversions · Rate</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {(marketingPerf.summary?.conversions || 0).toLocaleString?.()}
-                    <span className="text-sm text-gray-500 ml-2">({marketingPerf.summary?.convRate || 0}%)</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Campaign Conversions */}
           {marketingPerf?.campaigns?.length ? (
-            <div className="grid grid-cols-1 gap-6 mb-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Campaign Conversions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64">
-                    <ChartContainer
-                      config={{
-                        conversions: { label: 'Conversions', color: 'hsl(var(--chart-3))' },
-                      }}
+            <GlassCard>
+              <CardHeader>
+                <CardTitle className="text-sm text-slate-200">Campaign Conversions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ChartContainer
+                    config={{ conversions: { label: 'Conversions', color: 'hsl(var(--chart-3))' } }}
+                  >
+                    <BarChart
+                      data={marketingPerf.campaigns.map((campaign: any) => ({
+                        name: campaign.name,
+                        conversions: campaign.conversions,
+                        ctr: campaign.ctr
+                      }))}
                     >
-                      <BarChart data={marketingPerf.campaigns.map((c: any) => ({ name: c.name, conversions: c.conversions, ctr: c.ctr }))}>
-                        <XAxis dataKey="name" hide={false} tickFormatter={(s: string) => (s.length > 10 ? s.slice(0, 10) + '…' : s)} />
-                        <YAxis />
-                        <ChartTooltip content={({ active, payload }) => {
-                          if (!active || !payload || !payload.length) return null;
-                          const d: any = payload[0].payload;
+                      <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} tickFormatter={(name: string) => (name.length > 12 ? `${name.slice(0, 12)}…` : name)} />
+                      <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
+                      <ChartTooltip
+                        content={({ active, payload }) => {
+                          if (!active || !payload || !payload.length) return null
+                          const value = payload[0]?.payload
+                          if (!value) return null
                           return (
-                            <div className="rounded-md border bg-popover px-3 py-2 text-sm shadow-md">
-                              <div className="font-medium">{d.name}</div>
-                              <div>Conversions: {d.conversions}</div>
-                              <div>CTR: {d.ctr}%</div>
+                            <div className="rounded-md border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm text-slate-200 shadow-lg">
+                              <div className="font-medium">{value.name}</div>
+                              <div>Conversions: {value.conversions}</div>
+                              <div>CTR: {value.ctr}%</div>
                             </div>
-                          );
-                        }} />
-                        <Bar dataKey="conversions" fill="var(--color-conversions)" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ChartContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                          )
+                        }}
+                      />
+                      <Bar dataKey="conversions" fill="var(--color-conversions)" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </GlassCard>
           ) : null}
 
-          {/* AI Insights */}
-          <Card>
+          <GlassCard>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                AI Business Insights
-              </CardTitle>
+              <CardTitle className="text-sm text-slate-200">AI Insights</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900 dark:text-white">Performance Highlights</h4>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded-r-lg" data-testid="insight-revenue">
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        <strong>Revenue Growth:</strong> {analytics.revenue.change > 0 ? '+' : ''}{analytics.revenue.change.toFixed(1)}% increase driven by premium grooming services
-                      </p>
-                    </div>
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 rounded-r-lg" data-testid="insight-efficiency">
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        <strong>Efficiency:</strong> {analytics.staffUtilization.value.toFixed(0)}% staff utilization with optimized scheduling
-                      </p>
-                    </div>
-                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 rounded-r-lg" data-testid="insight-satisfaction">
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        <strong>Customer Satisfaction:</strong> {analytics.customerSatisfaction.value.toFixed(1)}/5.0 rating with {currentMonthData ? (parseFloat(currentMonthData.repeatCustomerRate) * 100).toFixed(0) : 78}% retention rate
-                      </p>
-                    </div>
-                  </div>
+            <CardContent className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="space-y-3 text-sm text-slate-200">
+                <h4 className="text-xs uppercase tracking-[0.18em] text-slate-500">Performance highlights</h4>
+                <div className="rounded-xl border border-emerald-600/40 bg-emerald-900/20 p-3" data-testid="insight-revenue">
+                  Revenue up {analytics.revenue.change.toFixed(1)}% month-over-month, led by premium services.
                 </div>
-                
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900 dark:text-white">Recommendations</h4>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg" data-testid="recommendation-inventory">
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        Increase Executive Cut availability - highest revenue per appointment
-                      </p>
-                    </div>
-                    <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg" data-testid="recommendation-peak">
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        Promote Deluxe Grooming Packages during slower weekday mornings
-                      </p>
-                    </div>
-                    <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg" data-testid="recommendation-marketing">
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        Focus on beard services - growing trend in men's grooming
-                      </p>
-                    </div>
-                  </div>
+                <div className="rounded-xl border border-sky-600/40 bg-sky-900/20 p-3" data-testid="insight-efficiency">
+                  Staff utilization at {analytics.staffUtilization.value.toFixed(0)}% with optimal scheduling cadence.
+                </div>
+                <div className="rounded-xl border border-violet-600/40 bg-violet-900/20 p-3" data-testid="insight-satisfaction">
+                  Customer satisfaction at {analytics.customerSatisfaction.value.toFixed(1)}/5.0 with strong retention signals.
+                </div>
+              </div>
+              <div className="space-y-3 text-sm text-slate-200">
+                <h4 className="text-xs uppercase tracking-[0.18em] text-slate-500">Recommended next moves</h4>
+                <div className="rounded-xl border border-amber-600/40 bg-amber-900/10 p-3" data-testid="recommendation-inventory">
+                  Increase Executive Cut availability—the highest revenue per appointment.
+                </div>
+                <div className="rounded-xl border border-amber-600/40 bg-amber-900/10 p-3" data-testid="recommendation-peak">
+                  Promote deluxe packages midweek to shore up softer dayparts.
+                </div>
+                <div className="rounded-xl border border-amber-600/40 bg-amber-900/10 p-3" data-testid="recommendation-marketing">
+                  Target beard services in paid campaigns—fastest-growing category QoQ.
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </GlassCard>
         </>
       )}
-    </div>
+    </PageContainer>
   )
 }

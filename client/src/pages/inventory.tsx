@@ -1,31 +1,31 @@
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
-import { Package, AlertTriangle, CheckCircle, Mail, Send, ArrowRight } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Package, AlertTriangle, CheckCircle, Mail, Send, Sparkles, ArrowRight } from 'lucide-react'
 import type { InventoryItem } from '@shared/schema'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useToast } from '@/hooks/use-toast'
+import { PageContainer, PageHeader, GlassCard } from '@/components/layout/Page'
+import { CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
 export default function InventoryPage() {
   const [sendingOrder, setSendingOrder] = useState(false)
   const { toast } = useToast()
 
-  // Fetch inventory data from API
-  const { data: inventory = [], isLoading: loading, error } = useQuery<InventoryItem[]>({
+  const { data: inventory = [], isLoading, error, refetch } = useQuery<InventoryItem[]>({
     queryKey: ['/api', 'inventory'],
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000
   })
-  const { data: health } = useQuery<any>({ queryKey: ['/api/health'] })
 
-  // Helper function to calculate status based on current vs min stock
-  const getCalculatedStatus = (item: InventoryItem): 'in-stock' | 'low-stock' | 'out-of-stock' => {
-    if (item.currentStock === 0) return 'out-of-stock'
-    if (item.currentStock <= item.minStock) return 'low-stock'
-    return 'in-stock'
-  }
+  const lowStockItems = useMemo(
+    () =>
+      inventory.filter((item) => {
+        if (item.currentStock === 0) return true
+        return item.currentStock <= item.minStock
+      }),
+    [inventory]
+  )
 
-  // Helper function to format currency in CAD
   const formatCAD = (amount: string | number) => {
     const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount
     return new Intl.NumberFormat('en-CA', {
@@ -34,291 +34,254 @@ export default function InventoryPage() {
     }).format(numericAmount)
   }
 
-  const getStatusColor = (status: 'in-stock' | 'low-stock' | 'out-of-stock') => {
-    switch (status) {
-      case 'in-stock': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-      case 'low-stock': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-      case 'out-of-stock': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-    }
-  }
-
-  const getStatusIcon = (status: 'in-stock' | 'low-stock' | 'out-of-stock') => {
-    switch (status) {
-      case 'in-stock': return <CheckCircle className="h-4 w-4" />
-      case 'low-stock': return <AlertTriangle className="h-4 w-4" />
-      case 'out-of-stock': return <AlertTriangle className="h-4 w-4" />
-      default: return <Package className="h-4 w-4" />
-    }
-  }
-
   const handleSendPurchaseOrder = async () => {
     setSendingOrder(true)
     try {
-      // This would call the actual email API in production
-      console.log('Sending purchase order email...')
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500))
       toast({
-        title: "Purchase Order Sent",
-        description: "Low stock items have been sent to suppliers via email with CSV attachment."
+        title: 'Purchase order sent',
+        description: 'Low stock items have been queued for supplier outreach.'
       })
-    } catch (error) {
-      console.error('Failed to send purchase order:', error)
+    } catch (err) {
+      console.error('Failed to send purchase order', err)
       toast({
-        title: "Failed to Send Order",
-        description: "Please try again or contact support.",
-        variant: "destructive"
+        title: 'Failed to send order',
+        description: 'Please try again or contact support.',
+        variant: 'destructive'
       })
     } finally {
       setSendingOrder(false)
     }
   }
 
-  const lowStockItems = inventory.filter(item => {
-    const status = getCalculatedStatus(item)
-    return status === 'low-stock' || status === 'out-of-stock'
-  })
-
-  // Calculate total inventory value
-  const totalInventoryValue = inventory.reduce((total, item) => {
-    const cost = typeof item.unitCost === 'string' ? parseFloat(item.unitCost) : item.unitCost
-    return total + (cost * item.currentStock)
-  }, 0)
-
-  if (loading) {
-    return (
-      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
+  const getStatusData = (item: InventoryItem) => {
+    if (item.currentStock === 0) {
+      return {
+        tone: 'bg-rose-500/10 text-rose-200 border border-rose-500/40',
+        icon: <AlertTriangle className="h-4 w-4" />,
+        label: 'Out of stock'
+      }
+    }
+    if (item.currentStock <= item.minStock) {
+      return {
+        tone: 'bg-amber-500/10 text-amber-200 border border-amber-500/40',
+        icon: <AlertTriangle className="h-4 w-4" />,
+        label: 'Low stock'
+      }
+    }
+    return {
+      tone: 'bg-emerald-500/10 text-emerald-200 border border-emerald-500/30',
+      icon: <CheckCircle className="h-4 w-4" />,
+      label: 'In stock'
+    }
   }
 
   if (error) {
     return (
-      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Failed to Load Inventory</h3>
-          <p className="text-gray-600 dark:text-gray-400">Please try refreshing the page or contact support.</p>
-        </div>
-      </div>
+      <PageContainer>
+        <PageHeader title="Inventory" subtitle="Track critical supplies and pro-actively trigger vendor workflows." />
+        <GlassCard className="border-rose-500/40 bg-rose-900/20 p-6">
+          <div className="flex items-center justify-between text-sm text-rose-200">
+            <span>Failed to load inventory data. Retry?</span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-rose-500/40 bg-rose-900/20 text-rose-200 hover:bg-rose-900/40"
+              onClick={() => refetch()}
+            >
+              Retry
+            </Button>
+          </div>
+        </GlassCard>
+      </PageContainer>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <PageHeader title="Inventory" subtitle="Track critical supplies and pro-actively trigger vendor workflows." />
+        <GlassCard className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="h-32 animate-pulse rounded-xl bg-slate-800/60" />
+          ))}
+        </GlassCard>
+      </PageContainer>
     )
   }
 
   return (
-    <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white" data-testid="heading-inventory">
-              Inventory Management
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">Monitor stock levels and automate purchase orders</p>
-          </div>
-          {health?.scenario && (
-            <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              Scenario: {health.scenario}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Package className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Items</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="total-items">
-                  {inventory.length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <AlertTriangle className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Low Stock</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="low-stock-count">
-                  {lowStockItems.length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">In Stock</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="in-stock-count">
-                  {inventory.filter(item => getCalculatedStatus(item) === 'in-stock').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Package className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Value</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="total-inventory-value">
-                  {formatCAD(totalInventoryValue)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Current Inventory</span>
-              <Button variant="ghost" size="sm" data-testid="button-view-all">
-                View All <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {inventory.map((item) => {
-              const status = getCalculatedStatus(item)
-              return (
-                <div 
-                  key={item.id} 
-                  className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
-                  data-testid={`inventory-item-${item.id}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                      <Package className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white" data-testid={`item-name-${item.id}`}>
-                        {item.name} - {item.sku}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`supplier-${item.id}`}>
-                        {item.brand} • {item.supplier}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500 truncate" data-testid={`category-${item.id}`}>
-                        {item.category} • {formatCAD(item.unitCost)} unit cost
-                        {item.retailPrice && ` • ${formatCAD(item.retailPrice)} retail`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white" data-testid={`stock-${item.id}`}>
-                      {item.currentStock} / {item.minStock} min
-                    </p>
-                    <span 
-                      className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${getStatusColor(status)}`}
-                      data-testid={`status-${item.id}`}
-                    >
-                      {getStatusIcon(status)}
-                      {status.replace('-', ' ')}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
-
-            {/* Automated Purchase Orders */}
-            {lowStockItems.length > 0 && (
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg" data-testid="purchase-order-panel">
-                <div className="flex items-center gap-2 mb-2">
-                  <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  <span className="font-medium text-blue-800 dark:text-blue-200" data-testid="auto-order-title">
-                    Auto Purchase Order
-                  </span>
-                </div>
-                <p className="text-sm text-gray-700 dark:text-gray-300 mb-3" data-testid="order-description">
-                  {lowStockItems.length} low stock item{lowStockItems.length !== 1 ? 's' : ''} automatically queued for vendor email with CSV attachment.
-                </p>
-                <Button 
+    <PageContainer>
+      <PageHeader
+        title="Inventory"
+        subtitle="Monitor supply positions, detect risks, and coordinate with vendors directly from the command center."
+        badge={
+          <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-600/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-violet-200">
+            <Sparkles className="h-3 w-3" /> Operations
+          </span>
+        }
+        actions={
+          <>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleSendPurchaseOrder}
-                  disabled={sendingOrder}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  data-testid="button-send-order"
+                  disabled={sendingOrder || lowStockItems.length === 0}
+                  className="inline-flex items-center gap-2 rounded-xl border-emerald-500/40 bg-emerald-600/10 text-emerald-200 hover:bg-emerald-600/20"
                 >
-                  {sendingOrder ? (
-                    <>Sending...</>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4 mr-2" />
-                      Send Order Email
-                    </>
-                  )}
+                  <Send className="h-4 w-4" /> Send PO
                 </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </TooltipTrigger>
+              <TooltipContent>Generate a purchase order for low-stock items</TooltipContent>
+            </Tooltip>
+          </>
+        }
+      />
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" className="h-16" data-testid="button-add-item" aria-label="Add inventory item">
-                    <div className="text-center">
-                      <Package className="h-5 w-5 mx-auto mb-1" />
-                      <div className="text-sm">Add Item</div>
-                    </div>
+      <GlassCard>
+        <CardHeader className="flex flex-col gap-2 border-b border-slate-800/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="text-sm text-slate-200">Low stock watchlist</CardTitle>
+            <p className="text-xs text-slate-500">Prioritize replenishment for critical grooming supplies.</p>
+          </div>
+          <div className="text-xs text-slate-400">
+            {lowStockItems.length} of {inventory.length} items below safety stock
+          </div>
+        </CardHeader>
+        <CardContent className="divide-y divide-slate-800/60 text-sm">
+          {lowStockItems.length === 0 && (
+            <div className="py-6 text-center text-slate-400">All SKUs are healthy. No action required.</div>
+          )}
+          {lowStockItems.map((item) => {
+            const status = getStatusData(item)
+            return (
+              <div key={item.id} className="grid gap-4 py-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-slate-200">
+                    <Package className="h-4 w-4 text-slate-500" />
+                    <span className="font-medium">{item.name}</span>
+                  </div>
+                  <p className="text-xs text-slate-500">SKU {item.sku}</p>
+                </div>
+                <div className="flex flex-col gap-1 text-xs text-slate-400">
+                  <span>On hand: {item.currentStock}</span>
+                  <span>Minimum: {item.minStock}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 sm:justify-end">
+                  <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs ${status.tone}`}>
+                    {status.icon}
+                    {status.label}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl border-slate-700/60 bg-slate-900/60 text-slate-200 hover:bg-slate-900"
+                  >
+                    View supplier
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>Create a new inventory item</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" className="h-16" data-testid="button-scan-barcode" aria-label="Scan item barcode">
-                    <div className="text-center">
-                      <CheckCircle className="h-5 w-5 mx-auto mb-1" />
-                      <div className="text-sm">Scan Barcode</div>
-                    </div>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Scan to update stock</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" className="h-16" data-testid="button-generate-report" aria-label="Generate inventory report">
-                    <div className="text-center">
-                      <Mail className="h-5 w-5 mx-auto mb-1" />
-                      <div className="text-sm">Generate Report</div>
-                    </div>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Generate CSV/PDF report</TooltipContent>
-              </Tooltip>
+                </div>
+              </div>
+            )
+          })}
+        </CardContent>
+      </GlassCard>
+
+      <GlassCard>
+        <CardHeader className="flex flex-col gap-2 border-b border-slate-800/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="text-sm text-slate-200">Full inventory roster</CardTitle>
+            <p className="text-xs text-slate-500">Command view across all SKUs with cost basis and reorder cadence.</p>
+          </div>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-800 text-sm">
+            <thead className="text-xs uppercase tracking-[0.18em] text-slate-500">
+              <tr>
+                <th className="px-4 py-2 text-left">Item</th>
+                <th className="px-4 py-2 text-left">Supplier</th>
+                <th className="px-4 py-2 text-left">Cost</th>
+                <th className="px-4 py-2 text-right">On Hand</th>
+                <th className="px-4 py-2 text-right">Min</th>
+                <th className="px-4 py-2 text-left">Status</th>
+                <th className="px-4 py-2 text-left">Health</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/80 text-slate-300">
+              {inventory.map((item) => {
+                const status = getStatusData(item)
+                return (
+                  <tr key={item.id}>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-slate-200">{item.name}</div>
+                      <div className="text-xs text-slate-500">SKU {item.sku}</div>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-400">{item.supplier ?? '—'}</td>
+                    <td className="px-4 py-3 text-xs text-slate-400">{formatCAD(item.unitCost)}</td>
+                    <td className="px-4 py-3 text-right text-slate-200">{item.currentStock}</td>
+                    <td className="px-4 py-3 text-right text-slate-200">{item.minStock}</td>
+                    <td className="px-4 py-3 text-xs text-slate-400">{item.status ?? 'Tracked'}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs ${status.tone}`}>
+                        {status.icon}
+                        {status.label}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </CardContent>
+      </GlassCard>
+
+      <GlassCard>
+        <CardHeader className="flex flex-col gap-2 border-b border-slate-800/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="text-sm text-slate-200">Supplier coordination</CardTitle>
+            <p className="text-xs text-slate-500">Jump straight into outreach workflows.</p>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          {lowStockItems.map((item) => (
+              <div key={item.id} className="flex items-start justify-between rounded-xl border border-slate-800/70 bg-slate-950/60 p-4 text-sm">
+                <div>
+                  <div className="font-medium text-slate-100">{item.name}</div>
+                  <p className="text-xs text-slate-500">{item.supplier ?? 'No supplier on file'}</p>
+                </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="inline-flex items-center gap-2 rounded-xl border-violet-500/40 bg-violet-600/10 text-violet-200 hover:bg-violet-600/20"
+              >
+                <Mail className="h-4 w-4" />
+                Draft email
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          ))}
+          {lowStockItems.length === 0 && (
+            <div className="rounded-xl border border-slate-800/60 bg-slate-950/40 p-6 text-sm text-slate-400">
+              Nothing urgent. Set alerts from the analytics workspace to stay ahead.
+            </div>
+          )}
+        </CardContent>
+      </GlassCard>
+
+      <GlassCard className="flex flex-wrap items-center justify-between gap-4 border-violet-500/30 bg-violet-600/10 px-5 py-4 text-sm text-violet-100">
+        <div>
+          <div className="text-xs uppercase tracking-[0.18em] text-violet-200">Omni-prompt shortcut</div>
+          <p>“Flag supply risk for items with &lt;2 week cover and propose bundled orders.”</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="inline-flex items-center gap-2 rounded-xl border-violet-500/40 bg-violet-600/20 text-violet-100 hover:bg-violet-600/30"
+        >
+          Launch
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </GlassCard>
+    </PageContainer>
   )
 }

@@ -453,17 +453,17 @@ export class PerformanceOptimizer extends EventEmitter {
     // Clear resource manager cache
     resourceManager.clearCache();
     
-    // Clear require cache for development modules (if in development)
-    if (process.env.NODE_ENV === 'development') {
+    // Clear require cache for development modules (if in development and require is available)
+    if (process.env.NODE_ENV === 'development' && typeof require !== 'undefined') {
       const modulesBefore = Object.keys(require.cache).length;
-      
+
       for (const [path] of Object.entries(require.cache)) {
         // Only clear non-essential modules
         if (path.includes('/tmp/') || path.includes('/cache/')) {
           delete require.cache[path];
         }
       }
-      
+
       const modulesAfter = Object.keys(require.cache).length;
       if (modulesBefore > modulesAfter) {
         log('Require cache cleaned', {

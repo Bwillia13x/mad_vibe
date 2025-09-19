@@ -283,6 +283,7 @@ export interface InspectorProps {
   inspectorExtras?: ReactNode
   aiModes: string[]
   variant?: 'sidebar' | 'drawer'
+  onPromptShortcut?: (prompt: string) => void
 }
 
 export function Inspector({
@@ -295,7 +296,8 @@ export function Inspector({
   presenceLabel,
   inspectorExtras,
   aiModes,
-  variant = 'sidebar'
+  variant = 'sidebar',
+  onPromptShortcut
 }: InspectorProps) {
   const content = (
     <ScrollArea className={variant === 'sidebar' ? 'h-full w-full' : 'h-[calc(100vh-12rem)]'}>
@@ -308,7 +310,7 @@ export function Inspector({
                 <div className="text-sm font-semibold text-slate-100">{statusLabel}</div>
                 <div className="text-xs text-slate-400">{presenceLabel}</div>
               </div>
-              <Chip tone={statusTone(statusLabel)}>{statusLabel}</Chip>
+              <Chip tone={resolveStatusTone(statusLabel)}>{statusLabel}</Chip>
             </div>
             {aiModes.length > 0 && (
               <div className="space-y-2">
@@ -333,11 +335,22 @@ export function Inspector({
               {lastPrompt || 'No prompt submitted yet.'}
             </div>
             <div className="text-xs text-slate-400">Suggested quick actions</div>
-            <ul className="space-y-1 text-sm text-slate-200">
-              <li>Summarize the latest filing with citations.</li>
-              <li>Highlight three contrarian risks vs. consensus.</li>
-              <li>Regenerate memo outline with valuation hooks.</li>
-            </ul>
+            <div className="grid gap-2 text-sm text-slate-200">
+              {[
+                'Summarize the latest filing with citations.',
+                'Highlight three contrarian risks vs. consensus.',
+                'Regenerate memo outline with valuation hooks.'
+              ].map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => onPromptShortcut?.(prompt)}
+                  className="w-full rounded-xl border border-violet-500/30 bg-violet-600/10 px-3 py-2 text-left text-xs transition hover:bg-violet-600/20"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -507,7 +520,7 @@ export function MemoSyncStatusCard({ status }: { status: MemoSyncState }) {
     <section className={cn(cardClasses, 'space-y-2 text-sm text-slate-200')}>
       <div className="flex items-center justify-between">
         <div className={labelClasses}>Memo Sync</div>
-        <Chip tone={statusTone(status.error ? 'Locked' : status.isSyncing ? 'In Progress' : 'Complete')}>
+        <Chip tone={resolveStatusTone(status.error ? 'Locked' : status.isSyncing ? 'In Progress' : 'Complete')}>
           {stateLabel}
         </Chip>
       </div>
@@ -523,7 +536,7 @@ export function formatTimestamp(value: string | null) {
   return parsed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-function statusTone(label: string): 'slate' | 'violet' | 'emerald' | 'amber' {
+export function resolveStatusTone(label: string): 'slate' | 'violet' | 'emerald' | 'amber' {
   if (label.toLowerCase().includes('lock')) return 'amber'
   if (label.toLowerCase().includes('progress')) return 'violet'
   if (label.toLowerCase().includes('complete') || label.toLowerCase().includes('sync')) return 'emerald'

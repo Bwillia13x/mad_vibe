@@ -126,7 +126,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       if (hasDb) {
         const { connectionPool } = await import('../lib/db/connection-pool');
-        dbMetrics = connectionPool.getStatus();
+        dbMetrics = connectionPool ? connectionPool.getStatus() : {
+          healthy: true,
+          totalConnections: 0,
+          activeConnections: 0,
+          idleConnections: 0,
+          waitingClients: 0,
+          poolUtilization: 0
+        };
       } else {
         dbMetrics = {
           healthy: true,

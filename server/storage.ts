@@ -608,7 +608,7 @@ export class MemStorage implements IStorage {
     const tempIdToRealId = new Map<string, string>();
 
     const databaseUrl = getEnvVar('DATABASE_URL');
-    if (databaseUrl) {
+    if (databaseUrl && db) {
       try {
         await db.delete(researchLogEntries);
         const now = new Date();

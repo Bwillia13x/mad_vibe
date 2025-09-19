@@ -38,6 +38,9 @@ const PRESENCE_MAX_AGE = 45_000
 export function createWorkflowRouter(database: Database = db) {
   const workflowRouter = Router()
 
+  // Check if database is available (not null)
+  const hasDatabase = database !== null
+
   const presenceRegistry = new Map<string, Map<string, { actorId: string; updatedAt: number }>>()
 
   const prunePresence = (stageSlug: string) => {
@@ -76,7 +79,11 @@ export function createWorkflowRouter(database: Database = db) {
     table: any,
     sessionKey: string
   ): Promise<GenericStateRow<TState> | undefined> => {
-    const rows = (await database
+    if (!hasDatabase) {
+      return undefined
+    }
+
+    const rows = (await database!
       .select()
       .from(table)
       .where(eq(table.sessionId, sessionKey))
@@ -93,6 +100,10 @@ export function createWorkflowRouter(database: Database = db) {
     sanitize: (payload: TPayload) => TState,
     conflictMessage: string
   ) => {
+    if (!hasDatabase) {
+      throw new Error("Database not available for state persistence")
+    }
+
     const existing = await loadCurrentState<TState>(table, sessionKey)
     const currentVersion = existing?.version ?? 0
 
@@ -108,7 +119,7 @@ export function createWorkflowRouter(database: Database = db) {
     const nextVersion = currentVersion + 1
     const stateData = sanitize(payload)
 
-    const [row] = (await database
+    const [row] = (await database!
       .insert(table)
       .values({
         sessionId: sessionKey,
@@ -126,7 +137,7 @@ export function createWorkflowRouter(database: Database = db) {
       })
       .returning()) as Array<GenericStateRow<TState>>
 
-    await database.insert(eventsTable).values({
+    await database!.insert(eventsTable).values({
       sessionId: sessionKey,
       actorId,
       version: nextVersion,
@@ -154,8 +165,12 @@ export function createWorkflowRouter(database: Database = db) {
 
   // Research log routes
   workflowRouter.get("/research-log", async (_req, res) => {
+    if (!hasDatabase) {
+      return res.json([])
+    }
+
     try {
-      const rows = (await database
+      const rows = (await database!
         .select()
         .from(researchLogEntries)
         .orderBy(desc(researchLogEntries.timestamp))
@@ -177,13 +192,17 @@ export function createWorkflowRouter(database: Database = db) {
   })
 
   workflowRouter.post("/research-log", async (req, res) => {
+    if (!hasDatabase) {
+      return res.status(503).json({ message: "Database not available" })
+    }
+
     const payload = req.body as ResearchLogInput
     if (!payload?.stageSlug || !payload?.stageTitle || !payload?.action) {
       return res.status(400).json({ message: "Missing required fields" })
     }
 
     try {
-      const [inserted] = await database
+      const [inserted] = await database!
         .insert(researchLogEntries)
         .values({
           stageSlug: payload.stageSlug,
@@ -449,7 +468,11 @@ export function createWorkflowRouter(database: Database = db) {
     }
 
     try {
-      const rows = await database
+      if (!hasDatabase) {
+        return res.json([])
+      }
+
+      const rows = await database!
         .select()
         .from(table)
         .where(eq(table.sessionId, sessionKey))
