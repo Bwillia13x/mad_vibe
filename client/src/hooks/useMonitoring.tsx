@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState
-} from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import {
   monitoringDeltas,
   monitoringAlerts,
@@ -41,7 +34,9 @@ interface MonitoringContextValue {
 }
 
 const defaultState: MonitoringState = {
-  acknowledgedAlerts: Object.fromEntries(monitoringAlerts.map((alert) => [alert.id, alert.acknowledged])),
+  acknowledgedAlerts: Object.fromEntries(
+    monitoringAlerts.map((alert) => [alert.id, alert.acknowledged])
+  ),
   deltaOverrides: {}
 }
 
@@ -147,7 +142,8 @@ export function MonitoringProvider({ children }: { children: React.ReactNode }) 
                   setSyncError('Monitoring state refreshed due to concurrent edits.')
                 }
               } catch (refreshError) {
-                const message = refreshError instanceof Error ? refreshError.message : 'Unknown persistence error'
+                const message =
+                  refreshError instanceof Error ? refreshError.message : 'Unknown persistence error'
                 setSyncError(message)
               }
             } else {

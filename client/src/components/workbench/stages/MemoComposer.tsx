@@ -119,27 +119,30 @@ export function MemoComposer() {
           <CardTitle className="text-sm text-slate-200">Memo Progress</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 text-xs text-slate-400 sm:grid-cols-2 xl:grid-cols-4">
-          <div>
+          <div className="transition-all duration-200 ease-in-out hover:bg-slate-800/20 rounded-lg px-2 py-1">
             <p className="text-[11px] uppercase text-slate-500">Overall completion</p>
             <p className="text-lg font-semibold text-slate-100">{overallCompletion}%</p>
           </div>
-          <div>
+          <div className="transition-all duration-200 ease-in-out hover:bg-slate-800/20 rounded-lg px-2 py-1">
             <p className="text-[11px] uppercase text-slate-500">Sections ready</p>
             <p className="text-lg font-semibold text-slate-100">
               {completedSections}/{sections.length}
             </p>
           </div>
-          <div>
+          <div className="transition-all duration-200 ease-in-out hover:bg-slate-800/20 rounded-lg px-2 py-1">
             <p className="text-[11px] uppercase text-slate-500">Review checks</p>
             <p className="text-lg font-semibold text-slate-100">
               {Object.values(state.reviewChecklist).filter(Boolean).length}/{reviewPrompts.length}
             </p>
           </div>
-          <div>
+          <div className="transition-all duration-200 ease-in-out hover:bg-slate-800/20 rounded-lg px-2 py-1">
             <p className="text-[11px] uppercase text-slate-500">Reviewer threads</p>
             <div className="flex items-center gap-2">
               <p className="text-lg font-semibold text-slate-100">{openCommentCount}</p>
-              <Badge variant={openCommentCount > 0 ? 'outline' : 'default'} className="border-slate-700 text-[10px] uppercase">
+              <Badge
+                variant={openCommentCount > 0 ? 'outline' : 'default'}
+                className="border-slate-700 text-[10px] uppercase transition-all duration-200 ease-in-out"
+              >
                 {openCommentCount > 0 ? 'Open items' : 'All cleared'}
               </Badge>
             </div>
@@ -148,13 +151,15 @@ export function MemoComposer() {
             <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase text-slate-500">
               <span>Autosave</span>
               <Badge
-                variant={syncStatus.error ? 'destructive' : syncStatus.isSyncing ? 'outline' : 'secondary'}
+                variant={
+                  syncStatus.error ? 'destructive' : syncStatus.isSyncing ? 'outline' : 'secondary'
+                }
                 className={cn(
-                  'border px-2 py-1 text-[10px]',
+                  'border px-2 py-1 text-[10px] transition-all duration-300 ease-in-out',
                   syncStatus.error
-                    ? 'border-red-600 bg-red-900/40 text-red-200'
+                    ? 'border-red-600 bg-red-900/40 text-red-200 animate-pulse'
                     : syncStatus.isSyncing
-                      ? 'border-sky-600 bg-sky-900/40 text-sky-200'
+                      ? 'border-sky-600 bg-sky-900/40 text-sky-200 animate-pulse'
                       : 'border-emerald-600 bg-emerald-900/30 text-emerald-100'
                 )}
               >
@@ -221,17 +226,17 @@ export function MemoComposer() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-xs text-slate-400">
-                    Complete the review prompts and tie each answer back to memo sections or exhibits. Reviewers use this
-                    to gate IC approval.
+                    Complete the review prompts and tie each answer back to memo sections or
+                    exhibits. Reviewers use this to gate IC approval.
                   </p>
                   <div className="space-y-3">
                     {reviewPrompts.map((prompt) => (
                       <label
                         key={prompt.id}
                         className={cn(
-                          'flex items-start gap-2 rounded border px-3 py-2 text-xs transition',
+                          'flex items-start gap-2 rounded border px-3 py-2 text-xs transition-all duration-200 ease-in-out hover:bg-slate-900/60',
                           state.reviewChecklist[prompt.id]
-                            ? 'border-emerald-600 bg-emerald-900/20 text-emerald-200'
+                            ? 'border-emerald-600 bg-emerald-900/20 text-emerald-200 animate-in zoom-in-95 duration-300'
                             : 'border-slate-700 bg-slate-950/40 text-slate-300'
                         )}
                       >
@@ -242,7 +247,9 @@ export function MemoComposer() {
                         />
                         <div>
                           <p className="font-medium text-slate-200">{prompt.question}</p>
-                          {prompt.helper && <p className="text-[11px] text-slate-500">{prompt.helper}</p>}
+                          {prompt.helper && (
+                            <p className="text-[11px] text-slate-500">{prompt.helper}</p>
+                          )}
                         </div>
                       </label>
                     ))}
@@ -295,7 +302,10 @@ export function MemoComposer() {
 
                   <div className="space-y-3">
                     {commentThreads.map((thread) => (
-                      <div key={thread.sectionId} className="rounded border border-slate-800 bg-slate-950/40 p-3">
+                      <div
+                        key={thread.sectionId}
+                        className="rounded border border-slate-800 bg-slate-950/40 p-3"
+                      >
                         <div className="flex items-center justify-between gap-2">
                           <div>
                             <p className="text-xs font-semibold text-slate-200">{thread.title}</p>
@@ -307,7 +317,10 @@ export function MemoComposer() {
                         {thread.comments.length > 0 ? (
                           <div className="mt-2 space-y-2 overflow-hidden">
                             {thread.comments.slice(0, 4).map((comment) => (
-                              <div key={comment.id} className="space-y-1 rounded border border-slate-900/60 bg-slate-900/60 p-2">
+                              <div
+                                key={comment.id}
+                                className="space-y-1 rounded border border-slate-900/60 bg-slate-900/60 p-2"
+                              >
                                 <div className="flex items-center justify-between text-[10px] uppercase text-slate-500">
                                   <span>{comment.author}</span>
                                   <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
@@ -342,11 +355,15 @@ export function MemoComposer() {
                               </div>
                             ))}
                             {thread.comments.length > 4 && (
-                              <p className="text-[11px] text-slate-500">+{thread.comments.length - 4} more in export</p>
+                              <p className="text-[11px] text-slate-500">
+                                +{thread.comments.length - 4} more in export
+                              </p>
                             )}
                           </div>
                         ) : (
-                          <p className="text-[11px] text-slate-500">No reviewer feedback logged yet.</p>
+                          <p className="text-[11px] text-slate-500">
+                            No reviewer feedback logged yet.
+                          </p>
                         )}
                       </div>
                     ))}
@@ -362,28 +379,28 @@ export function MemoComposer() {
             <button
               type="button"
               onClick={handleCopy}
-              className="rounded border border-slate-700 px-3 py-1 text-[11px] uppercase text-slate-300 transition hover:bg-slate-900"
+              className="rounded border border-slate-700 px-3 py-1 text-[11px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:bg-slate-900 hover:border-slate-600"
             >
               Copy Markdown
             </button>
             <button
               type="button"
               onClick={handleDownloadMarkdown}
-              className="rounded border border-slate-700 px-3 py-1 text-[11px] uppercase text-slate-300 transition hover:bg-slate-900"
+              className="rounded border border-slate-700 px-3 py-1 text-[11px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:bg-slate-900 hover:border-slate-600"
             >
               Download Markdown
             </button>
             <button
               type="button"
               onClick={handleDownloadHtml}
-              className="rounded border border-slate-700 px-3 py-1 text-[11px] uppercase text-slate-300 transition hover:bg-slate-900"
+              className="rounded border border-slate-700 px-3 py-1 text-[11px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:bg-slate-900 hover:border-slate-600"
             >
               Download HTML
             </button>
             <button
               type="button"
               onClick={handlePrint}
-              className="rounded border border-slate-700 px-3 py-1 text-[11px] uppercase text-slate-300 transition hover:bg-slate-900"
+              className="rounded border border-slate-700 px-3 py-1 text-[11px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:bg-slate-900 hover:border-slate-600"
             >
               Print / Save PDF
             </button>
@@ -396,7 +413,7 @@ export function MemoComposer() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded border border-slate-800 bg-slate-950/60 p-4 text-xs text-slate-200">
-{compiledMemo}
+                  {compiledMemo}
                 </pre>
                 <div
                   className="rounded border border-slate-800 bg-slate-950/60 p-4 text-sm text-slate-100"
@@ -416,7 +433,10 @@ export function MemoComposer() {
                 </CardHeader>
                 <CardContent className="space-y-3 text-xs text-slate-300">
                   {exhibits.map((exhibit) => (
-                    <div key={exhibit.id} className="rounded border border-slate-800 bg-slate-950/50 p-3">
+                    <div
+                      key={exhibit.id}
+                      className="rounded border border-slate-800 bg-slate-950/50 p-3"
+                    >
                       <label className="flex items-start gap-3">
                         <Checkbox
                           checked={exhibit.attachment.include}
@@ -426,12 +446,17 @@ export function MemoComposer() {
                         <div className="space-y-1">
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-sm font-semibold text-slate-100">{exhibit.title}</p>
-                            <Badge variant="outline" className="border-slate-700 text-[10px] uppercase">
+                            <Badge
+                              variant="outline"
+                              className="border-slate-700 text-[10px] uppercase"
+                            >
                               {exhibit.attachment.include ? 'Included' : 'Excluded'}
                             </Badge>
                           </div>
                           <p className="text-xs text-slate-400">{exhibit.summary}</p>
-                          <p className="text-[11px] text-slate-500">Source: {exhibit.sourceStage}</p>
+                          <p className="text-[11px] text-slate-500">
+                            Source: {exhibit.sourceStage}
+                          </p>
                           <ul className="list-disc space-y-1 pl-5 text-[11px] text-slate-500">
                             {exhibit.highlights.map((item) => (
                               <li key={item}>{item}</li>
@@ -439,7 +464,9 @@ export function MemoComposer() {
                           </ul>
                           <Textarea
                             value={exhibit.attachment.caption ?? ''}
-                            onChange={(event) => updateExhibitCaption(exhibit.id, event.target.value)}
+                            onChange={(event) =>
+                              updateExhibitCaption(exhibit.id, event.target.value)
+                            }
                             placeholder="Add analyst annotation for this exhibit"
                             className="mt-2 min-h-[60px] border-slate-800 bg-slate-950 text-[11px] text-slate-200 placeholder:text-slate-500 focus-visible:border-emerald-500 focus-visible:ring-emerald-500"
                           />
@@ -456,13 +483,18 @@ export function MemoComposer() {
                 </CardHeader>
                 <CardContent className="space-y-3 text-xs text-slate-300">
                   {commentThreads.flatMap((thread) => thread.comments.slice(0, 3)).length === 0 ? (
-                    <p className="text-[11px] text-slate-500">No reviewer threads logged for export.</p>
+                    <p className="text-[11px] text-slate-500">
+                      No reviewer threads logged for export.
+                    </p>
                   ) : (
                     commentThreads.map((thread) => (
                       <div key={thread.sectionId} className="space-y-2">
                         <p className="text-[11px] uppercase text-slate-500">{thread.title}</p>
                         {thread.comments.slice(0, 3).map((comment) => (
-                          <div key={comment.id} className="rounded border border-slate-800 bg-slate-950/50 p-2">
+                          <div
+                            key={comment.id}
+                            className="rounded border border-slate-800 bg-slate-950/50 p-2"
+                          >
                             <div className="flex items-center justify-between text-[10px] uppercase text-slate-500">
                               <span>{comment.author}</span>
                               <span>{new Date(comment.createdAt).toLocaleDateString()}</span>

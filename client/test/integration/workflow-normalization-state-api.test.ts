@@ -3,7 +3,8 @@ import express from 'express'
 import type { AddressInfo } from 'node:net'
 import type { DataNormalizationStateInput } from '@shared/types'
 
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgres://valor_user:valorpass@localhost:5432/valor_vibe'
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL || 'postgres://valor_user:valorpass@localhost:5432/valor_vibe'
 
 vi.mock(new URL('../../../lib/db/index.ts', import.meta.url).pathname, () => ({
   db: {}
@@ -13,7 +14,9 @@ vi.mock('../../../lib/db', () => ({
   db: {}
 }))
 
-const workflowModule = await import(new URL('../../../server/routes/workflow.ts', import.meta.url).pathname)
+const workflowModule = await import(
+  new URL('../../../server/routes/workflow.ts', import.meta.url).pathname
+)
 const { createWorkflowRouter } = workflowModule
 
 type SelectChain = {
@@ -99,9 +102,15 @@ describe('Workflow normalization state API', () => {
   it('returns null when no normalization state is stored', async () => {
     buildSelectChain([])
 
-    const response = await performRequest(app, 'GET', '/api/workflow/normalization-state', undefined, {
-      'x-session-key': 'norm-session'
-    })
+    const response = await performRequest(
+      app,
+      'GET',
+      '/api/workflow/normalization-state',
+      undefined,
+      {
+        'x-session-key': 'norm-session'
+      }
+    )
 
     expect(response.status).toBe(200)
     expect(response.body).toBeNull()
@@ -121,9 +130,15 @@ describe('Workflow normalization state API', () => {
       }
     ])
 
-    const response = await performRequest(app, 'GET', '/api/workflow/normalization-state', undefined, {
-      'x-session-key': 'norm-session'
-    })
+    const response = await performRequest(
+      app,
+      'GET',
+      '/api/workflow/normalization-state',
+      undefined,
+      {
+        'x-session-key': 'norm-session'
+      }
+    )
 
     expect(response.status).toBe(200)
     expect(response.body).toMatchObject({
@@ -195,9 +210,15 @@ describe('Workflow normalization state API', () => {
       .mockReturnValueOnce({ values })
       .mockReturnValueOnce({ values: vi.fn().mockReturnValue({}) })
 
-    const response = await performRequest(app, 'PUT', '/api/workflow/normalization-state', payload, {
-      'x-session-key': 'norm-session'
-    })
+    const response = await performRequest(
+      app,
+      'PUT',
+      '/api/workflow/normalization-state',
+      payload,
+      {
+        'x-session-key': 'norm-session'
+      }
+    )
 
     expect(response.status).toBe(200)
     expect(response.body.version).toBe(1)

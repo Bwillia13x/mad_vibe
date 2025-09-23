@@ -211,11 +211,17 @@ export interface DataNormalizationState {
 }
 
 export const defaultDataNormalizationState: DataNormalizationState = {
-  reconciledSources: Object.fromEntries(defaultDataSources.map((source) => [source.id, source.status === 'ready'])),
-  appliedAdjustments: Object.fromEntries(adjustmentPresets.map((preset) => [preset.id, preset.defaultApplied]))
+  reconciledSources: Object.fromEntries(
+    defaultDataSources.map((source) => [source.id, source.status === 'ready'])
+  ),
+  appliedAdjustments: Object.fromEntries(
+    adjustmentPresets.map((preset) => [preset.id, preset.defaultApplied])
+  )
 }
 
-export const getSourceStatusBadge = (status: DataSourceRecord['status']): { label: string; tone: 'ready' | 'review' | 'blocked' } => {
+export const getSourceStatusBadge = (
+  status: DataSourceRecord['status']
+): { label: string; tone: 'ready' | 'review' | 'blocked' } => {
   switch (status) {
     case 'ready':
       return { label: 'Ready', tone: 'ready' }
@@ -317,8 +323,52 @@ export interface OwnerEarningsState {
 }
 
 export const defaultOwnerEarningsState: OwnerEarningsState = {
-  includeBridgeSegments: Object.fromEntries(ownerEarningsBridge.map((segment) => [segment.id, true]))
+  includeBridgeSegments: Object.fromEntries(
+    ownerEarningsBridge.map((segment) => [segment.id, true])
+  )
 }
+
+export const BASE_VALUATION = {
+  price: 41.2,
+  shares: 85,
+  netDebt: -50,
+  ownerEarnings: 353.5,
+  wacc: 10.0,
+  termG: 2.0,
+  capRate: 10.0,
+  ebit: 150,
+  peerEVEBIT: 12.0,
+  peerPFCF: 16.0,
+  fcf: 115
+} as const
+
+export interface RelativesOutput {
+  id: string
+  label: string
+  value: number
+  note?: string
+}
+
+export const relativesOutputs: RelativesOutput[] = [
+  {
+    id: 'rel-ev-from-ebit',
+    label: 'EV from EBIT multiple',
+    value: 1800,
+    note: 'EBIT × peer EV/EBIT'
+  },
+  {
+    id: 'rel-eq-from-fcf',
+    label: 'Equity from FCF multiple',
+    value: 1840,
+    note: 'FCF × peer P/FCF'
+  },
+  {
+    id: 'rel-ps-blend',
+    label: 'Blended per share',
+    value: 21.7,
+    note: 'Average of EV and FCF implied'
+  }
+]
 
 export const epvAssumptions: ValuationAssumption[] = [
   {
@@ -357,6 +407,127 @@ export const epvAssumptions: ValuationAssumption[] = [
     base: 9.5,
     bear: 10.5,
     bull: 8.5
+  },
+  {
+    id: 'price',
+    label: 'Current price per share',
+    description: 'Market price',
+    unit: '$',
+    base: BASE_VALUATION.price,
+    bear: BASE_VALUATION.price * 0.9,
+    bull: BASE_VALUATION.price * 1.1
+  },
+  {
+    id: 'shares',
+    label: 'Shares outstanding',
+    description: 'Diluted shares in millions',
+    unit: 'm',
+    base: BASE_VALUATION.shares,
+    bear: BASE_VALUATION.shares,
+    bull: BASE_VALUATION.shares
+  },
+  {
+    id: 'netDebt',
+    label: 'Net debt',
+    description: 'Net debt in $m (negative = net cash)',
+    unit: '$m',
+    base: BASE_VALUATION.netDebt,
+    bear: BASE_VALUATION.netDebt * 1.2,
+    bull: BASE_VALUATION.netDebt * 0.8
+  },
+  {
+    id: 'ownerEarnings',
+    label: 'Owner earnings',
+    description: 'Normalized owner earnings in $m',
+    unit: '$m',
+    base: BASE_VALUATION.ownerEarnings,
+    bear: BASE_VALUATION.ownerEarnings * 0.8,
+    bull: BASE_VALUATION.ownerEarnings * 1.2,
+    sensitivity: 'High'
+  },
+  {
+    id: 'wacc',
+    label: 'WACC',
+    description: 'Weighted average cost of capital',
+    unit: '%',
+    base: BASE_VALUATION.wacc,
+    bear: BASE_VALUATION.wacc + 1.5,
+    bull: BASE_VALUATION.wacc - 1.0,
+    sensitivity: 'High'
+  },
+  {
+    id: 'termG',
+    label: 'Terminal growth',
+    description: 'Long-term growth rate for DCF terminal value',
+    unit: '%',
+    base: BASE_VALUATION.termG,
+    bear: Math.max(0, BASE_VALUATION.termG - 1.0),
+    bull: BASE_VALUATION.termG + 0.5
+  },
+  {
+    id: 'capRate',
+    label: 'Cap rate (EPV)',
+    description: 'Capitalization rate for EPV',
+    unit: '%',
+    base: BASE_VALUATION.capRate,
+    bear: BASE_VALUATION.capRate + 1.0,
+    bull: BASE_VALUATION.capRate - 1.0,
+    sensitivity: 'Medium'
+  },
+  {
+    id: 'g1',
+    label: 'Growth 1-5y',
+    description: 'Near-term growth rate',
+    unit: '%',
+    base: 6.0,
+    bear: Math.max(0, 6.0 - 3.0),
+    bull: 6.0 + 2.0,
+    sensitivity: 'Medium'
+  },
+  {
+    id: 'g2',
+    label: 'Growth 6-10y',
+    description: 'Mid-term growth rate',
+    unit: '%',
+    base: 3.0,
+    bear: Math.max(0, 3.0 - 2.0),
+    bull: 3.0 + 1.0
+  },
+  {
+    id: 'ebit',
+    label: 'EBIT',
+    description: 'Normalized EBIT in $m',
+    unit: '$m',
+    base: BASE_VALUATION.ebit,
+    bear: BASE_VALUATION.ebit * 0.9,
+    bull: BASE_VALUATION.ebit * 1.1
+  },
+  {
+    id: 'peerEVEBIT',
+    label: 'Peer EV/EBIT',
+    description: 'Peer multiple for EV/EBIT',
+    unit: '×',
+    base: BASE_VALUATION.peerEVEBIT,
+    bear: BASE_VALUATION.peerEVEBIT * 0.8,
+    bull: BASE_VALUATION.peerEVEBIT * 1.2
+  },
+  {
+    id: 'fcf',
+    label: 'FCF',
+    description: 'Free cash flow in $m',
+    unit: '$m',
+    base: BASE_VALUATION.fcf,
+    bear: BASE_VALUATION.fcf * 0.8,
+    bull: BASE_VALUATION.fcf * 1.2
+  },
+  {
+    id: 'peerPFCF',
+    label: 'Peer P/FCF',
+    description: 'Peer multiple for P/FCF',
+    unit: '×',
+    base: BASE_VALUATION.peerPFCF,
+    bear: BASE_VALUATION.peerPFCF * 0.8,
+    bull: BASE_VALUATION.peerPFCF * 1.2
   }
 ]
 
@@ -556,13 +727,15 @@ export const monitoringLessons: MonitoringLesson[] = [
   {
     id: 'lesson-onboarding',
     title: 'Onboarding bottleneck mitigations',
-    insight: 'When churn spiked, the fastest fix was a dedicated onboarding squad pulling from customer success.',
+    insight:
+      'When churn spiked, the fastest fix was a dedicated onboarding squad pulling from customer success.',
     recordedAt: '2025-08-20'
   },
   {
     id: 'lesson-pricing',
     title: 'Competitive discount response',
-    insight: 'Differentiated add-ons justified holding price—positioning message mattered more than incentives.',
+    insight:
+      'Differentiated add-ons justified holding price—positioning message mattered more than incentives.',
     recordedAt: '2025-07-18'
   }
 ]

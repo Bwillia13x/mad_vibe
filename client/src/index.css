@@ -41,14 +41,14 @@
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
   --radius: 0.75rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(214 85% 40% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(214 85% 40% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(214 85% 40% / 0.00), 0px 1px 2px -1px hsl(214 85% 40% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(214 85% 40% / 0.00), 0px 1px 2px -1px hsl(214 85% 40% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(214 85% 40% / 0.00), 0px 2px 4px -1px hsl(214 85% 40% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(214 85% 40% / 0.00), 0px 4px 6px -1px hsl(214 85% 40% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(214 85% 40% / 0.00), 0px 8px 10px -1px hsl(214 85% 40% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(214 85% 40% / 0.00);
+  --shadow-2xs: 0px 2px 0px 0px hsl(214 85% 40% / 0);
+  --shadow-xs: 0px 2px 0px 0px hsl(214 85% 40% / 0);
+  --shadow-sm: 0px 2px 0px 0px hsl(214 85% 40% / 0), 0px 1px 2px -1px hsl(214 85% 40% / 0);
+  --shadow: 0px 2px 0px 0px hsl(214 85% 40% / 0), 0px 1px 2px -1px hsl(214 85% 40% / 0);
+  --shadow-md: 0px 2px 0px 0px hsl(214 85% 40% / 0), 0px 2px 4px -1px hsl(214 85% 40% / 0);
+  --shadow-lg: 0px 2px 0px 0px hsl(214 85% 40% / 0), 0px 4px 6px -1px hsl(214 85% 40% / 0);
+  --shadow-xl: 0px 2px 0px 0px hsl(214 85% 40% / 0), 0px 8px 10px -1px hsl(214 85% 40% / 0);
+  --shadow-2xl: 0px 2px 0px 0px hsl(214 85% 40% / 0);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 }
@@ -132,7 +132,8 @@
 
 /* Loading and animation styles */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -170,8 +171,12 @@
 
 /* Print/styles for demo reports */
 @media print {
-  .no-print { display: none !important; }
-  body { background: #fff !important; }
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+  }
 }
 
 /* iOS/Android safe area adjustments */
@@ -190,8 +195,14 @@
 }
 
 /* Print-only utility */
-.print-only { display: none; }
-@media print { .print-only { display: block; } }
+.print-only {
+  display: none;
+}
+@media print {
+  .print-only {
+    display: block;
+  }
+}
 
 /* Focus visible outline for keyboard users */
 :focus-visible {
@@ -200,10 +211,18 @@
 }
 
 /* Route fade-in animation */
-.route-fade { animation: routefade 180ms ease-out; }
+.route-fade {
+  animation: routefade 180ms ease-out;
+}
 @keyframes routefade {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .skip-link:focus {
   left: 0;
@@ -218,9 +237,17 @@
 }
 /* Print-only narrow receipt styling for POS dialog */
 @media print {
-  body { background: #fff !important; color: #000 !important; }
-  body * { visibility: hidden !important; }
-  .receipt, .receipt * { visibility: visible !important; }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .receipt,
+  .receipt * {
+    visibility: visible !important;
+  }
   .receipt {
     position: absolute;
     left: 0;

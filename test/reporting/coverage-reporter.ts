@@ -3,54 +3,54 @@
  * Provides detailed test coverage analysis and reporting
  */
 
-import fs from 'node:fs';
-import path from 'node:path';
-import type { TestReport, TestSuiteResult } from './test-reporter.js';
+import fs from 'node:fs'
+import path from 'node:path'
+import type { TestReport, TestSuiteResult } from './test-reporter.js'
 
 export interface CoverageReport {
-  timestamp: string;
-  overallCoverage: CoverageMetrics;
-  suiteTypeCoverage: SuiteTypeCoverage[];
-  endpointCoverage: EndpointCoverage[];
-  featureCoverage: FeatureCoverage[];
-  recommendations: string[];
+  timestamp: string
+  overallCoverage: CoverageMetrics
+  suiteTypeCoverage: SuiteTypeCoverage[]
+  endpointCoverage: EndpointCoverage[]
+  featureCoverage: FeatureCoverage[]
+  recommendations: string[]
 }
 
 export interface CoverageMetrics {
-  totalTests: number;
-  executedTests: number;
-  passedTests: number;
-  failedTests: number;
-  skippedTests: number;
-  executionRate: number; // percentage of tests executed
-  passRate: number; // percentage of executed tests that passed
-  overallScore: number; // combined metric
+  totalTests: number
+  executedTests: number
+  passedTests: number
+  failedTests: number
+  skippedTests: number
+  executionRate: number // percentage of tests executed
+  passRate: number // percentage of executed tests that passed
+  overallScore: number // combined metric
 }
 
 export interface SuiteTypeCoverage {
-  suiteType: string;
-  metrics: CoverageMetrics;
-  expectedTests: number;
-  actualTests: number;
-  coverageGap: number;
+  suiteType: string
+  metrics: CoverageMetrics
+  expectedTests: number
+  actualTests: number
+  coverageGap: number
 }
 
 export interface EndpointCoverage {
-  endpoint: string;
-  method: string;
-  tested: boolean;
-  testCount: number;
-  lastTested?: string;
-  status: 'covered' | 'partial' | 'missing';
+  endpoint: string
+  method: string
+  tested: boolean
+  testCount: number
+  lastTested?: string
+  status: 'covered' | 'partial' | 'missing'
 }
 
 export interface FeatureCoverage {
-  feature: string;
-  module: string;
-  tested: boolean;
-  testCount: number;
-  criticalPath: boolean;
-  status: 'covered' | 'partial' | 'missing';
+  feature: string
+  module: string
+  tested: boolean
+  testCount: number
+  criticalPath: boolean
+  status: 'covered' | 'partial' | 'missing'
 }
 
 /**
@@ -90,35 +90,105 @@ export class CoverageReporter {
     'POST /api/loyalty/entries',
     'POST /api/chat',
     'GET /api/csv-export/:type'
-  ];
+  ]
 
   private expectedFeatures: FeatureCoverage[] = [
-    { feature: 'User Authentication', module: 'auth', tested: false, testCount: 0, criticalPath: true, status: 'missing' },
-    { feature: 'POS Transactions', module: 'pos', tested: false, testCount: 0, criticalPath: true, status: 'missing' },
-    { feature: 'Inventory Management', module: 'inventory', tested: false, testCount: 0, criticalPath: true, status: 'missing' },
-    { feature: 'Staff Scheduling', module: 'scheduling', tested: false, testCount: 0, criticalPath: true, status: 'missing' },
-    { feature: 'Customer Management', module: 'customers', tested: false, testCount: 0, criticalPath: true, status: 'missing' },
-    { feature: 'Marketing Campaigns', module: 'marketing', tested: false, testCount: 0, criticalPath: false, status: 'missing' },
-    { feature: 'Loyalty Program', module: 'loyalty', tested: false, testCount: 0, criticalPath: false, status: 'missing' },
-    { feature: 'Analytics Dashboard', module: 'analytics', tested: false, testCount: 0, criticalPath: false, status: 'missing' },
-    { feature: 'AI Chat Assistant', module: 'chat', tested: false, testCount: 0, criticalPath: false, status: 'missing' },
-    { feature: 'Data Export', module: 'export', tested: false, testCount: 0, criticalPath: false, status: 'missing' }
-  ];
+    {
+      feature: 'User Authentication',
+      module: 'auth',
+      tested: false,
+      testCount: 0,
+      criticalPath: true,
+      status: 'missing'
+    },
+    {
+      feature: 'POS Transactions',
+      module: 'pos',
+      tested: false,
+      testCount: 0,
+      criticalPath: true,
+      status: 'missing'
+    },
+    {
+      feature: 'Inventory Management',
+      module: 'inventory',
+      tested: false,
+      testCount: 0,
+      criticalPath: true,
+      status: 'missing'
+    },
+    {
+      feature: 'Staff Scheduling',
+      module: 'scheduling',
+      tested: false,
+      testCount: 0,
+      criticalPath: true,
+      status: 'missing'
+    },
+    {
+      feature: 'Customer Management',
+      module: 'customers',
+      tested: false,
+      testCount: 0,
+      criticalPath: true,
+      status: 'missing'
+    },
+    {
+      feature: 'Marketing Campaigns',
+      module: 'marketing',
+      tested: false,
+      testCount: 0,
+      criticalPath: false,
+      status: 'missing'
+    },
+    {
+      feature: 'Loyalty Program',
+      module: 'loyalty',
+      tested: false,
+      testCount: 0,
+      criticalPath: false,
+      status: 'missing'
+    },
+    {
+      feature: 'Analytics Dashboard',
+      module: 'analytics',
+      tested: false,
+      testCount: 0,
+      criticalPath: false,
+      status: 'missing'
+    },
+    {
+      feature: 'AI Chat Assistant',
+      module: 'chat',
+      tested: false,
+      testCount: 0,
+      criticalPath: false,
+      status: 'missing'
+    },
+    {
+      feature: 'Data Export',
+      module: 'export',
+      tested: false,
+      testCount: 0,
+      criticalPath: false,
+      status: 'missing'
+    }
+  ]
 
   /**
    * Generate comprehensive coverage report from test results
    */
   generateCoverageReport(testReport: TestReport): CoverageReport {
-    const overallCoverage = this.calculateOverallCoverage(testReport);
-    const suiteTypeCoverage = this.calculateSuiteTypeCoverage(testReport);
-    const endpointCoverage = this.calculateEndpointCoverage(testReport);
-    const featureCoverage = this.calculateFeatureCoverage(testReport);
+    const overallCoverage = this.calculateOverallCoverage(testReport)
+    const suiteTypeCoverage = this.calculateSuiteTypeCoverage(testReport)
+    const endpointCoverage = this.calculateEndpointCoverage(testReport)
+    const featureCoverage = this.calculateFeatureCoverage(testReport)
     const recommendations = this.generateCoverageRecommendations(
       overallCoverage,
       suiteTypeCoverage,
       endpointCoverage,
       featureCoverage
-    );
+    )
 
     return {
       timestamp: new Date().toISOString(),
@@ -127,22 +197,22 @@ export class CoverageReporter {
       endpointCoverage,
       featureCoverage,
       recommendations
-    };
+    }
   }
 
   /**
    * Calculate overall coverage metrics
    */
   private calculateOverallCoverage(testReport: TestReport): CoverageMetrics {
-    const totalTests = testReport.summary.totalTests;
-    const executedTests = testReport.summary.totalTests; // All reported tests were executed
-    const passedTests = testReport.summary.passed;
-    const failedTests = testReport.summary.failed;
-    const skippedTests = testReport.summary.skipped;
+    const totalTests = testReport.summary.totalTests
+    const executedTests = testReport.summary.totalTests // All reported tests were executed
+    const passedTests = testReport.summary.passed
+    const failedTests = testReport.summary.failed
+    const skippedTests = testReport.summary.skipped
 
-    const executionRate = totalTests > 0 ? (executedTests / totalTests) * 100 : 0;
-    const passRate = executedTests > 0 ? (passedTests / executedTests) * 100 : 0;
-    const overallScore = (executionRate * 0.3) + (passRate * 0.7); // Weighted score
+    const executionRate = totalTests > 0 ? (executedTests / totalTests) * 100 : 0
+    const passRate = executedTests > 0 ? (passedTests / executedTests) * 100 : 0
+    const overallScore = executionRate * 0.3 + passRate * 0.7 // Weighted score
 
     return {
       totalTests,
@@ -153,7 +223,7 @@ export class CoverageReporter {
       executionRate,
       passRate,
       overallScore
-    };
+    }
   }
 
   /**
@@ -166,18 +236,19 @@ export class CoverageReporter {
       { type: 'security', expectedTests: 15 },
       { type: 'deployment', expectedTests: 10 },
       { type: 'uat', expectedTests: 25 }
-    ];
+    ]
 
-    return expectedSuiteTypes.map(expected => {
-      const suites = testReport.suiteResults.filter(s => s.suiteType === expected.type);
-      const totalTests = suites.reduce((sum, s) => sum + s.summary.totalTests, 0);
-      const passedTests = suites.reduce((sum, s) => sum + s.summary.passed, 0);
-      const failedTests = suites.reduce((sum, s) => sum + s.summary.failed, 0);
-      const skippedTests = suites.reduce((sum, s) => sum + s.summary.skipped, 0);
+    return expectedSuiteTypes.map((expected) => {
+      const suites = testReport.suiteResults.filter((s) => s.suiteType === expected.type)
+      const totalTests = suites.reduce((sum, s) => sum + s.summary.totalTests, 0)
+      const passedTests = suites.reduce((sum, s) => sum + s.summary.passed, 0)
+      const failedTests = suites.reduce((sum, s) => sum + s.summary.failed, 0)
+      const skippedTests = suites.reduce((sum, s) => sum + s.summary.skipped, 0)
 
-      const executionRate = expected.expectedTests > 0 ? (totalTests / expected.expectedTests) * 100 : 0;
-      const passRate = totalTests > 0 ? (passedTests / totalTests) * 100 : 0;
-      const overallScore = Math.min(100, (executionRate * 0.4) + (passRate * 0.6));
+      const executionRate =
+        expected.expectedTests > 0 ? (totalTests / expected.expectedTests) * 100 : 0
+      const passRate = totalTests > 0 ? (passedTests / totalTests) * 100 : 0
+      const overallScore = Math.min(100, executionRate * 0.4 + passRate * 0.6)
 
       return {
         suiteType: expected.type,
@@ -194,8 +265,8 @@ export class CoverageReporter {
         expectedTests: expected.expectedTests,
         actualTests: totalTests,
         coverageGap: Math.max(0, expected.expectedTests - totalTests)
-      };
-    });
+      }
+    })
   }
 
   /**
@@ -203,47 +274,51 @@ export class CoverageReporter {
    */
   private calculateEndpointCoverage(testReport: TestReport): EndpointCoverage[] {
     // Extract tested endpoints from test names
-    const testedEndpoints = new Set<string>();
-    
-    testReport.suiteResults.forEach(suite => {
-      suite.tests.forEach(test => {
+    const testedEndpoints = new Set<string>()
+
+    testReport.suiteResults.forEach((suite) => {
+      suite.tests.forEach((test) => {
         // Parse endpoint information from test names
         if (test.testName.includes('endpoint') || test.testName.includes('api-')) {
-          const endpointMatch = test.testName.match(/api-([a-z-]+)/);
+          const endpointMatch = test.testName.match(/api-([a-z-]+)/)
           if (endpointMatch) {
-            testedEndpoints.add(`GET /api/${endpointMatch[1].replace('-', '/')}`);
+            testedEndpoints.add(`GET /api/${endpointMatch[1].replace('-', '/')}`)
           }
         }
-        
-        // Check for specific endpoint patterns
-        if (test.testName.includes('health')) testedEndpoints.add('GET /api/health');
-        if (test.testName.includes('services')) testedEndpoints.add('GET /api/services');
-        if (test.testName.includes('staff')) testedEndpoints.add('GET /api/staff');
-        if (test.testName.includes('appointments')) testedEndpoints.add('GET /api/appointments');
-        if (test.testName.includes('inventory')) testedEndpoints.add('GET /api/inventory');
-        if (test.testName.includes('analytics')) testedEndpoints.add('GET /api/analytics');
-        if (test.testName.includes('pos')) testedEndpoints.add('GET /api/pos/sales');
-        if (test.testName.includes('marketing')) testedEndpoints.add('GET /api/marketing/campaigns');
-        if (test.testName.includes('loyalty')) testedEndpoints.add('GET /api/loyalty/entries');
-        if (test.testName.includes('chat')) testedEndpoints.add('POST /api/chat');
-        if (test.testName.includes('csv-export')) testedEndpoints.add('GET /api/csv-export/:type');
-      });
-    });
 
-    return this.expectedEndpoints.map(endpoint => {
-      const [method, path] = endpoint.split(' ');
-      const tested = testedEndpoints.has(endpoint);
-      const testCount = tested ? 1 : 0; // Simplified - could be more sophisticated
-      
-      let status: 'covered' | 'partial' | 'missing';
+        // Check for specific endpoint patterns
+        if (test.testName.includes('health')) testedEndpoints.add('GET /api/health')
+        if (test.testName.includes('services')) testedEndpoints.add('GET /api/services')
+        if (test.testName.includes('staff')) testedEndpoints.add('GET /api/staff')
+        if (test.testName.includes('appointments')) testedEndpoints.add('GET /api/appointments')
+        if (test.testName.includes('inventory')) testedEndpoints.add('GET /api/inventory')
+        if (test.testName.includes('analytics')) testedEndpoints.add('GET /api/analytics')
+        if (test.testName.includes('pos')) testedEndpoints.add('GET /api/pos/sales')
+        if (test.testName.includes('marketing')) testedEndpoints.add('GET /api/marketing/campaigns')
+        if (test.testName.includes('loyalty')) testedEndpoints.add('GET /api/loyalty/entries')
+        if (test.testName.includes('chat')) testedEndpoints.add('POST /api/chat')
+        if (test.testName.includes('csv-export')) testedEndpoints.add('GET /api/csv-export/:type')
+      })
+    })
+
+    return this.expectedEndpoints.map((endpoint) => {
+      const [method, path] = endpoint.split(' ')
+      const tested = testedEndpoints.has(endpoint)
+      const testCount = tested ? 1 : 0 // Simplified - could be more sophisticated
+
+      let status: 'covered' | 'partial' | 'missing'
       if (tested) {
-        status = 'covered';
-      } else if (endpoint.includes('POST') || endpoint.includes('PUT') || endpoint.includes('DELETE')) {
+        status = 'covered'
+      } else if (
+        endpoint.includes('POST') ||
+        endpoint.includes('PUT') ||
+        endpoint.includes('DELETE')
+      ) {
         // Write operations might be partially covered by read operations
-        const readEndpoint = endpoint.replace(/POST|PUT|DELETE/, 'GET').replace('/:id', '');
-        status = testedEndpoints.has(readEndpoint) ? 'partial' : 'missing';
+        const readEndpoint = endpoint.replace(/POST|PUT|DELETE/, 'GET').replace('/:id', '')
+        status = testedEndpoints.has(readEndpoint) ? 'partial' : 'missing'
       } else {
-        status = 'missing';
+        status = 'missing'
       }
 
       return {
@@ -253,41 +328,43 @@ export class CoverageReporter {
         testCount,
         lastTested: tested ? testReport.timestamp : undefined,
         status
-      };
-    });
+      }
+    })
   }
 
   /**
    * Calculate feature coverage
    */
   private calculateFeatureCoverage(testReport: TestReport): FeatureCoverage[] {
-    return this.expectedFeatures.map(feature => {
-      let testCount = 0;
-      let tested = false;
+    return this.expectedFeatures.map((feature) => {
+      let testCount = 0
+      let tested = false
 
       // Count tests related to each feature
-      testReport.suiteResults.forEach(suite => {
-        suite.tests.forEach(test => {
-          const testName = test.testName.toLowerCase();
-          const featureName = feature.feature.toLowerCase();
-          const moduleName = feature.module.toLowerCase();
+      testReport.suiteResults.forEach((suite) => {
+        suite.tests.forEach((test) => {
+          const testName = test.testName.toLowerCase()
+          const featureName = feature.feature.toLowerCase()
+          const moduleName = feature.module.toLowerCase()
 
-          if (testName.includes(moduleName) || 
-              testName.includes(featureName.replace(' ', '-')) ||
-              testName.includes(featureName.replace(' ', '_'))) {
-            testCount++;
-            tested = true;
+          if (
+            testName.includes(moduleName) ||
+            testName.includes(featureName.replace(' ', '-')) ||
+            testName.includes(featureName.replace(' ', '_'))
+          ) {
+            testCount++
+            tested = true
           }
-        });
-      });
+        })
+      })
 
-      let status: 'covered' | 'partial' | 'missing';
+      let status: 'covered' | 'partial' | 'missing'
       if (testCount >= 3) {
-        status = 'covered';
+        status = 'covered'
       } else if (testCount > 0) {
-        status = 'partial';
+        status = 'partial'
       } else {
-        status = 'missing';
+        status = 'missing'
       }
 
       return {
@@ -295,8 +372,8 @@ export class CoverageReporter {
         tested,
         testCount,
         status
-      };
-    });
+      }
+    })
   }
 
   /**
@@ -308,62 +385,78 @@ export class CoverageReporter {
     endpoints: EndpointCoverage[],
     features: FeatureCoverage[]
   ): string[] {
-    const recommendations: string[] = [];
+    const recommendations: string[] = []
 
     // Overall coverage recommendations
     if (overall.overallScore < 80) {
-      recommendations.push(`Overall test coverage score is ${overall.overallScore.toFixed(1)}%. Aim for 80%+ before production deployment.`);
+      recommendations.push(
+        `Overall test coverage score is ${overall.overallScore.toFixed(1)}%. Aim for 80%+ before production deployment.`
+      )
     }
 
     if (overall.passRate < 95) {
-      recommendations.push(`Test pass rate is ${overall.passRate.toFixed(1)}%. Investigate and fix failing tests to achieve 95%+ pass rate.`);
+      recommendations.push(
+        `Test pass rate is ${overall.passRate.toFixed(1)}%. Investigate and fix failing tests to achieve 95%+ pass rate.`
+      )
     }
 
     // Suite type recommendations
-    const missingSuites = suiteTypes.filter(s => s.actualTests === 0);
+    const missingSuites = suiteTypes.filter((s) => s.actualTests === 0)
     if (missingSuites.length > 0) {
-      recommendations.push(`Missing test suites: ${missingSuites.map(s => s.suiteType).join(', ')}. Consider implementing these test types.`);
+      recommendations.push(
+        `Missing test suites: ${missingSuites.map((s) => s.suiteType).join(', ')}. Consider implementing these test types.`
+      )
     }
 
-    const lowCoverageSuites = suiteTypes.filter(s => s.metrics.overallScore < 60 && s.actualTests > 0);
+    const lowCoverageSuites = suiteTypes.filter(
+      (s) => s.metrics.overallScore < 60 && s.actualTests > 0
+    )
     if (lowCoverageSuites.length > 0) {
-      recommendations.push(`Low coverage in: ${lowCoverageSuites.map(s => s.suiteType).join(', ')}. Add more tests to improve coverage.`);
+      recommendations.push(
+        `Low coverage in: ${lowCoverageSuites.map((s) => s.suiteType).join(', ')}. Add more tests to improve coverage.`
+      )
     }
 
     // Endpoint coverage recommendations
-    const missingEndpoints = endpoints.filter(e => e.status === 'missing');
+    const missingEndpoints = endpoints.filter((e) => e.status === 'missing')
     if (missingEndpoints.length > 0) {
-      const criticalMissing = missingEndpoints.filter(e => e.method === 'GET').slice(0, 5);
+      const criticalMissing = missingEndpoints.filter((e) => e.method === 'GET').slice(0, 5)
       if (criticalMissing.length > 0) {
-        recommendations.push(`Missing API endpoint tests: ${criticalMissing.map(e => `${e.method} ${e.endpoint}`).join(', ')}.`);
+        recommendations.push(
+          `Missing API endpoint tests: ${criticalMissing.map((e) => `${e.method} ${e.endpoint}`).join(', ')}.`
+        )
       }
     }
 
     // Feature coverage recommendations
-    const criticalMissingFeatures = features.filter(f => f.criticalPath && f.status === 'missing');
+    const criticalMissingFeatures = features.filter((f) => f.criticalPath && f.status === 'missing')
     if (criticalMissingFeatures.length > 0) {
-      recommendations.push(`Critical features without tests: ${criticalMissingFeatures.map(f => f.feature).join(', ')}. These are essential for production readiness.`);
+      recommendations.push(
+        `Critical features without tests: ${criticalMissingFeatures.map((f) => f.feature).join(', ')}. These are essential for production readiness.`
+      )
     }
 
-    const partialFeatures = features.filter(f => f.status === 'partial');
+    const partialFeatures = features.filter((f) => f.status === 'partial')
     if (partialFeatures.length > 0) {
-      recommendations.push(`Features with partial test coverage: ${partialFeatures.map(f => f.feature).join(', ')}. Consider adding more comprehensive tests.`);
+      recommendations.push(
+        `Features with partial test coverage: ${partialFeatures.map((f) => f.feature).join(', ')}. Consider adding more comprehensive tests.`
+      )
     }
 
-    return recommendations;
+    return recommendations
   }
 
   /**
    * Save coverage report to file
    */
   async saveCoverageReport(report: CoverageReport, outputDir: string): Promise<string> {
-    fs.mkdirSync(outputDir, { recursive: true });
-    
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filePath = path.join(outputDir, `coverage-report-${timestamp}.json`);
-    
-    fs.writeFileSync(filePath, JSON.stringify(report, null, 2));
-    return filePath;
+    fs.mkdirSync(outputDir, { recursive: true })
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const filePath = path.join(outputDir, `coverage-report-${timestamp}.json`)
+
+    fs.writeFileSync(filePath, JSON.stringify(report, null, 2))
+    return filePath
   }
 
   /**
@@ -444,7 +537,9 @@ export class CoverageReporter {
                     </tr>
                 </thead>
                 <tbody>
-                    ${report.suiteTypeCoverage.map(suite => `
+                    ${report.suiteTypeCoverage
+                      .map(
+                        (suite) => `
                     <tr>
                         <td>${suite.suiteType}</td>
                         <td>${suite.actualTests}</td>
@@ -459,7 +554,9 @@ export class CoverageReporter {
                         <td>${suite.metrics.passRate.toFixed(1)}%</td>
                         <td>${suite.metrics.overallScore.toFixed(1)}%</td>
                     </tr>
-                    `).join('')}
+                    `
+                      )
+                      .join('')}
                 </tbody>
             </table>
         </div>
@@ -476,14 +573,18 @@ export class CoverageReporter {
                     </tr>
                 </thead>
                 <tbody>
-                    ${report.endpointCoverage.map(endpoint => `
+                    ${report.endpointCoverage
+                      .map(
+                        (endpoint) => `
                     <tr>
                         <td>${endpoint.method}</td>
                         <td>${endpoint.endpoint}</td>
                         <td class="status-${endpoint.status}">${endpoint.status.toUpperCase()}</td>
                         <td>${endpoint.testCount}</td>
                     </tr>
-                    `).join('')}
+                    `
+                      )
+                      .join('')}
                 </tbody>
             </table>
         </div>
@@ -501,7 +602,9 @@ export class CoverageReporter {
                     </tr>
                 </thead>
                 <tbody>
-                    ${report.featureCoverage.map(feature => `
+                    ${report.featureCoverage
+                      .map(
+                        (feature) => `
                     <tr>
                         <td>${feature.feature}</td>
                         <td>${feature.module}</td>
@@ -509,21 +612,27 @@ export class CoverageReporter {
                         <td class="status-${feature.status}">${feature.status.toUpperCase()}</td>
                         <td>${feature.testCount}</td>
                     </tr>
-                    `).join('')}
+                    `
+                      )
+                      .join('')}
                 </tbody>
             </table>
         </div>
 
-        ${report.recommendations.length > 0 ? `
+        ${
+          report.recommendations.length > 0
+            ? `
         <div class="recommendations">
             <h3>Coverage Recommendations</h3>
             <ul>
-                ${report.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                ${report.recommendations.map((rec) => `<li>${rec}</li>`).join('')}
             </ul>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
     </div>
 </body>
-</html>`;
+</html>`
   }
 }

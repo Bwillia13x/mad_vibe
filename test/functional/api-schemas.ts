@@ -3,7 +3,7 @@
  * Defines Zod schemas for validating API responses
  */
 
-import { z } from 'zod';
+import { z } from 'zod'
 
 // Health endpoint schema
 export const HealthResponseSchema = z.object({
@@ -13,11 +13,13 @@ export const HealthResponseSchema = z.object({
   aiDemoMode: z.boolean(),
   scenario: z.string(),
   seed: z.number().nullable(),
-  freeze: z.object({
-    frozen: z.boolean().optional(),
-    date: z.string().optional()
-  }).nullable()
-});
+  freeze: z
+    .object({
+      frozen: z.boolean().optional(),
+      date: z.string().optional()
+    })
+    .nullable()
+})
 
 // Business Profile schema
 export const BusinessProfileSchema = z.object({
@@ -31,7 +33,7 @@ export const BusinessProfileSchema = z.object({
   hours: z.record(z.string()).optional(),
   createdAt: z.string(),
   updatedAt: z.string()
-});
+})
 
 // Service schema
 export const ServiceSchema = z.object({
@@ -44,7 +46,7 @@ export const ServiceSchema = z.object({
   active: z.boolean().optional(),
   createdAt: z.string(),
   updatedAt: z.string()
-});
+})
 
 // Staff schema
 export const StaffSchema = z.object({
@@ -58,7 +60,7 @@ export const StaffSchema = z.object({
   active: z.boolean().optional(),
   createdAt: z.string(),
   updatedAt: z.string()
-});
+})
 
 // Customer schema (limited for privacy)
 export const CustomerSchema = z.object({
@@ -68,7 +70,7 @@ export const CustomerSchema = z.object({
   preferences: z.record(z.any()).optional(),
   createdAt: z.string(),
   updatedAt: z.string()
-});
+})
 
 // Appointment schema
 export const AppointmentSchema = z.object({
@@ -82,7 +84,7 @@ export const AppointmentSchema = z.object({
   notes: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string()
-});
+})
 
 // Inventory Item schema
 export const InventoryItemSchema = z.object({
@@ -99,7 +101,7 @@ export const InventoryItemSchema = z.object({
   status: z.enum(['in-stock', 'low-stock', 'out-of-stock']),
   createdAt: z.string(),
   updatedAt: z.string()
-});
+})
 
 // Analytics schema
 export const AnalyticsSchema = z.object({
@@ -116,7 +118,7 @@ export const AnalyticsSchema = z.object({
   averageServiceDuration: z.number(),
   createdAt: z.string(),
   updatedAt: z.string()
-});
+})
 
 // POS Sale Item schema
 export const SaleItemSchema = z.object({
@@ -126,7 +128,7 @@ export const SaleItemSchema = z.object({
   quantity: z.number(),
   unitPrice: z.number().optional(),
   total: z.number().optional()
-});
+})
 
 // POS Sale schema
 export const SaleSchema = z.object({
@@ -140,7 +142,7 @@ export const SaleSchema = z.object({
   total: z.number(),
   createdAt: z.string(),
   updatedAt: z.string()
-});
+})
 
 // Marketing Campaign schema
 export const CampaignSchema = z.object({
@@ -154,7 +156,7 @@ export const CampaignSchema = z.object({
   budget: z.number().optional(),
   createdAt: z.string(),
   updatedAt: z.string()
-});
+})
 
 // Marketing Performance schema
 export const MarketingPerformanceSchema = z.object({
@@ -165,16 +167,18 @@ export const MarketingPerformanceSchema = z.object({
     ctr: z.number(),
     convRate: z.number()
   }),
-  campaigns: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    impressions: z.number(),
-    clicks: z.number(),
-    ctr: z.number(),
-    conversions: z.number(),
-    convRate: z.number()
-  }))
-});
+  campaigns: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      impressions: z.number(),
+      clicks: z.number(),
+      ctr: z.number(),
+      conversions: z.number(),
+      convRate: z.number()
+    })
+  )
+})
 
 // Loyalty Entry schema
 export const LoyaltyEntrySchema = z.object({
@@ -185,59 +189,63 @@ export const LoyaltyEntrySchema = z.object({
   note: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string()
-});
+})
 
 // Chat Response schema
 export const ChatResponseSchema = z.object({
   message: z.string(),
   timestamp: z.string().optional(),
   model: z.string().optional()
-});
+})
 
 // Demo Response schemas
 export const DemoSeedResponseSchema = z.object({
   ok: z.literal(true),
   scenario: z.string(),
   seed: z.number().nullable()
-});
+})
 
 export const DemoTimeResponseSchema = z.object({
   ok: z.literal(true),
-  freeze: z.object({
-    frozen: z.boolean().optional(),
-    date: z.string().optional()
-  }).nullable()
-});
+  freeze: z
+    .object({
+      frozen: z.boolean().optional(),
+      date: z.string().optional()
+    })
+    .nullable()
+})
 
 export const DemoResetResponseSchema = z.object({
   ok: z.literal(true),
   scenario: z.string(),
   seed: z.number().nullable(),
-  freeze: z.object({
-    frozen: z.boolean().optional(),
-    date: z.string().optional()
-  }).nullable()
-});
+  freeze: z
+    .object({
+      frozen: z.boolean().optional(),
+      date: z.string().optional()
+    })
+    .nullable()
+})
 
 // Generic success response schema
 export const SuccessResponseSchema = z.object({
   ok: z.literal(true)
-});
+})
 
 // Error response schema
 export const ErrorResponseSchema = z.object({
   message: z.string(),
   error: z.string().optional(),
   details: z.any().optional()
-});
+})
 
 // Array schemas for list endpoints
-export const ServicesArraySchema = z.array(ServiceSchema);
-export const StaffArraySchema = z.array(StaffSchema);
-export const CustomersArraySchema = z.array(CustomerSchema);
-export const AppointmentsArraySchema = z.array(AppointmentSchema);
-export const InventoryArraySchema = z.array(InventoryItemSchema);
-export const AnalyticsArraySchema = z.array(AnalyticsSchema);
-export const SalesArraySchema = z.array(SaleSchema);
-export const CampaignsArraySchema = z.array(CampaignSchema);
-export const LoyaltyEntriesArraySchema = z.array(LoyaltyEntrySchema);
+export const ServicesArraySchema = z.array(ServiceSchema)
+export const StaffArraySchema = z.array(StaffSchema)
+export const CustomersArraySchema = z.array(CustomerSchema)
+export const AppointmentsArraySchema = z.array(AppointmentSchema)
+export const InventoryArraySchema = z.array(InventoryItemSchema)
+export const AnalyticsArraySchema = z.array(AnalyticsSchema)
+export const SalesArraySchema = z.array(SaleSchema)
+export const CampaignsArraySchema = z.array(CampaignSchema)
+export const LoyaltyEntriesArraySchema = z.array(LoyaltyEntrySchema)

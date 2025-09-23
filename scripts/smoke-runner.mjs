@@ -2,7 +2,9 @@ import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 
-async function delay(ms) { return new Promise(r => setTimeout(r, ms)) }
+async function delay(ms) {
+  return new Promise((r) => setTimeout(r, ms))
+}
 
 async function waitForPortFile(portFile, timeoutMs = 20000) {
   const start = Date.now()
@@ -75,24 +77,32 @@ async function streamSSE(url, body, timeoutMs = 10000) {
     return acc
   } finally {
     clearTimeout(t)
-    try { ctrl.abort() } catch {}
+    try {
+      ctrl.abort()
+    } catch {}
   }
 }
 
 async function main() {
   const portFile = path.resolve('.local', 'smoke_prod_port')
-  try { fs.mkdirSync(path.dirname(portFile), { recursive: true }) } catch {}
-  try { if (fs.existsSync(portFile)) fs.unlinkSync(portFile) } catch {}
+  try {
+    fs.mkdirSync(path.dirname(portFile), { recursive: true })
+  } catch {}
+  try {
+    if (fs.existsSync(portFile)) fs.unlinkSync(portFile)
+  } catch {}
 
   const child = spawn(process.execPath, [path.resolve('dist', 'index.js')], {
     env: { ...process.env, NODE_ENV: 'production', PORT: '0', PORT_FILE: portFile },
     stdio: ['ignore', 'pipe', 'pipe']
   })
-  child.stdout.on('data', d => process.stdout.write(d))
-  child.stderr.on('data', d => process.stderr.write(d))
+  child.stdout.on('data', (d) => process.stdout.write(d))
+  child.stderr.on('data', (d) => process.stderr.write(d))
 
   let exitCode = null
-  child.on('exit', code => { exitCode = code ?? 0 })
+  child.on('exit', (code) => {
+    exitCode = code ?? 0
+  })
 
   try {
     const port = await waitForPortFile(portFile)
@@ -103,7 +113,16 @@ async function main() {
     if (health?.status !== 'ok') throw new Error('Health not ok')
 
     // SPA routes should serve index.html
-    const routes = ['/', '/pos', '/scheduling', '/inventory', '/staff', '/analytics', '/marketing', '/loyalty']
+    const routes = [
+      '/',
+      '/pos',
+      '/scheduling',
+      '/inventory',
+      '/staff',
+      '/analytics',
+      '/marketing',
+      '/loyalty'
+    ]
     for (const r of routes) {
       const res = await get(base + r)
       if (!res.ok) throw new Error(`${r} -> ${res.status}`)
@@ -147,18 +166,30 @@ async function main() {
     // POS: create a sale with one service
     const svcId = services[0]?.id
     if (svcId) {
-      const sale = await postJson(`${base}/api/pos/sales`, { items: [{ kind: 'service', id: svcId, quantity: 1 }] })
+      const sale = await postJson(`${base}/api/pos/sales`, {
+        items: [{ kind: 'service', id: svcId, quantity: 1 }]
+      })
       if (!sale?.id) throw new Error('POS sale not created')
     }
 
     // Marketing: create a campaign
-    const camp = await postJson(`${base}/api/marketing/campaigns`, { name: 'Test Campaign', description: 'Smoke test', channel: 'email', status: 'draft' })
+    const camp = await postJson(`${base}/api/marketing/campaigns`, {
+      name: 'Test Campaign',
+      description: 'Smoke test',
+      channel: 'email',
+      status: 'draft'
+    })
     if (!camp?.id) throw new Error('Campaign not created')
 
     // Loyalty: add a reward to first customer
     const customers = await getJson(`${base}/api/customers`)
     if (customers?.[0]?.id) {
-      const entry = await postJson(`${base}/api/loyalty/entries`, { customerId: customers[0].id, type: 'reward', points: 10, note: 'Smoke' })
+      const entry = await postJson(`${base}/api/loyalty/entries`, {
+        customerId: customers[0].id,
+        type: 'reward',
+        points: 10,
+        note: 'Smoke'
+      })
       if (!entry?.id) throw new Error('Loyalty entry not created')
     }
 
@@ -170,8 +201,13 @@ async function main() {
 
     console.log('\nSmoke runner passed (production build).')
   } finally {
-    try { if (child && exitCode === null) child.kill('SIGINT') } catch {}
+    try {
+      if (child && exitCode === null) child.kill('SIGINT')
+    } catch {}
   }
 }
 
-main().catch((err) => { console.error('Smoke runner failed:', err); process.exit(1) })
+main().catch((err) => {
+  console.error('Smoke runner failed:', err)
+  process.exit(1)
+})

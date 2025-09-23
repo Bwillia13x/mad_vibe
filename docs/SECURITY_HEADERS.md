@@ -40,13 +40,13 @@ The security headers middleware provides comprehensive HTTP security headers to 
 ### Basic Usage
 
 ```typescript
-import { securityHeaders } from './middleware/security-headers';
-import express from 'express';
+import { securityHeaders } from './middleware/security-headers'
+import express from 'express'
 
-const app = express();
+const app = express()
 
 // Apply security headers to all routes
-app.use(securityHeaders);
+app.use(securityHeaders)
 ```
 
 ### Strict Security Headers
@@ -54,16 +54,16 @@ app.use(securityHeaders);
 For sensitive endpoints requiring stricter security:
 
 ```typescript
-import { strictSecurityHeaders } from './middleware/security-headers';
+import { strictSecurityHeaders } from './middleware/security-headers'
 
 // Apply strict headers to admin routes
-app.use('/admin', strictSecurityHeaders);
+app.use('/admin', strictSecurityHeaders)
 ```
 
 ### Custom Configuration
 
 ```typescript
-import { createSecurityHeadersMiddleware } from './middleware/security-headers';
+import { createSecurityHeadersMiddleware } from './middleware/security-headers'
 
 const customHeaders = createSecurityHeadersMiddleware({
   frameOptions: 'SAMEORIGIN',
@@ -76,13 +76,13 @@ const customHeaders = createSecurityHeadersMiddleware({
     enabled: true,
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "https://trusted-cdn.com"],
+      scriptSrc: ["'self'", 'https://trusted-cdn.com'],
       styleSrc: ["'self'", "'unsafe-inline'"]
     }
   }
-});
+})
 
-app.use(customHeaders);
+app.use(customHeaders)
 ```
 
 ## Configuration Options
@@ -92,47 +92,47 @@ app.use(customHeaders);
 ```typescript
 interface SecurityHeadersConfig {
   // X-Content-Type-Options
-  contentTypeOptions?: boolean;
-  
+  contentTypeOptions?: boolean
+
   // X-Frame-Options
-  frameOptions?: 'DENY' | 'SAMEORIGIN' | string;
-  
+  frameOptions?: 'DENY' | 'SAMEORIGIN' | string
+
   // Strict-Transport-Security
   hsts?: {
-    enabled: boolean;
-    maxAge?: number;
-    includeSubDomains?: boolean;
-    preload?: boolean;
-  };
-  
+    enabled: boolean
+    maxAge?: number
+    includeSubDomains?: boolean
+    preload?: boolean
+  }
+
   // Content Security Policy
   csp?: {
-    enabled: boolean;
+    enabled: boolean
     directives?: {
-      defaultSrc?: string[];
-      scriptSrc?: string[];
-      styleSrc?: string[];
-      imgSrc?: string[];
-      fontSrc?: string[];
-      connectSrc?: string[];
-      frameAncestors?: string[];
-      objectSrc?: string[];
-      mediaSrc?: string[];
-      childSrc?: string[];
-      formAction?: string[];
-      baseUri?: string[];
-      upgradeInsecureRequests?: boolean;
-    };
-  };
-  
+      defaultSrc?: string[]
+      scriptSrc?: string[]
+      styleSrc?: string[]
+      imgSrc?: string[]
+      fontSrc?: string[]
+      connectSrc?: string[]
+      frameAncestors?: string[]
+      objectSrc?: string[]
+      mediaSrc?: string[]
+      childSrc?: string[]
+      formAction?: string[]
+      baseUri?: string[]
+      upgradeInsecureRequests?: boolean
+    }
+  }
+
   // Additional headers
-  xssProtection?: boolean;
-  referrerPolicy?: string;
-  permissionsPolicy?: string;
-  
+  xssProtection?: boolean
+  referrerPolicy?: string
+  permissionsPolicy?: string
+
   // Environment-specific settings
-  productionOnly?: string[];
-  developmentOnly?: string[];
+  productionOnly?: string[]
+  developmentOnly?: string[]
 }
 ```
 
@@ -154,8 +154,8 @@ const DEFAULT_CONFIG: SecurityHeadersConfig = {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      fontSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      fontSrc: ["'self'", 'data:'],
       connectSrc: ["'self'"],
       frameAncestors: ["'none'"],
       objectSrc: ["'none'"],
@@ -165,7 +165,7 @@ const DEFAULT_CONFIG: SecurityHeadersConfig = {
   xssProtection: true,
   referrerPolicy: 'strict-origin-when-cross-origin',
   permissionsPolicy: 'camera=(), microphone=(), geolocation=(), payment=()'
-};
+}
 ```
 
 ## Environment Configuration
@@ -206,6 +206,7 @@ The middleware supports all standard CSP directives:
 ### CSP Examples
 
 #### Basic CSP
+
 ```typescript
 csp: {
   enabled: true,
@@ -219,6 +220,7 @@ csp: {
 ```
 
 #### CSP with External Resources
+
 ```typescript
 csp: {
   enabled: true,
@@ -272,6 +274,7 @@ curl -I http://localhost:5000/api/health
 ```
 
 Expected headers:
+
 ```
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
@@ -311,7 +314,7 @@ Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
 Enable debug logging in development:
 
 ```typescript
-process.env.NODE_ENV = 'development';
+process.env.NODE_ENV = 'development'
 // Detailed header logging will be enabled
 ```
 
@@ -320,13 +323,15 @@ process.env.NODE_ENV = 'development';
 Use the validation utility to check configuration:
 
 ```typescript
-import { validateSecurityConfig } from './middleware/security-headers';
+import { validateSecurityConfig } from './middleware/security-headers'
 
-const config = { /* your config */ };
-const result = validateSecurityConfig(config);
+const config = {
+  /* your config */
+}
+const result = validateSecurityConfig(config)
 
 if (!result.valid) {
-  console.error('Configuration errors:', result.errors);
+  console.error('Configuration errors:', result.errors)
 }
 ```
 

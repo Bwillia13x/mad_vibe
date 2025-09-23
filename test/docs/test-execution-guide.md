@@ -52,6 +52,7 @@ npm run test:smoke -- --env=staging
 ```
 
 **What it tests**:
+
 - API endpoint availability
 - Basic functionality of all modules
 - Database connectivity
@@ -75,6 +76,7 @@ npm run test:functional:business-logic
 ```
 
 **What it tests**:
+
 - API endpoint functionality
 - Business logic calculations
 - UI component behavior
@@ -101,6 +103,7 @@ npm run test:performance:memory
 ```
 
 **What it tests**:
+
 - Response time under load
 - Memory usage patterns
 - CPU utilization
@@ -124,6 +127,7 @@ npm run test:security:api-security
 ```
 
 **What it tests**:
+
 - Authentication and authorization
 - Input validation and sanitization
 - API security measures
@@ -150,6 +154,7 @@ npm run test:e2e:browser-compatibility
 ```
 
 **What it tests**:
+
 - Complete user journeys
 - Cross-browser compatibility
 - Accessibility compliance
@@ -189,7 +194,7 @@ export const testConfig: TestConfig = {
     includeScreenshots: true,
     includeMetrics: true
   }
-};
+}
 ```
 
 ### Environment Variables

@@ -9,13 +9,15 @@ The security test suite validates the platform against common security vulnerabi
 ## Test Categories
 
 ### 1. Authentication & Session Security (`authentication-security-tests.ts`)
+
 - Admin token validation
-- Smoke mode security behavior  
+- Smoke mode security behavior
 - Session security validation
 - Authentication bypass prevention
 - Session hijacking prevention
 
 ### 2. Input Validation & Injection Prevention (`input-validation-tests.ts`)
+
 - XSS (Cross-Site Scripting) prevention
 - SQL injection prevention
 - Malicious payload handling
@@ -23,6 +25,7 @@ The security test suite validates the platform against common security vulnerabi
 - File upload security (when applicable)
 
 ### 3. API Security Validation (`api-security-tests.ts`)
+
 - Rate limiting validation
 - Authentication bypass testing
 - Environment variable security

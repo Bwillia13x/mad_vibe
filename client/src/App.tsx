@@ -5,6 +5,7 @@ import { queryClient } from '@/lib/queryClient'
 import { Toaster } from '@/components/ui/toaster'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { WorkflowProvider } from '@/hooks/useWorkflow'
+import { ScreenerProvider } from '@/hooks/useScreener'
 import { WorkflowStageView } from '@/pages/workflow-stage'
 import HomePage from '@/pages/home'
 import AnalyticsPage from '@/pages/analytics'
@@ -18,6 +19,7 @@ import PerformanceDashboardPage from '@/pages/performance-dashboard'
 import NotFoundPage from '@/pages/not-found'
 import { AppShell } from '@/components/layout/AppShell'
 import { workflowStages } from '@/lib/workflow'
+import { useWorkflow } from '@/hooks/useWorkflow'
 
 function RedirectToHome() {
   const [, navigate] = useLocation()
@@ -67,15 +69,45 @@ function Router() {
 }
 
 function App() {
+  const { activeStage, setActiveStage } = useWorkflow()
+  const [, navigate] = useLocation()
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'
+      if (isCmdK) {
+        e.preventDefault()
+        navigate(`/workbench/${activeStage.slug}`)
+        return
+      }
+      if (e.key === '[' || e.key === ']') {
+        const index = workflowStages.findIndex((s) => s.slug === activeStage.slug)
+        if (index >= 0) {
+          const nextIndex =
+            e.key === ']' ? Math.min(workflowStages.length - 1, index + 1) : Math.max(0, index - 1)
+          const next = workflowStages[nextIndex]
+          if (next) {
+            setActiveStage(next.slug)
+            navigate(`/workbench/${next.slug}`)
+          }
+        }
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [activeStage.slug, navigate, setActiveStage])
+
   return (
     <QueryClientProvider client={queryClient}>
       <WorkflowProvider>
-        <TooltipProvider>
-          <AppShell>
-            <Router />
-          </AppShell>
-          <Toaster />
-        </TooltipProvider>
+        <ScreenerProvider>
+          <TooltipProvider>
+            <AppShell>
+              <Router />
+            </AppShell>
+            <Toaster />
+          </TooltipProvider>
+        </ScreenerProvider>
       </WorkflowProvider>
     </QueryClientProvider>
   )

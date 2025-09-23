@@ -2,22 +2,22 @@
 export function prefetchRoute(path: string) {
   switch (path) {
     case '/':
-      return import('@/pages/home');
+      return import('@/pages/home')
     case '/scheduling':
-      return import('@/pages/scheduling');
+      return import('@/pages/scheduling')
     case '/inventory':
-      return import('@/pages/inventory');
+      return import('@/pages/inventory')
     case '/staff':
-      return import('@/pages/staff');
+      return import('@/pages/staff')
     case '/analytics':
-      return import('@/pages/analytics');
+      return import('@/pages/analytics')
     case '/pos':
-      return import('@/pages/pos');
+      return import('@/pages/pos')
     case '/marketing':
-      return import('@/pages/marketing');
+      return import('@/pages/marketing')
     case '/loyalty':
-      return import('@/pages/loyalty');
+      return import('@/pages/loyalty')
     default:
-      return Promise.resolve();
+      return Promise.resolve()
   }
 }

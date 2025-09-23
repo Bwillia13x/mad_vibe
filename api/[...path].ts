@@ -47,7 +47,9 @@ async function ensureSeed() {
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err?.status || err?.statusCode || 500
   const message = err?.message || 'Internal Server Error'
-  try { res.status(status).json({ message }) } catch {}
+  try {
+    res.status(status).json({ message })
+  } catch {}
   log(`Unhandled error: ${message}`)
 })
 
@@ -56,4 +58,3 @@ export default async function handler(req: Request, res: Response) {
   await ensureSeed()
   ;(app as any)(req, res)
 }
-

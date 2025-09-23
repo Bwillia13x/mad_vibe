@@ -1,53 +1,53 @@
-import { Request, Response, NextFunction } from 'express';
-import { getEnvVar } from '../../lib/env-security';
-import { log } from '../../lib/log';
+import { Request, Response, NextFunction } from 'express'
+import { getEnvVar } from '../../lib/env-security'
+import { log } from '../../lib/log'
 
 /**
  * Security Headers Configuration Interface
  */
 export interface SecurityHeadersConfig {
   // X-Content-Type-Options
-  contentTypeOptions?: boolean;
+  contentTypeOptions?: boolean
 
   // X-Frame-Options
-  frameOptions?: 'DENY' | 'SAMEORIGIN' | string;
+  frameOptions?: 'DENY' | 'SAMEORIGIN' | string
 
   // Strict-Transport-Security
   hsts?: {
-    enabled: boolean;
-    maxAge?: number;
-    includeSubDomains?: boolean;
-    preload?: boolean;
-  };
+    enabled: boolean
+    maxAge?: number
+    includeSubDomains?: boolean
+    preload?: boolean
+  }
 
   // Content Security Policy
   csp?: {
-    enabled: boolean;
+    enabled: boolean
     directives?: {
-      defaultSrc?: string[];
-      scriptSrc?: string[];
-      styleSrc?: string[];
-      imgSrc?: string[];
-      fontSrc?: string[];
-      connectSrc?: string[];
-      frameAncestors?: string[];
-      objectSrc?: string[];
-      mediaSrc?: string[];
-      childSrc?: string[];
-      formAction?: string[];
-      baseUri?: string[];
-      upgradeInsecureRequests?: boolean;
-    };
-  };
+      defaultSrc?: string[]
+      scriptSrc?: string[]
+      styleSrc?: string[]
+      imgSrc?: string[]
+      fontSrc?: string[]
+      connectSrc?: string[]
+      frameAncestors?: string[]
+      objectSrc?: string[]
+      mediaSrc?: string[]
+      childSrc?: string[]
+      formAction?: string[]
+      baseUri?: string[]
+      upgradeInsecureRequests?: boolean
+    }
+  }
 
   // Additional security headers
-  xssProtection?: boolean;
-  referrerPolicy?: string;
-  permissionsPolicy?: string;
+  xssProtection?: boolean
+  referrerPolicy?: string
+  permissionsPolicy?: string
 
   // Environment-specific settings
-  productionOnly?: string[];
-  developmentOnly?: string[];
+  productionOnly?: string[]
+  developmentOnly?: string[]
 }
 
 /**
@@ -68,8 +68,8 @@ const DEFAULT_CONFIG: SecurityHeadersConfig = {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      fontSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      fontSrc: ["'self'", 'data:'],
       connectSrc: ["'self'"],
       frameAncestors: ["'none'"],
       objectSrc: ["'none'"],
@@ -85,27 +85,27 @@ const DEFAULT_CONFIG: SecurityHeadersConfig = {
   permissionsPolicy: 'camera=(), microphone=(), geolocation=(), payment=()',
   productionOnly: ['Strict-Transport-Security'],
   developmentOnly: []
-};
+}
 
 /**
  * Environment-specific configuration
  */
 function getEnvironmentConfig(): SecurityHeadersConfig {
-  const nodeEnv = getEnvVar('NODE_ENV') || 'development';
-  const isProduction = nodeEnv === 'production';
+  const nodeEnv = getEnvVar('NODE_ENV') || 'development'
+  const isProduction = nodeEnv === 'production'
 
   // Load custom configuration from environment if available
-  const customConfig = getEnvVar('SECURITY_HEADERS_CONFIG');
-  let envConfig: Partial<SecurityHeadersConfig> = {};
+  const customConfig = getEnvVar('SECURITY_HEADERS_CONFIG')
+  let envConfig: Partial<SecurityHeadersConfig> = {}
 
   if (customConfig) {
     try {
-      envConfig = JSON.parse(customConfig);
-      log('Loaded custom security headers configuration from environment');
+      envConfig = JSON.parse(customConfig)
+      log('Loaded custom security headers configuration from environment')
     } catch (error) {
       log('Failed to parse SECURITY_HEADERS_CONFIG environment variable', {
         error: error instanceof Error ? error.message : String(error)
-      });
+      })
     }
   }
 
@@ -116,7 +116,7 @@ function getEnvironmentConfig(): SecurityHeadersConfig {
     hsts: {
       ...DEFAULT_CONFIG.hsts,
       ...envConfig.hsts,
-      enabled: isProduction && (envConfig.hsts?.enabled !== false)
+      enabled: isProduction && envConfig.hsts?.enabled !== false
     },
     csp: {
       enabled: envConfig.csp?.enabled ?? DEFAULT_CONFIG.csp?.enabled ?? true,
@@ -125,19 +125,19 @@ function getEnvironmentConfig(): SecurityHeadersConfig {
         ...envConfig.csp?.directives
       }
     }
-  };
+  }
 
-  return config;
+  return config
 }
 
 /**
  * Build Content Security Policy header value
  */
 function buildCSPHeader(csp: SecurityHeadersConfig['csp']): string {
-  if (!csp || !csp.directives) return '';
+  if (!csp || !csp.directives) return ''
 
-  const cspParts: string[] = [];
-  const directives = csp.directives;
+  const cspParts: string[] = []
+  const directives = csp.directives
 
   // Map directive names to CSP names
   const directiveMap: Record<string, string> = {
@@ -153,22 +153,22 @@ function buildCSPHeader(csp: SecurityHeadersConfig['csp']): string {
     childSrc: 'child-src',
     formAction: 'form-action',
     baseUri: 'base-uri'
-  };
+  }
 
   // Build directive strings
   Object.entries(directiveMap).forEach(([key, cspName]) => {
-    const values = directives[key as keyof typeof directives];
+    const values = directives[key as keyof typeof directives]
     if (Array.isArray(values) && values.length > 0) {
-      cspParts.push(`${cspName} ${values.join(' ')}`);
+      cspParts.push(`${cspName} ${values.join(' ')}`)
     }
-  });
+  })
 
   // Add upgrade-insecure-requests if enabled
   if (directives.upgradeInsecureRequests) {
-    cspParts.push('upgrade-insecure-requests');
+    cspParts.push('upgrade-insecure-requests')
   }
 
-  return cspParts.join('; ');
+  return cspParts.join('; ')
 }
 
 /**
@@ -177,67 +177,70 @@ function buildCSPHeader(csp: SecurityHeadersConfig['csp']): string {
 export function createSecurityHeadersMiddleware(customConfig?: Partial<SecurityHeadersConfig>) {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
-      const config = customConfig ?
-        { ...getEnvironmentConfig(), ...customConfig } :
-        getEnvironmentConfig();
+      const config = customConfig
+        ? { ...getEnvironmentConfig(), ...customConfig }
+        : getEnvironmentConfig()
 
-      const nodeEnv = getEnvVar('NODE_ENV') || 'development';
-      const isProduction = nodeEnv === 'production';
+      const nodeEnv = getEnvVar('NODE_ENV') || 'development'
+      const isProduction = nodeEnv === 'production'
 
       // X-Content-Type-Options: nosniff
       if (config.contentTypeOptions) {
-        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Content-Type-Options', 'nosniff')
       }
 
       // X-Frame-Options
       if (config.frameOptions) {
-        res.setHeader('X-Frame-Options', config.frameOptions);
+        res.setHeader('X-Frame-Options', config.frameOptions)
       }
 
       // Strict-Transport-Security (HSTS) - production only by default
-      if (config.hsts?.enabled && (isProduction || !config.productionOnly?.includes('Strict-Transport-Security'))) {
-        let hstsValue = `max-age=${config.hsts.maxAge || 31536000}`;
+      if (
+        config.hsts?.enabled &&
+        (isProduction || !config.productionOnly?.includes('Strict-Transport-Security'))
+      ) {
+        let hstsValue = `max-age=${config.hsts.maxAge || 31536000}`
         if (config.hsts.includeSubDomains) {
-          hstsValue += '; includeSubDomains';
+          hstsValue += '; includeSubDomains'
         }
         if (config.hsts.preload) {
-          hstsValue += '; preload';
+          hstsValue += '; preload'
         }
-        res.setHeader('Strict-Transport-Security', hstsValue);
+        res.setHeader('Strict-Transport-Security', hstsValue)
       }
 
       // Content Security Policy
       if (config.csp?.enabled && config.csp.directives) {
-        const cspHeader = buildCSPHeader(config.csp);
+        const cspHeader = buildCSPHeader(config.csp)
         if (cspHeader) {
-          res.setHeader('Content-Security-Policy', cspHeader);
+          res.setHeader('Content-Security-Policy', cspHeader)
         }
       }
 
       // X-XSS-Protection (legacy but still useful for older browsers)
       if (config.xssProtection) {
-        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('X-XSS-Protection', '1; mode=block')
       }
 
       // Referrer-Policy
       if (config.referrerPolicy) {
-        res.setHeader('Referrer-Policy', config.referrerPolicy);
+        res.setHeader('Referrer-Policy', config.referrerPolicy)
       }
 
       // Permissions-Policy (formerly Feature-Policy)
       if (config.permissionsPolicy) {
-        res.setHeader('Permissions-Policy', config.permissionsPolicy);
+        res.setHeader('Permissions-Policy', config.permissionsPolicy)
       }
 
       // Remove server information headers
-      res.removeHeader('X-Powered-By');
-      res.removeHeader('Server');
+      res.removeHeader('X-Powered-By')
+      res.removeHeader('Server')
 
       // Cache control for sensitive API endpoints
       if (req.path.includes('/api/') && req.path !== '/api/health') {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+        res.setHeader('Pragma', 'no-cache')
+        res.setHeader('Expires', '0')
       }
 
       // Log security headers application in development
@@ -254,31 +257,31 @@ export function createSecurityHeadersMiddleware(customConfig?: Partial<SecurityH
             'Referrer-Policy': res.getHeader('Referrer-Policy'),
             'Permissions-Policy': res.getHeader('Permissions-Policy')
           }
-        });
+        })
       }
 
-      next();
+      next()
     } catch (error) {
       log('Security headers middleware error', {
         error: error instanceof Error ? error.message : String(error),
         path: req.path,
         method: req.method
-      });
+      })
 
       // Apply minimal security headers on error
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('X-Frame-Options', 'DENY');
-      res.removeHeader('X-Powered-By');
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+      res.setHeader('X-Frame-Options', 'DENY')
+      res.removeHeader('X-Powered-By')
 
-      next();
+      next()
     }
-  };
+  }
 }
 
 /**
  * Default security headers middleware with standard configuration
  */
-export const securityHeaders = createSecurityHeadersMiddleware();
+export const securityHeaders = createSecurityHeadersMiddleware()
 
 /**
  * Strict security headers middleware for sensitive endpoints
@@ -305,47 +308,64 @@ export const strictSecurityHeaders = createSecurityHeadersMiddleware({
   },
   referrerPolicy: 'no-referrer',
   permissionsPolicy: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=()'
-});
+})
 
 /**
  * Utility function to validate security headers configuration
  */
-export function validateSecurityConfig(config: SecurityHeadersConfig): { valid: boolean; errors: string[] } {
-  const errors: string[] = [];
+export function validateSecurityConfig(config: SecurityHeadersConfig): {
+  valid: boolean
+  errors: string[]
+} {
+  const errors: string[] = []
 
   // Validate frame options
-  if (config.frameOptions && !['DENY', 'SAMEORIGIN'].includes(config.frameOptions) && !config.frameOptions.startsWith('ALLOW-FROM ')) {
-    errors.push('Invalid frameOptions value. Must be DENY, SAMEORIGIN, or ALLOW-FROM uri');
+  if (
+    config.frameOptions &&
+    !['DENY', 'SAMEORIGIN'].includes(config.frameOptions) &&
+    !config.frameOptions.startsWith('ALLOW-FROM ')
+  ) {
+    errors.push('Invalid frameOptions value. Must be DENY, SAMEORIGIN, or ALLOW-FROM uri')
   }
 
   // Validate HSTS max-age
   if (config.hsts?.enabled && config.hsts.maxAge !== undefined) {
     if (typeof config.hsts.maxAge !== 'number' || config.hsts.maxAge < 0) {
-      errors.push('HSTS maxAge must be a non-negative number');
+      errors.push('HSTS maxAge must be a non-negative number')
     }
   }
 
   // Validate CSP directives
   if (config.csp?.enabled && config.csp.directives) {
     const validDirectives = [
-      'defaultSrc', 'scriptSrc', 'styleSrc', 'imgSrc', 'fontSrc', 'connectSrc',
-      'frameAncestors', 'objectSrc', 'mediaSrc', 'childSrc', 'formAction', 'baseUri'
-    ];
+      'defaultSrc',
+      'scriptSrc',
+      'styleSrc',
+      'imgSrc',
+      'fontSrc',
+      'connectSrc',
+      'frameAncestors',
+      'objectSrc',
+      'mediaSrc',
+      'childSrc',
+      'formAction',
+      'baseUri'
+    ]
 
-    Object.keys(config.csp.directives).forEach(directive => {
+    Object.keys(config.csp.directives).forEach((directive) => {
       if (!validDirectives.includes(directive) && directive !== 'upgradeInsecureRequests') {
-        errors.push(`Unknown CSP directive: ${directive}`);
+        errors.push(`Unknown CSP directive: ${directive}`)
       }
-    });
+    })
   }
 
   return {
     valid: errors.length === 0,
     errors
-  };
+  }
 }
 
 /**
  * Export configuration types and utilities
  */
-export { DEFAULT_CONFIG, getEnvironmentConfig };
+export { DEFAULT_CONFIG, getEnvironmentConfig }

@@ -11,11 +11,7 @@
     "errors": []
   },
   "securityAudit": {
-    "configuredKeys": [
-      "PORT",
-      "NODE_ENV",
-      "OPERATIONS_WS_PORT"
-    ],
+    "configuredKeys": ["PORT", "NODE_ENV", "OPERATIONS_WS_PORT"],
     "sensitiveKeys": [],
     "missingRecommended": [],
     "weakConfigurations": []

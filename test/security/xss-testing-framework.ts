@@ -1,23 +1,23 @@
-import { TestReporter } from '../reporting/test-reporter';
+import { TestReporter } from '../reporting/test-reporter'
 
 export interface TestEnvironment {
-  baseUrl: string;
-  makeRequest: (path: string, options?: RequestInit) => Promise<Response>;
+  baseUrl: string
+  makeRequest: (path: string, options?: RequestInit) => Promise<Response>
 }
 
 export interface XSSTestResult {
-  testName: string;
-  status: 'pass' | 'fail' | 'skip';
-  duration: number;
-  error?: string;
-  details?: Record<string, any>;
+  testName: string
+  status: 'pass' | 'fail' | 'skip'
+  duration: number
+  error?: string
+  details?: Record<string, any>
 }
 
 export interface XSSPayloadTest {
-  payload: string;
-  description: string;
-  category: 'script' | 'event' | 'url' | 'html' | 'css' | 'unicode' | 'encoded';
-  severity: 'critical' | 'high' | 'medium' | 'low';
+  payload: string
+  description: string
+  category: 'script' | 'event' | 'url' | 'html' | 'css' | 'unicode' | 'encoded'
+  severity: 'critical' | 'high' | 'medium' | 'low'
 }
 
 /**
@@ -25,13 +25,13 @@ export interface XSSPayloadTest {
  * Tests various XSS attack vectors and validates prevention mechanisms
  */
 export class XSSTestingFramework {
-  private testEnv: TestEnvironment;
-  private reporter: TestReporter;
-  private results: XSSTestResult[] = [];
+  private testEnv: TestEnvironment
+  private reporter: TestReporter
+  private results: XSSTestResult[] = []
 
   constructor(testEnv: TestEnvironment, reporter: TestReporter) {
-    this.testEnv = testEnv;
-    this.reporter = reporter;
+    this.testEnv = testEnv
+    this.reporter = reporter
   }
 
   /**
@@ -59,7 +59,8 @@ export class XSSTestingFramework {
         severity: 'critical'
       },
       {
-        payload: '<script>eval(String.fromCharCode(97,108,101,114,116,40,34,88,83,83,34,41))</script>',
+        payload:
+          '<script>eval(String.fromCharCode(97,108,101,114,116,40,34,88,83,83,34,41))</script>',
         description: 'Encoded script execution',
         category: 'script',
         severity: 'critical'
@@ -213,7 +214,8 @@ export class XSSTestingFramework {
 
       // Unicode and encoding attacks
       {
-        payload: '<script>\\u0061\\u006c\\u0065\\u0072\\u0074(\\u0022\\u0058\\u0053\\u0053\\u0022)</script>',
+        payload:
+          '<script>\\u0061\\u006c\\u0065\\u0072\\u0074(\\u0022\\u0058\\u0053\\u0053\\u0022)</script>',
         description: 'Unicode encoded script',
         category: 'unicode',
         severity: 'high'
@@ -309,7 +311,8 @@ export class XSSTestingFramework {
 
       // Polyglot payloads
       {
-        payload: 'javascript:/*--></title></style></textarea></script></xmp><svg/onload=\'+/"/+/onmouseover=1/+/[*/[]/+alert("XSS")//\'>',
+        payload:
+          'javascript:/*--></title></style></textarea></script></xmp><svg/onload=\'+/"/+/onmouseover=1/+/[*/[]/+alert("XSS")//\'>',
         description: 'Polyglot XSS payload',
         category: 'script',
         severity: 'critical'
@@ -320,18 +323,18 @@ export class XSSTestingFramework {
         category: 'event',
         severity: 'high'
       }
-    ];
+    ]
   }
 
   /**
    * Test endpoints that accept user input
    */
   private getTestEndpoints(): Array<{
-    path: string;
-    method: string;
-    payloadLocation: 'body' | 'query' | 'param';
-    bodyTemplate?: any;
-    requiresAuth?: boolean;
+    path: string
+    method: string
+    payloadLocation: 'body' | 'query' | 'param'
+    bodyTemplate?: any
+    requiresAuth?: boolean
   }> {
     return [
       // Query parameter tests
@@ -387,78 +390,78 @@ export class XSSTestingFramework {
         method: 'GET',
         payloadLocation: 'param'
       }
-    ];
+    ]
   }
 
   /**
    * Run comprehensive XSS tests
    */
   async runAllTests(): Promise<XSSTestResult[]> {
-    this.results = [];
-    
-    await this.testXSSPrevention();
-    await this.testInputSanitization();
-    await this.testOutputEncoding();
-    await this.testCSPEffectiveness();
-    
-    return this.results;
+    this.results = []
+
+    await this.testXSSPrevention()
+    await this.testInputSanitization()
+    await this.testOutputEncoding()
+    await this.testCSPEffectiveness()
+
+    return this.results
   }
 
   /**
    * Test XSS prevention across all endpoints and payload types
    */
   private async testXSSPrevention(): Promise<void> {
-    const testName = 'Comprehensive XSS Prevention Testing';
-    const startTime = Date.now();
-    
+    const testName = 'Comprehensive XSS Prevention Testing'
+    const startTime = Date.now()
+
     try {
-      const payloads = this.getXSSPayloads();
-      const endpoints = this.getTestEndpoints();
-      const testResults: any[] = [];
-      let criticalFailures = 0;
-      let highSeverityFailures = 0;
+      const payloads = this.getXSSPayloads()
+      const endpoints = this.getTestEndpoints()
+      const testResults: any[] = []
+      let criticalFailures = 0
+      let highSeverityFailures = 0
 
       for (const endpoint of endpoints) {
         for (const payloadTest of payloads) {
           try {
-            let response: Response;
-            const payload = payloadTest.payload;
+            let response: Response
+            const payload = payloadTest.payload
 
             if (endpoint.payloadLocation === 'query') {
-              const url = `${endpoint.path}?test=${encodeURIComponent(payload)}`;
+              const url = `${endpoint.path}?test=${encodeURIComponent(payload)}`
               response = await this.testEnv.makeRequest(url, {
                 method: endpoint.method
-              });
+              })
             } else if (endpoint.payloadLocation === 'body' && endpoint.bodyTemplate) {
-              const body = JSON.parse(JSON.stringify(endpoint.bodyTemplate));
-              this.injectPayloadIntoObject(body, payload);
-              
+              const body = JSON.parse(JSON.stringify(endpoint.bodyTemplate))
+              this.injectPayloadIntoObject(body, payload)
+
               const headers: Record<string, string> = {
                 'Content-Type': 'application/json'
-              };
+              }
 
               // Add auth header if required (using admin token from environment)
               if (endpoint.requiresAuth) {
-                headers['Authorization'] = 'Bearer admin';
+                headers['Authorization'] = 'Bearer admin'
               }
 
               response = await this.testEnv.makeRequest(endpoint.path, {
                 method: endpoint.method,
                 headers,
                 body: JSON.stringify(body)
-              });
+              })
             } else if (endpoint.payloadLocation === 'param') {
-              const url = endpoint.path.replace('PAYLOAD', encodeURIComponent(payload));
+              const url = endpoint.path.replace('PAYLOAD', encodeURIComponent(payload))
               response = await this.testEnv.makeRequest(url, {
                 method: endpoint.method
-              });
+              })
             } else {
-              continue;
+              continue
             }
 
-            const responseText = await response.text();
-            const isBlocked = this.isXSSBlocked(response, responseText, payload);
-            
+            const responseText = await response.text()
+            const isBlocked = this.isXSSBlocked(response, responseText, payload)
+
             testResults.push({
               endpoint: `${endpoint.method} ${endpoint.path}`,
               payload: payload.substring(0, 50) + (payload.length > 50 ? '...' : ''),
@@ -469,17 +472,16 @@ export class XSSTestingFramework {
               blocked: isBlocked,
               responseLength: responseText.length,
               containsPayload: responseText.includes(payload)
-            });
+            })
 
             // Count failures by severity
             if (!isBlocked) {
               if (payloadTest.severity === 'critical') {
-                criticalFailures++;
+                criticalFailures++
               } else if (payloadTest.severity === 'high') {
-                highSeverityFailures++;
+                highSeverityFailures++
               }
             }
-
           } catch (error) {
             testResults.push({
               endpoint: `${endpoint.method} ${endpoint.path}`,
@@ -490,22 +492,26 @@ export class XSSTestingFramework {
               status: 'error',
               blocked: true, // Errors are considered blocked
               error: error instanceof Error ? error.message : String(error)
-            });
+            })
           }
         }
       }
 
       // Determine overall test result
-      const totalTests = testResults.length;
-      const blockedTests = testResults.filter(r => r.blocked).length;
-      const blockingRate = (blockedTests / totalTests) * 100;
+      const totalTests = testResults.length
+      const blockedTests = testResults.filter((r) => r.blocked).length
+      const blockingRate = (blockedTests / totalTests) * 100
 
       if (criticalFailures > 0) {
-        throw new Error(`Critical XSS vulnerabilities found: ${criticalFailures} critical, ${highSeverityFailures} high severity`);
+        throw new Error(
+          `Critical XSS vulnerabilities found: ${criticalFailures} critical, ${highSeverityFailures} high severity`
+        )
       }
 
       if (blockingRate < 95) {
-        throw new Error(`XSS blocking rate too low: ${blockingRate.toFixed(1)}% (minimum 95% required)`);
+        throw new Error(
+          `XSS blocking rate too low: ${blockingRate.toFixed(1)}% (minimum 95% required)`
+        )
       }
 
       this.results.push({
@@ -521,14 +527,14 @@ export class XSSTestingFramework {
           testResults: testResults.slice(0, 20), // First 20 for brevity
           payloadCategories: this.summarizeByCategory(testResults)
         }
-      });
+      })
     } catch (error) {
       this.results.push({
         testName,
         status: 'fail',
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error)
-      });
+      })
     }
   }
 
@@ -536,9 +542,9 @@ export class XSSTestingFramework {
    * Test input sanitization effectiveness
    */
   private async testInputSanitization(): Promise<void> {
-    const testName = 'Input Sanitization Validation';
-    const startTime = Date.now();
-    
+    const testName = 'Input Sanitization Validation'
+    const startTime = Date.now()
+
     try {
       const sanitizationTests = [
         {
@@ -571,9 +577,9 @@ export class XSSTestingFramework {
           expectedBehavior: 'handled',
           description: 'Empty strings should be handled'
         }
-      ];
+      ]
 
-      const testResults = [];
+      const testResults = []
 
       for (const test of sanitizationTests) {
         try {
@@ -582,17 +588,17 @@ export class XSSTestingFramework {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer admin'
+              Authorization: 'Bearer admin'
             },
             body: JSON.stringify({
               name: test.input,
               description: 'Sanitization test'
             })
-          });
+          })
 
-          let responseData = null;
+          let responseData = null
           try {
-            responseData = await response.json();
+            responseData = await response.json()
           } catch {
             // Response might not be JSON
           }
@@ -602,7 +608,7 @@ export class XSSTestingFramework {
             test.expectedBehavior,
             response,
             responseData
-          );
+          )
 
           testResults.push({
             input: test.input,
@@ -611,7 +617,7 @@ export class XSSTestingFramework {
             status: response.status,
             properlyHandled: isProperlyHandled,
             responseData
-          });
+          })
         } catch (error) {
           testResults.push({
             input: test.input,
@@ -620,14 +626,14 @@ export class XSSTestingFramework {
             status: 'error',
             properlyHandled: true, // Errors are acceptable for malicious input
             error: error instanceof Error ? error.message : String(error)
-          });
+          })
         }
       }
 
-      const improperlyHandled = testResults.filter(r => !r.properlyHandled);
-      
+      const improperlyHandled = testResults.filter((r) => !r.properlyHandled)
+
       if (improperlyHandled.length > 0) {
-        throw new Error(`Input sanitization failures: ${improperlyHandled.length} tests failed`);
+        throw new Error(`Input sanitization failures: ${improperlyHandled.length} tests failed`)
       }
 
       this.results.push({
@@ -637,16 +643,16 @@ export class XSSTestingFramework {
         details: {
           testResults,
           totalTests: testResults.length,
-          properlyHandled: testResults.filter(r => r.properlyHandled).length
+          properlyHandled: testResults.filter((r) => r.properlyHandled).length
         }
-      });
+      })
     } catch (error) {
       this.results.push({
         testName,
         status: 'fail',
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error)
-      });
+      })
     }
   }
 
@@ -654,23 +660,24 @@ export class XSSTestingFramework {
    * Test output encoding effectiveness
    */
   private async testOutputEncoding(): Promise<void> {
-    const testName = 'Output Encoding Validation';
-    const startTime = Date.now();
-    
+    const testName = 'Output Encoding Validation'
+    const startTime = Date.now()
+
     try {
       // Test that responses properly encode potentially dangerous content
-      const response = await this.testEnv.makeRequest('/api/health');
-      const responseText = await response.text();
-      
+      const response = await this.testEnv.makeRequest('/api/health')
+      const responseText = await response.text()
+
       // Check for proper Content-Type header
-      const contentType = response.headers.get('Content-Type');
-      const hasProperContentType = contentType?.includes('application/json') || contentType?.includes('text/plain');
-      
+      const contentType = response.headers.get('Content-Type')
+      const hasProperContentType =
+        contentType?.includes('application/json') || contentType?.includes('text/plain')
+
       // Check that response doesn't contain unencoded HTML
-      const containsUnescapedHTML = /<[^>]*>/.test(responseText) && !responseText.includes('&lt;');
-      
+      const containsUnescapedHTML = /<[^>]*>/.test(responseText) && !responseText.includes('&lt;')
+
       if (!hasProperContentType) {
-        throw new Error('Response missing proper Content-Type header');
+        throw new Error('Response missing proper Content-Type header')
       }
 
       this.results.push({
@@ -683,14 +690,14 @@ export class XSSTestingFramework {
           containsUnescapedHTML,
           responseLength: responseText.length
         }
-      });
+      })
     } catch (error) {
       this.results.push({
         testName,
         status: 'fail',
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error)
-      });
+      })
     }
   }
 
@@ -698,15 +705,15 @@ export class XSSTestingFramework {
    * Test Content Security Policy effectiveness
    */
   private async testCSPEffectiveness(): Promise<void> {
-    const testName = 'Content Security Policy Validation';
-    const startTime = Date.now();
-    
+    const testName = 'Content Security Policy Validation'
+    const startTime = Date.now()
+
     try {
-      const response = await this.testEnv.makeRequest('/api/health');
-      const cspHeader = response.headers.get('Content-Security-Policy');
-      
+      const response = await this.testEnv.makeRequest('/api/health')
+      const cspHeader = response.headers.get('Content-Security-Policy')
+
       if (!cspHeader) {
-        throw new Error('Content-Security-Policy header is missing');
+        throw new Error('Content-Security-Policy header is missing')
       }
 
       // Validate CSP directives
@@ -717,27 +724,20 @@ export class XSSTestingFramework {
         'img-src',
         'connect-src',
         'frame-ancestors'
-      ];
+      ]
 
-      const missingDirectives = requiredDirectives.filter(directive => 
-        !cspHeader.includes(directive)
-      );
+      const missingDirectives = requiredDirectives.filter(
+        (directive) => !cspHeader.includes(directive)
+      )
 
       if (missingDirectives.length > 0) {
-        throw new Error(`CSP missing required directives: ${missingDirectives.join(', ')}`);
+        throw new Error(`CSP missing required directives: ${missingDirectives.join(', ')}`)
       }
 
       // Check for unsafe directives
-      const unsafePatterns = [
-        'unsafe-eval',
-        '*',
-        'data:',
-        'unsafe-inline'
-      ];
+      const unsafePatterns = ['unsafe-eval', '*', 'data:', 'unsafe-inline']
 
-      const foundUnsafe = unsafePatterns.filter(pattern => 
-        cspHeader.includes(pattern)
-      );
+      const foundUnsafe = unsafePatterns.filter((pattern) => cspHeader.includes(pattern))
 
       this.results.push({
         testName,
@@ -750,14 +750,14 @@ export class XSSTestingFramework {
           foundUnsafe,
           isStrict: foundUnsafe.length === 0
         }
-      });
+      })
     } catch (error) {
       this.results.push({
         testName,
         status: 'fail',
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error)
-      });
+      })
     }
   }
 
@@ -767,9 +767,9 @@ export class XSSTestingFramework {
   private injectPayloadIntoObject(obj: any, payload: string): void {
     for (const key in obj) {
       if (typeof obj[key] === 'string' && obj[key] === 'PAYLOAD') {
-        obj[key] = payload;
+        obj[key] = payload
       } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-        this.injectPayloadIntoObject(obj[key], payload);
+        this.injectPayloadIntoObject(obj[key], payload)
       }
     }
   }
@@ -780,17 +780,17 @@ export class XSSTestingFramework {
   private isXSSBlocked(response: Response, responseText: string, payload: string): boolean {
     // Check if request was rejected (good)
     if (response.status === 400 || response.status === 403 || response.status === 422) {
-      return true;
+      return true
     }
 
     // Check if server crashed (bad)
     if (response.status >= 500) {
-      return false;
+      return false
     }
 
     // Check if payload appears unescaped in response (bad)
     if (responseText.includes(payload)) {
-      return false;
+      return false
     }
 
     // Check for common XSS indicators in response
@@ -802,15 +802,15 @@ export class XSSTestingFramework {
       'eval(',
       'alert(',
       'document.cookie'
-    ];
+    ]
 
     for (const indicator of xssIndicators) {
       if (responseText.toLowerCase().includes(indicator.toLowerCase())) {
-        return false;
+        return false
       }
     }
 
-    return true;
+    return true
   }
 
   /**
@@ -825,29 +825,27 @@ export class XSSTestingFramework {
     switch (expectedBehavior) {
       case 'sanitized':
         // Malicious input should be rejected, sanitized, or cause auth failure
-        return response.status === 400 || 
-               response.status === 401 ||
-               response.status === 422 || 
-               !this.containsMaliciousContent(responseData);
-      
+        return (
+          response.status === 400 ||
+          response.status === 401 ||
+          response.status === 422 ||
+          !this.containsMaliciousContent(responseData)
+        )
+
       case 'preserved':
         // Normal content should be accepted (but might fail auth)
-        return response.status === 200 || 
-               response.status === 201 || 
-               response.status === 401; // Auth failure is acceptable
-      
+        return response.status === 200 || response.status === 201 || response.status === 401 // Auth failure is acceptable
+
       case 'trimmed':
         // Whitespace should be handled appropriately (but might fail auth)
-        return response.status === 200 || 
-               response.status === 201 || 
-               response.status === 401; // Auth failure is acceptable
-      
+        return response.status === 200 || response.status === 201 || response.status === 401 // Auth failure is acceptable
+
       case 'handled':
         // Empty input should be handled gracefully
-        return response.status !== 500;
-      
+        return response.status !== 500
+
       default:
-        return true;
+        return true
     }
   }
 
@@ -855,48 +853,41 @@ export class XSSTestingFramework {
    * Check if response data contains malicious content
    */
   private containsMaliciousContent(data: any): boolean {
-    if (!data) return false;
-    
-    const dataStr = JSON.stringify(data).toLowerCase();
-    const maliciousPatterns = [
-      '<script',
-      'javascript:',
-      'onerror=',
-      'onload=',
-      'eval(',
-      'alert('
-    ];
+    if (!data) return false
 
-    return maliciousPatterns.some(pattern => dataStr.includes(pattern));
+    const dataStr = JSON.stringify(data).toLowerCase()
+    const maliciousPatterns = ['<script', 'javascript:', 'onerror=', 'onload=', 'eval(', 'alert(']
+
+    return maliciousPatterns.some((pattern) => dataStr.includes(pattern))
   }
 
   /**
    * Summarize test results by payload category
    */
   private summarizeByCategory(testResults: any[]): Record<string, any> {
-    const categories: Record<string, any> = {};
-    
+    const categories: Record<string, any> = {}
+
     for (const result of testResults) {
       if (!categories[result.category]) {
         categories[result.category] = {
           total: 0,
           blocked: 0,
           failed: 0
-        };
+        }
       }
-      
-      categories[result.category].total++;
+
+      categories[result.category].total++
       if (result.blocked) {
-        categories[result.category].blocked++;
+        categories[result.category].blocked++
       } else {
-        categories[result.category].failed++;
+        categories[result.category].failed++
       }
     }
 
-    return categories;
+    return categories
   }
 
   getResults(): XSSTestResult[] {
-    return this.results;
+    return this.results
   }
 }

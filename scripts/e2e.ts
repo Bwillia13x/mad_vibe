@@ -3,7 +3,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import puppeteer from 'puppeteer'
 
-async function delay(ms: number) { return new Promise(r => setTimeout(r, ms)) }
+async function delay(ms: number) {
+  return new Promise((r) => setTimeout(r, ms))
+}
 
 async function waitForPortFile(portFile: string, timeoutMs = 20000): Promise<number> {
   const start = Date.now()
@@ -22,18 +24,22 @@ async function main() {
   const outDir = path.resolve('demo', 'assets', 'screens')
   fs.mkdirSync(outDir, { recursive: true })
   const portFile = path.resolve('.local', 'e2e_port')
-  try { if (fs.existsSync(portFile)) fs.unlinkSync(portFile) } catch {}
+  try {
+    if (fs.existsSync(portFile)) fs.unlinkSync(portFile)
+  } catch {}
 
   // Start server
   const child = spawn(process.execPath, [path.resolve('dist', 'index.js')], {
     env: { ...process.env, NODE_ENV: 'production', PORT: '0', PORT_FILE: portFile },
     stdio: ['ignore', 'pipe', 'pipe']
   })
-  child.stdout.on('data', d => process.stdout.write(d))
-  child.stderr.on('data', d => process.stderr.write(d))
+  child.stdout.on('data', (d) => process.stdout.write(d))
+  child.stderr.on('data', (d) => process.stderr.write(d))
 
   let exitCode: number | null = null
-  child.on('exit', (code) => { exitCode = code ?? 0 })
+  child.on('exit', (code) => {
+    exitCode = code ?? 0
+  })
 
   try {
     const port = await waitForPortFile(portFile)
@@ -86,8 +92,13 @@ async function main() {
     await browser.close()
     console.log(`E2E screenshots saved to ${outDir}`)
   } finally {
-    try { if (child && exitCode === null) child.kill('SIGINT') } catch {}
+    try {
+      if (child && exitCode === null) child.kill('SIGINT')
+    } catch {}
   }
 }
 
-main().catch((err) => { console.error('E2E failed:', err); process.exit(1) })
+main().catch((err) => {
+  console.error('E2E failed:', err)
+  process.exit(1)
+})

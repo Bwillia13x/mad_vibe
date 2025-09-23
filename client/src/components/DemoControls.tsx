@@ -119,7 +119,9 @@ export default function DemoControls({ open, onOpenChange }: Props) {
               data-testid="select-scenario"
             >
               {scenarios.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
               ))}
             </select>
             <div className="mt-3">
@@ -137,7 +139,12 @@ export default function DemoControls({ open, onOpenChange }: Props) {
             <div className="mt-2 flex gap-2 flex-wrap">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={reseedScenario} data-testid="button-apply-scenario">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={reseedScenario}
+                    data-testid="button-apply-scenario"
+                  >
                     Apply Scenario
                   </Button>
                 </TooltipTrigger>
@@ -146,7 +153,9 @@ export default function DemoControls({ open, onOpenChange }: Props) {
               <div className="flex items-center gap-1">
                 <span className="text-xs opacity-70">Presets:</span>
                 {[123, 999, 2025].map((p) => (
-                  <Button key={p} variant="outline" size="sm" onClick={() => setSeed(String(p))}>{p}</Button>
+                  <Button key={p} variant="outline" size="sm" onClick={() => setSeed(String(p))}>
+                    {p}
+                  </Button>
                 ))}
               </div>
             </div>
@@ -166,12 +175,23 @@ export default function DemoControls({ open, onOpenChange }: Props) {
                   <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
                 </PopoverContent>
               </Popover>
-              <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="border rounded-md p-2 bg-background" />
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="border rounded-md p-2 bg-background"
+              />
             </div>
             <div className="mt-2 flex gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={freezeToDate} disabled={!date} data-testid="button-freeze-date">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={freezeToDate}
+                    disabled={!date}
+                    data-testid="button-freeze-date"
+                  >
                     Freeze to Date
                   </Button>
                 </TooltipTrigger>
@@ -179,7 +199,12 @@ export default function DemoControls({ open, onOpenChange }: Props) {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={freezeNow} data-testid="button-freeze-now">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={freezeNow}
+                    data-testid="button-freeze-now"
+                  >
                     Freeze Now
                   </Button>
                 </TooltipTrigger>
@@ -187,7 +212,12 @@ export default function DemoControls({ open, onOpenChange }: Props) {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={clearFreeze} data-testid="button-clear-freeze">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFreeze}
+                    data-testid="button-clear-freeze"
+                  >
                     Clear Freeze
                   </Button>
                 </TooltipTrigger>
@@ -200,7 +230,12 @@ export default function DemoControls({ open, onOpenChange }: Props) {
             <div className="text-sm font-medium mb-2">Share</div>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={copyDemoLink} data-testid="button-copy-demo-link">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyDemoLink}
+                  data-testid="button-copy-demo-link"
+                >
                   <Link2 className="h-4 w-4 mr-2" /> Copy Demo Link
                 </Button>
               </TooltipTrigger>
@@ -210,7 +245,11 @@ export default function DemoControls({ open, onOpenChange }: Props) {
         </div>
 
         <SheetFooter className="mt-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)} data-testid="button-close-controls">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            data-testid="button-close-controls"
+          >
             Close
           </Button>
           <Button variant="outline" onClick={resetDemo} data-testid="button-reset-demo-drawer">

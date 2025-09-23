@@ -1,6 +1,6 @@
-import { useMemo } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useWorkflow } from "@/hooks/useWorkflow"
+import { useMemo } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useWorkflow } from '@/hooks/useWorkflow'
 
 export function MonitoringThesisDelta() {
   const { researchLog } = useWorkflow()
@@ -14,8 +14,9 @@ export function MonitoringThesisDelta() {
         </CardHeader>
         <CardContent className="space-y-2 text-xs text-slate-400">
           <p>
-            Monitoring consolidates alerts from scenarios, execution, and risk registers. Close the loop whenever
-            you adjust the position, updating the lessons library for the next intake cycle.
+            Monitoring consolidates alerts from scenarios, execution, and risk registers. Close the
+            loop whenever you adjust the position, updating the lessons library for the next intake
+            cycle.
           </p>
         </CardContent>
       </Card>
@@ -26,7 +27,9 @@ export function MonitoringThesisDelta() {
         </CardHeader>
         <CardContent className="space-y-2">
           {recent.length === 0 ? (
-            <p className="text-xs text-slate-500">No journal entries yet — complete earlier stages to populate.</p>
+            <p className="text-xs text-slate-500">
+              No journal entries yet — complete earlier stages to populate.
+            </p>
           ) : (
             <ul className="space-y-2 text-xs text-slate-400">
               {recent.map((entry) => (
@@ -36,7 +39,12 @@ export function MonitoringThesisDelta() {
                 >
                   <div className="flex items-center justify-between text-[11px] text-slate-500">
                     <span>{entry.stageTitle}</span>
-                    <span>{new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span>
+                      {new Date(entry.timestamp).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
                   </div>
                   <p className="mt-1 text-slate-200">{entry.action}</p>
                   {entry.details && <p className="text-[11px] text-slate-500">{entry.details}</p>}

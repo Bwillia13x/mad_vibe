@@ -30,8 +30,20 @@ const defaultState: ScenarioState = {
 
 const ScenarioLabContext = createContext<ScenarioLabContextValue | undefined>(undefined)
 
-const loadState = (): ScenarioState => {
+const loadState = async (): Promise<ScenarioState> => {
   if (typeof window === 'undefined') return defaultState
+  try {
+    const loaded = await fetchScenarioLabState()
+    if (loaded) {
+      return {
+        driverValues: { ...defaultState.driverValues, ...loaded.driverValues },
+        iterations: loaded.iterations ?? defaultState.iterations
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load scenario lab state from API', err)
+  }
+  // Fallback to local
   try {
     const raw = window.localStorage.getItem(SCENARIO_STORAGE_KEY)
     if (!raw) return defaultState
@@ -62,16 +74,45 @@ function simulateValue(state: ScenarioState): number[] {
 }
 
 export function ScenarioLabProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<ScenarioState>(() => loadState())
+  const [state, setState] = useState<ScenarioState>(defaultState)
+  const [version, setVersion] = useState(0)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      window.localStorage.setItem(SCENARIO_STORAGE_KEY, JSON.stringify(state))
-    } catch (error) {
-      console.warn('Failed to persist scenario lab state', error)
-    }
-  }, [state])
+    loadState().then(loadedState => {
+      setState(loadedState)
+      setLoading(false)
+    }).catch(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    if (loading) return
+    const timer = setTimeout(async () => {
+      try {
+        const payload: ScenarioLabStateInput = {
+          ...state,
+          version
+        }
+        const result = await persistScenarioLabState(payload)
+        setVersion(result.version)
+      } catch (err: any) {
+        if (err.status === 409) {
+          // Conflict: reload
+          const loaded = await fetchScenarioLabState()
+          if (loaded) {
+            setState({
+              driverValues: { ...defaultState.driverValues, ...loaded.driverValues },
+              iterations: loaded.iterations ?? defaultState.iterations
+            })
+            setVersion(loaded.version)
+          }
+        } else {
+          console.error('Failed to persist scenario lab state', err)
+        }
+      }
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [state, version, loading])
 
   const applyPreset = useCallback((id: string) => {
     const preset = scenarioPresets.find((entry) => entry.id === id)
@@ -110,7 +151,8 @@ export function ScenarioLabProvider({ children }: { children: React.ReactNode })
       const pos = Math.floor(percentile * (distribution.length - 1))
       return distribution[pos]
     }
-    const downsideProbability = distribution.filter((value) => value < 40).length / distribution.length
+    const downsideProbability =
+      distribution.filter((value) => value < 40).length / distribution.length
 
     return {
       meanValue: Number(mean.toFixed(2)),

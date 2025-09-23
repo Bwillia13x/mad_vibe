@@ -3,41 +3,41 @@
  * Generates comprehensive test reports, deployment documentation, and support materials
  */
 
-import fs from 'fs/promises';
-import path from 'path';
-import type { 
-  TestHttpClient, 
-  PerformanceMonitor, 
-  TestDataManager, 
-  TestEnvironment 
-} from '../utils/test-environment.js';
-import { ComprehensiveIntegrationTests } from '../integration/comprehensive-integration-tests.js';
-import { ProductionReadinessValidation } from '../production/production-readiness-validation.js';
-import { TestReporter } from '../reporting/test-reporter.js';
+import fs from 'fs/promises'
+import path from 'path'
+import type {
+  TestHttpClient,
+  PerformanceMonitor,
+  TestDataManager,
+  TestEnvironment
+} from '../utils/test-environment.js'
+import { ComprehensiveIntegrationTests } from '../integration/comprehensive-integration-tests.js'
+import { ProductionReadinessValidation } from '../production/production-readiness-validation.js'
+import { TestReporter } from '../reporting/test-reporter.js'
 
 export interface HandoffPackageResult {
-  success: boolean;
-  packagePath: string;
-  generatedFiles: string[];
+  success: boolean
+  packagePath: string
+  generatedFiles: string[]
   summary: {
-    totalFiles: number;
-    reportFiles: number;
-    documentationFiles: number;
-    supportFiles: number;
-  };
-  readinessScore: number;
-  recommendations: string[];
+    totalFiles: number
+    reportFiles: number
+    documentationFiles: number
+    supportFiles: number
+  }
+  readinessScore: number
+  recommendations: string[]
 }
 
 export interface ClientHandoffConfig {
-  outputDirectory: string;
-  includeTestReports: boolean;
-  includeDeploymentDocs: boolean;
-  includeTroubleshootingGuides: boolean;
-  includePerformanceReports: boolean;
-  includeSecurityReports: boolean;
-  clientName?: string;
-  projectName?: string;
+  outputDirectory: string
+  includeTestReports: boolean
+  includeDeploymentDocs: boolean
+  includeTroubleshootingGuides: boolean
+  includePerformanceReports: boolean
+  includeSecurityReports: boolean
+  clientName?: string
+  projectName?: string
 }
 
 /**
@@ -45,9 +45,9 @@ export interface ClientHandoffConfig {
  * Creates comprehensive handoff materials for client delivery
  */
 export class ClientHandoffPackage {
-  private integrationTests: ComprehensiveIntegrationTests;
-  private productionValidation: ProductionReadinessValidation;
-  private reporter: TestReporter;
+  private integrationTests: ComprehensiveIntegrationTests
+  private productionValidation: ProductionReadinessValidation
+  private reporter: TestReporter
 
   constructor(
     private httpClient: TestHttpClient,
@@ -55,77 +55,95 @@ export class ClientHandoffPackage {
     private dataManager: TestDataManager,
     private testEnvironment: TestEnvironment
   ) {
-    this.reporter = new TestReporter({ environment: 'production' } as any);
+    this.reporter = new TestReporter({ environment: 'production' } as any)
     this.integrationTests = new ComprehensiveIntegrationTests(
-      httpClient, performanceMonitor, dataManager, testEnvironment, this.reporter
-    );
+      httpClient,
+      performanceMonitor,
+      dataManager,
+      testEnvironment,
+      this.reporter
+    )
     this.productionValidation = new ProductionReadinessValidation(
-      httpClient, performanceMonitor, dataManager, testEnvironment
-    );
-  } 
- /**
+      httpClient,
+      performanceMonitor,
+      dataManager,
+      testEnvironment
+    )
+  }
+  /**
    * Generate complete client handoff package
    */
   async generateHandoffPackage(config: ClientHandoffConfig): Promise<HandoffPackageResult> {
-    console.log('\n📦 Generating Client Handoff Package');
-    console.log('===================================');
-    
-    const startTime = Date.now();
-    const generatedFiles: string[] = [];
+    console.log('\n📦 Generating Client Handoff Package')
+    console.log('===================================')
+
+    const startTime = Date.now()
+    const generatedFiles: string[] = []
 
     try {
       // Ensure output directory exists
-      await fs.mkdir(config.outputDirectory, { recursive: true });
+      await fs.mkdir(config.outputDirectory, { recursive: true })
 
       // Phase 1: Run comprehensive tests and collect results
-      console.log('\n🧪 Phase 1: Running Comprehensive Tests');
-      console.log('--------------------------------------');
-      
-      const integrationResults = await this.integrationTests.runAllTests();
-      const productionResults = await this.productionValidation.runProductionReadinessValidation();
+      console.log('\n🧪 Phase 1: Running Comprehensive Tests')
+      console.log('--------------------------------------')
+
+      const integrationResults = await this.integrationTests.runAllTests()
+      const productionResults = await this.productionValidation.runProductionReadinessValidation()
 
       // Phase 2: Generate test reports
       if (config.includeTestReports) {
-        console.log('\n📊 Phase 2: Generating Test Reports');
-        console.log('----------------------------------');
-        const reportFiles = await this.generateTestReports(config, integrationResults, productionResults);
-        generatedFiles.push(...reportFiles);
+        console.log('\n📊 Phase 2: Generating Test Reports')
+        console.log('----------------------------------')
+        const reportFiles = await this.generateTestReports(
+          config,
+          integrationResults,
+          productionResults
+        )
+        generatedFiles.push(...reportFiles)
       }
 
       // Phase 3: Generate deployment documentation
       if (config.includeDeploymentDocs) {
-        console.log('\n📚 Phase 3: Generating Deployment Documentation');
-        console.log('----------------------------------------------');
-        const deploymentFiles = await this.generateDeploymentDocumentation(config);
-        generatedFiles.push(...deploymentFiles);
+        console.log('\n📚 Phase 3: Generating Deployment Documentation')
+        console.log('----------------------------------------------')
+        const deploymentFiles = await this.generateDeploymentDocumentation(config)
+        generatedFiles.push(...deploymentFiles)
       }
 
       // Phase 4: Generate troubleshooting guides
       if (config.includeTroubleshootingGuides) {
-        console.log('\n🔧 Phase 4: Generating Troubleshooting Guides');
-        console.log('--------------------------------------------');
-        const troubleshootingFiles = await this.generateTroubleshootingGuides(config);
-        generatedFiles.push(...troubleshootingFiles);
+        console.log('\n🔧 Phase 4: Generating Troubleshooting Guides')
+        console.log('--------------------------------------------')
+        const troubleshootingFiles = await this.generateTroubleshootingGuides(config)
+        generatedFiles.push(...troubleshootingFiles)
       }
 
       // Phase 5: Generate executive summary
-      console.log('\n📋 Phase 5: Generating Executive Summary');
-      console.log('---------------------------------------');
-      const summaryFile = await this.generateExecutiveSummary(config, integrationResults, productionResults);
-      generatedFiles.push(summaryFile);
+      console.log('\n📋 Phase 5: Generating Executive Summary')
+      console.log('---------------------------------------')
+      const summaryFile = await this.generateExecutiveSummary(
+        config,
+        integrationResults,
+        productionResults
+      )
+      generatedFiles.push(summaryFile)
 
       // Phase 6: Generate README and index
-      console.log('\n📖 Phase 6: Generating Package Index');
-      console.log('-----------------------------------');
-      const indexFile = await this.generatePackageIndex(config, generatedFiles);
-      generatedFiles.push(indexFile);
+      console.log('\n📖 Phase 6: Generating Package Index')
+      console.log('-----------------------------------')
+      const indexFile = await this.generatePackageIndex(config, generatedFiles)
+      generatedFiles.push(indexFile)
 
-      const duration = Date.now() - startTime;
+      const duration = Date.now() - startTime
 
       // Calculate summary statistics
-      const summary = this.calculatePackageSummary(generatedFiles);
-      const readinessScore = productionResults.overallReadinessScore;
-      const recommendations = this.generateHandoffRecommendations(integrationResults, productionResults);
+      const summary = this.calculatePackageSummary(generatedFiles)
+      const readinessScore = productionResults.overallReadinessScore
+      const recommendations = this.generateHandoffRecommendations(
+        integrationResults,
+        productionResults
+      )
 
       const result: HandoffPackageResult = {
         success: true,
@@ -134,15 +152,14 @@ export class ClientHandoffPackage {
         summary,
         readinessScore,
         recommendations
-      };
+      }
 
-      this.printHandoffSummary(result, duration);
+      this.printHandoffSummary(result, duration)
 
-      return result;
-
+      return result
     } catch (error) {
-      console.error('❌ Failed to generate handoff package:', error);
-      
+      console.error('❌ Failed to generate handoff package:', error)
+
       return {
         success: false,
         packagePath: config.outputDirectory,
@@ -150,7 +167,7 @@ export class ClientHandoffPackage {
         summary: this.calculatePackageSummary(generatedFiles),
         readinessScore: 0,
         recommendations: ['Fix package generation errors before client handoff']
-      };
+      }
     }
   }
 
@@ -162,111 +179,120 @@ export class ClientHandoffPackage {
     integrationResults: any,
     productionResults: any
   ): Promise<string[]> {
-    const files: string[] = [];
+    const files: string[] = []
 
     // Integration test report
-    const integrationReportPath = path.join(config.outputDirectory, 'integration-test-report.md');
-    const integrationReport = this.generateIntegrationTestReport(integrationResults, config);
-    await fs.writeFile(integrationReportPath, integrationReport);
-    files.push(integrationReportPath);
+    const integrationReportPath = path.join(config.outputDirectory, 'integration-test-report.md')
+    const integrationReport = this.generateIntegrationTestReport(integrationResults, config)
+    await fs.writeFile(integrationReportPath, integrationReport)
+    files.push(integrationReportPath)
 
     // Production readiness report
-    const productionReportPath = path.join(config.outputDirectory, 'production-readiness-report.md');
-    const productionReport = this.generateProductionReadinessReport(productionResults, config);
-    await fs.writeFile(productionReportPath, productionReport);
-    files.push(productionReportPath);
+    const productionReportPath = path.join(config.outputDirectory, 'production-readiness-report.md')
+    const productionReport = this.generateProductionReadinessReport(productionResults, config)
+    await fs.writeFile(productionReportPath, productionReport)
+    files.push(productionReportPath)
 
     // Test coverage summary
-    const coverageReportPath = path.join(config.outputDirectory, 'test-coverage-summary.md');
-    const coverageReport = this.generateTestCoverageSummary(integrationResults, productionResults);
-    await fs.writeFile(coverageReportPath, coverageReport);
-    files.push(coverageReportPath);
+    const coverageReportPath = path.join(config.outputDirectory, 'test-coverage-summary.md')
+    const coverageReport = this.generateTestCoverageSummary(integrationResults, productionResults)
+    await fs.writeFile(coverageReportPath, coverageReport)
+    files.push(coverageReportPath)
 
     // Performance report (if requested)
     if (config.includePerformanceReports) {
-      const performanceReportPath = path.join(config.outputDirectory, 'performance-analysis-report.md');
-      const performanceReport = this.generatePerformanceReport(integrationResults, productionResults);
-      await fs.writeFile(performanceReportPath, performanceReport);
-      files.push(performanceReportPath);
+      const performanceReportPath = path.join(
+        config.outputDirectory,
+        'performance-analysis-report.md'
+      )
+      const performanceReport = this.generatePerformanceReport(
+        integrationResults,
+        productionResults
+      )
+      await fs.writeFile(performanceReportPath, performanceReport)
+      files.push(performanceReportPath)
     }
 
     // Security report (if requested)
     if (config.includeSecurityReports) {
-      const securityReportPath = path.join(config.outputDirectory, 'security-validation-report.md');
-      const securityReport = this.generateSecurityReport(productionResults);
-      await fs.writeFile(securityReportPath, securityReport);
-      files.push(securityReportPath);
+      const securityReportPath = path.join(config.outputDirectory, 'security-validation-report.md')
+      const securityReport = this.generateSecurityReport(productionResults)
+      await fs.writeFile(securityReportPath, securityReport)
+      files.push(securityReportPath)
     }
 
-    return files;
+    return files
   }
 
   /**
    * Generate deployment documentation
    */
   private async generateDeploymentDocumentation(config: ClientHandoffConfig): Promise<string[]> {
-    const files: string[] = [];
+    const files: string[] = []
 
     // Deployment guide
-    const deploymentGuidePath = path.join(config.outputDirectory, 'deployment-guide.md');
-    const deploymentGuide = this.generateDeploymentGuide(config);
-    await fs.writeFile(deploymentGuidePath, deploymentGuide);
-    files.push(deploymentGuidePath);
+    const deploymentGuidePath = path.join(config.outputDirectory, 'deployment-guide.md')
+    const deploymentGuide = this.generateDeploymentGuide(config)
+    await fs.writeFile(deploymentGuidePath, deploymentGuide)
+    files.push(deploymentGuidePath)
 
     // Environment configuration guide
-    const envConfigPath = path.join(config.outputDirectory, 'environment-configuration.md');
-    const envConfig = this.generateEnvironmentConfiguration();
-    await fs.writeFile(envConfigPath, envConfig);
-    files.push(envConfigPath);
+    const envConfigPath = path.join(config.outputDirectory, 'environment-configuration.md')
+    const envConfig = this.generateEnvironmentConfiguration()
+    await fs.writeFile(envConfigPath, envConfig)
+    files.push(envConfigPath)
 
     // Docker deployment guide
-    const dockerGuidePath = path.join(config.outputDirectory, 'docker-deployment.md');
-    const dockerGuide = this.generateDockerDeploymentGuide();
-    await fs.writeFile(dockerGuidePath, dockerGuide);
-    files.push(dockerGuidePath);
+    const dockerGuidePath = path.join(config.outputDirectory, 'docker-deployment.md')
+    const dockerGuide = this.generateDockerDeploymentGuide()
+    await fs.writeFile(dockerGuidePath, dockerGuide)
+    files.push(dockerGuidePath)
 
     // Monitoring and maintenance guide
-    const monitoringGuidePath = path.join(config.outputDirectory, 'monitoring-maintenance.md');
-    const monitoringGuide = this.generateMonitoringGuide();
-    await fs.writeFile(monitoringGuidePath, monitoringGuide);
-    files.push(monitoringGuidePath);
+    const monitoringGuidePath = path.join(config.outputDirectory, 'monitoring-maintenance.md')
+    const monitoringGuide = this.generateMonitoringGuide()
+    await fs.writeFile(monitoringGuidePath, monitoringGuide)
+    files.push(monitoringGuidePath)
 
-    return files;
+    return files
   }
 
   /**
    * Generate troubleshooting guides
    */
   private async generateTroubleshootingGuides(config: ClientHandoffConfig): Promise<string[]> {
-    const files: string[] = [];
+    const files: string[] = []
 
     // Common issues troubleshooting
-    const troubleshootingPath = path.join(config.outputDirectory, 'troubleshooting-guide.md');
-    const troubleshootingGuide = this.generateTroubleshootingGuide();
-    await fs.writeFile(troubleshootingPath, troubleshootingGuide);
-    files.push(troubleshootingPath);
+    const troubleshootingPath = path.join(config.outputDirectory, 'troubleshooting-guide.md')
+    const troubleshootingGuide = this.generateTroubleshootingGuide()
+    await fs.writeFile(troubleshootingPath, troubleshootingGuide)
+    files.push(troubleshootingPath)
 
     // Performance troubleshooting
-    const perfTroubleshootingPath = path.join(config.outputDirectory, 'performance-troubleshooting.md');
-    const perfTroubleshooting = this.generatePerformanceTroubleshooting();
-    await fs.writeFile(perfTroubleshootingPath, perfTroubleshooting);
-    files.push(perfTroubleshootingPath);
+    const perfTroubleshootingPath = path.join(
+      config.outputDirectory,
+      'performance-troubleshooting.md'
+    )
+    const perfTroubleshooting = this.generatePerformanceTroubleshooting()
+    await fs.writeFile(perfTroubleshootingPath, perfTroubleshooting)
+    files.push(perfTroubleshootingPath)
 
     // API troubleshooting
-    const apiTroubleshootingPath = path.join(config.outputDirectory, 'api-troubleshooting.md');
-    const apiTroubleshooting = this.generateApiTroubleshooting();
-    await fs.writeFile(apiTroubleshootingPath, apiTroubleshooting);
-    files.push(apiTroubleshootingPath);
+    const apiTroubleshootingPath = path.join(config.outputDirectory, 'api-troubleshooting.md')
+    const apiTroubleshooting = this.generateApiTroubleshooting()
+    await fs.writeFile(apiTroubleshootingPath, apiTroubleshooting)
+    files.push(apiTroubleshootingPath)
 
-    return files;
-  } 
- /**
+    return files
+  }
+  /**
    * Generate integration test report
    */
   private generateIntegrationTestReport(results: any, config: ClientHandoffConfig): string {
-    const timestamp = new Date().toISOString();
-    const clientName = config.clientName || 'Client';
-    const projectName = config.projectName || 'Andreas Vibe Platform';
+    const timestamp = new Date().toISOString()
+    const clientName = config.clientName || 'Client'
+    const projectName = config.projectName || 'Andreas Vibe Platform'
 
     return `# Integration Test Report
 
@@ -304,24 +330,25 @@ ${results.performanceMetrics.length > 0 ? this.formatPerformanceMetrics(results.
 
 ## Recommendations
 
-${results.summary.failed > 0 ? 
-  '⚠️ **Action Required:** The following issues should be addressed before production deployment:\n\n' +
-  this.getFailedTestRecommendations(results) :
-  '✅ **All Integration Tests Passed:** The system is ready for production deployment from an integration perspective.'
+${
+  results.summary.failed > 0
+    ? '⚠️ **Action Required:** The following issues should be addressed before production deployment:\n\n' +
+      this.getFailedTestRecommendations(results)
+    : '✅ **All Integration Tests Passed:** The system is ready for production deployment from an integration perspective.'
 }
 
 ---
 *This report was automatically generated by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 
   /**
    * Generate production readiness report
    */
   private generateProductionReadinessReport(results: any, config: ClientHandoffConfig): string {
-    const timestamp = new Date().toISOString();
-    const clientName = config.clientName || 'Client';
-    const projectName = config.projectName || 'Andreas Vibe Platform';
+    const timestamp = new Date().toISOString()
+    const clientName = config.clientName || 'Client'
+    const projectName = config.projectName || 'Andreas Vibe Platform'
 
     return `# Production Readiness Report
 
@@ -355,15 +382,17 @@ ${this.formatProductionTestResults(results.performanceValidation)}
 ${this.formatProductionTestResults(results.securityValidation)}
 
 ## Critical Issues
-${results.criticalIssues.length > 0 ? 
-  results.criticalIssues.map((issue: string) => `- ❌ ${issue}`).join('\n') :
-  '✅ No critical issues identified.'
+${
+  results.criticalIssues.length > 0
+    ? results.criticalIssues.map((issue: string) => `- ❌ ${issue}`).join('\n')
+    : '✅ No critical issues identified.'
 }
 
 ## Recommendations
-${results.recommendations.length > 0 ?
-  results.recommendations.map((rec: string) => `- 💡 ${rec}`).join('\n') :
-  '✅ No additional recommendations at this time.'
+${
+  results.recommendations.length > 0
+    ? results.recommendations.map((rec: string) => `- 💡 ${rec}`).join('\n')
+    : '✅ No additional recommendations at this time.'
 }
 
 ## Production Deployment Checklist
@@ -377,16 +406,16 @@ ${results.recommendations.length > 0 ?
 
 ---
 *This report was automatically generated by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 
   /**
    * Generate test coverage summary
    */
   private generateTestCoverageSummary(integrationResults: any, productionResults: any): string {
-    const totalTests = integrationResults.summary.totalTests + productionResults.summary.totalTests;
-    const totalPassed = integrationResults.summary.passed + productionResults.summary.passed;
-    const overallCoverage = ((totalPassed / totalTests) * 100).toFixed(1);
+    const totalTests = integrationResults.summary.totalTests + productionResults.summary.totalTests
+    const totalPassed = integrationResults.summary.passed + productionResults.summary.passed
+    const overallCoverage = ((totalPassed / totalTests) * 100).toFixed(1)
 
     return `# Test Coverage Summary
 
@@ -444,7 +473,7 @@ The following API endpoints have been validated:
 
 ---
 *This summary was automatically generated by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 
   /**
@@ -455,11 +484,11 @@ The following API endpoints have been validated:
     integrationResults: any,
     productionResults: any
   ): Promise<string> {
-    const timestamp = new Date().toISOString();
-    const clientName = config.clientName || 'Client';
-    const projectName = config.projectName || 'Andreas Vibe Platform';
+    const timestamp = new Date().toISOString()
+    const clientName = config.clientName || 'Client'
+    const projectName = config.projectName || 'Andreas Vibe Platform'
 
-    const summaryPath = path.join(config.outputDirectory, 'EXECUTIVE_SUMMARY.md');
+    const summaryPath = path.join(config.outputDirectory, 'EXECUTIVE_SUMMARY.md')
     const summary = `# Executive Summary - ${projectName}
 
 **Client:** ${clientName}  
@@ -526,14 +555,19 @@ The ${projectName} is a comprehensive business management platform featuring:
 
 ## Recommendations for Go-Live
 
-${productionResults.success ? 
-  '✅ **Ready for Immediate Deployment** - All systems validated and ready for production use.' :
-  '⚠️ **Minor Adjustments Recommended** - Address the following before deployment:'
+${
+  productionResults.success
+    ? '✅ **Ready for Immediate Deployment** - All systems validated and ready for production use.'
+    : '⚠️ **Minor Adjustments Recommended** - Address the following before deployment:'
 }
 
-${productionResults.recommendations.length > 0 ?
-  productionResults.recommendations.slice(0, 5).map((rec: string) => `- ${rec}`).join('\n') :
-  ''
+${
+  productionResults.recommendations.length > 0
+    ? productionResults.recommendations
+        .slice(0, 5)
+        .map((rec: string) => `- ${rec}`)
+        .join('\n')
+    : ''
 }
 
 ## Support & Maintenance
@@ -556,21 +590,24 @@ This handoff package includes:
 ---
 
 **Project Status:** ${productionResults.success && integrationResults.success ? '🎉 SUCCESSFULLY COMPLETED' : '⚠️ REQUIRES MINOR ADJUSTMENTS'}  
-**Handoff Confidence:** ${Math.min(100, Math.round((productionResults.overallReadinessScore + ((integrationResults.summary.passed / integrationResults.summary.totalTests) * 100)) / 2))}%
+**Handoff Confidence:** ${Math.min(100, Math.round((productionResults.overallReadinessScore + (integrationResults.summary.passed / integrationResults.summary.totalTests) * 100) / 2))}%
 
 *This executive summary was automatically generated based on comprehensive testing and validation results.*
-`;
+`
 
-    await fs.writeFile(summaryPath, summary);
-    return summaryPath;
-  }  /**
+    await fs.writeFile(summaryPath, summary)
+    return summaryPath
+  } /**
 
    * Generate package index/README
    */
-  private async generatePackageIndex(config: ClientHandoffConfig, generatedFiles: string[]): Promise<string> {
-    const indexPath = path.join(config.outputDirectory, 'README.md');
-    const clientName = config.clientName || 'Client';
-    const projectName = config.projectName || 'Andreas Vibe Platform';
+  private async generatePackageIndex(
+    config: ClientHandoffConfig,
+    generatedFiles: string[]
+  ): Promise<string> {
+    const indexPath = path.join(config.outputDirectory, 'README.md')
+    const clientName = config.clientName || 'Client'
+    const projectName = config.projectName || 'Andreas Vibe Platform'
 
     const index = `# ${projectName} - Client Handoff Package
 
@@ -585,17 +622,25 @@ Welcome to your ${projectName} handoff package. This directory contains all the 
 ${config.includePerformanceReports ? '- `performance-analysis-report.md` - Performance testing results\n' : ''}${config.includeSecurityReports ? '- `security-validation-report.md` - Security compliance validation\n' : ''}
 
 ### 📚 Deployment Documentation
-${config.includeDeploymentDocs ? `- \`deployment-guide.md\` - Step-by-step deployment instructions
+${
+  config.includeDeploymentDocs
+    ? `- \`deployment-guide.md\` - Step-by-step deployment instructions
 - \`environment-configuration.md\` - Environment setup and configuration
 - \`docker-deployment.md\` - Docker-based deployment guide
 - \`monitoring-maintenance.md\` - Ongoing maintenance and monitoring
-` : ''}
+`
+    : ''
+}
 
 ### 🔧 Troubleshooting & Support
-${config.includeTroubleshootingGuides ? `- \`troubleshooting-guide.md\` - Common issues and solutions
+${
+  config.includeTroubleshootingGuides
+    ? `- \`troubleshooting-guide.md\` - Common issues and solutions
 - \`performance-troubleshooting.md\` - Performance issue diagnosis
 - \`api-troubleshooting.md\` - API-related troubleshooting
-` : ''}
+`
+    : ''
+}
 
 ### 📋 Executive Materials
 - \`EXECUTIVE_SUMMARY.md\` - High-level project overview and status
@@ -629,9 +674,10 @@ The ${projectName} includes:
 
 ## 🎯 Deployment Readiness
 
-${generatedFiles.some(f => f.includes('production-readiness')) ? 
-  'System has been validated for production deployment. See production readiness report for details.' :
-  'Review all documentation before proceeding with deployment.'
+${
+  generatedFiles.some((f) => f.includes('production-readiness'))
+    ? 'System has been validated for production deployment. See production readiness report for details.'
+    : 'Review all documentation before proceeding with deployment.'
 }
 
 ---
@@ -641,40 +687,44 @@ ${generatedFiles.some(f => f.includes('production-readiness')) ?
 **Total Files:** ${generatedFiles.length}
 
 *This package was automatically generated by the Andreas Vibe Testing Suite.*
-`;
+`
 
-    await fs.writeFile(indexPath, index);
-    return indexPath;
+    await fs.writeFile(indexPath, index)
+    return indexPath
   }
 
   /**
    * Helper methods for report generation
    */
   private formatTestResults(tests: any[]): string {
-    if (!tests || tests.length === 0) return 'No tests in this category.';
+    if (!tests || tests.length === 0) return 'No tests in this category.'
 
-    return tests.map(test => {
-      const status = test.status === 'pass' ? '✅' : test.status === 'fail' ? '❌' : '⏭️';
-      return `- ${status} **${test.testName}** (${test.duration}ms)${test.error ? ` - ${test.error}` : ''}`;
-    }).join('\n');
+    return tests
+      .map((test) => {
+        const status = test.status === 'pass' ? '✅' : test.status === 'fail' ? '❌' : '⏭️'
+        return `- ${status} **${test.testName}** (${test.duration}ms)${test.error ? ` - ${test.error}` : ''}`
+      })
+      .join('\n')
   }
 
   private formatProductionTestResults(tests: any[]): string {
-    if (!tests || tests.length === 0) return 'No tests in this category.';
+    if (!tests || tests.length === 0) return 'No tests in this category.'
 
-    return tests.map(test => {
-      const status = test.status === 'pass' ? '✅' : '❌';
-      const score = test.score ? ` - Score: ${test.score}/100` : '';
-      return `- ${status} **${test.testName}** (${test.duration}ms)${score}${test.error ? ` - ${test.error}` : ''}`;
-    }).join('\n');
+    return tests
+      .map((test) => {
+        const status = test.status === 'pass' ? '✅' : '❌'
+        const score = test.score ? ` - Score: ${test.score}/100` : ''
+        return `- ${status} **${test.testName}** (${test.duration}ms)${score}${test.error ? ` - ${test.error}` : ''}`
+      })
+      .join('\n')
   }
 
   private formatPerformanceMetrics(metrics: any[]): string {
-    if (!metrics || metrics.length === 0) return 'No performance metrics available.';
+    if (!metrics || metrics.length === 0) return 'No performance metrics available.'
 
-    const avgDuration = metrics.reduce((sum, m) => sum + m.duration, 0) / metrics.length;
-    const maxDuration = Math.max(...metrics.map(m => m.duration));
-    const minDuration = Math.min(...metrics.map(m => m.duration));
+    const avgDuration = metrics.reduce((sum, m) => sum + m.duration, 0) / metrics.length
+    const maxDuration = Math.max(...metrics.map((m) => m.duration))
+    const minDuration = Math.min(...metrics.map((m) => m.duration))
 
     return `
 **Performance Summary:**
@@ -682,14 +732,14 @@ ${generatedFiles.some(f => f.includes('production-readiness')) ?
 - Average Response Time: ${avgDuration.toFixed(2)}ms
 - Fastest Response: ${minDuration}ms
 - Slowest Response: ${maxDuration}ms
-- Requests > 500ms: ${metrics.filter(m => m.duration > 500).length}
-`;
+- Requests > 500ms: ${metrics.filter((m) => m.duration > 500).length}
+`
   }
 
   private calculateCategoryScore(tests: any[]): number {
-    if (!tests || tests.length === 0) return 0;
-    const totalScore = tests.reduce((sum, test) => sum + (test.score || 0), 0);
-    return Math.round(totalScore / tests.length);
+    if (!tests || tests.length === 0) return 0
+    const totalScore = tests.reduce((sum, test) => sum + (test.score || 0), 0)
+    return Math.round(totalScore / tests.length)
   }
 
   private getFailedTestRecommendations(results: any): string {
@@ -697,72 +747,77 @@ ${generatedFiles.some(f => f.includes('production-readiness')) ?
       ...results.systemIntegrationTests.filter((t: any) => t.status === 'fail'),
       ...results.crossModuleDataFlowTests.filter((t: any) => t.status === 'fail'),
       ...results.userJourneyTests.filter((t: any) => t.status === 'fail')
-    ];
+    ]
 
-    return failedTests.map((test: any) => `- **${test.testName}:** ${test.error}`).join('\n');
+    return failedTests.map((test: any) => `- **${test.testName}:** ${test.error}`).join('\n')
   }
 
   private calculatePackageSummary(files: string[]) {
     return {
       totalFiles: files.length,
-      reportFiles: files.filter(f => f.includes('report')).length,
-      documentationFiles: files.filter(f => f.includes('guide') || f.includes('configuration')).length,
-      supportFiles: files.filter(f => f.includes('troubleshooting') || f.includes('README')).length
-    };
+      reportFiles: files.filter((f) => f.includes('report')).length,
+      documentationFiles: files.filter((f) => f.includes('guide') || f.includes('configuration'))
+        .length,
+      supportFiles: files.filter((f) => f.includes('troubleshooting') || f.includes('README'))
+        .length
+    }
   }
 
-  private generateHandoffRecommendations(integrationResults: any, productionResults: any): string[] {
-    const recommendations = [];
+  private generateHandoffRecommendations(
+    integrationResults: any,
+    productionResults: any
+  ): string[] {
+    const recommendations = []
 
     if (!integrationResults.success) {
-      recommendations.push('Address integration test failures before deployment');
+      recommendations.push('Address integration test failures before deployment')
     }
 
     if (!productionResults.success) {
-      recommendations.push('Resolve production readiness issues');
+      recommendations.push('Resolve production readiness issues')
     }
 
     if (productionResults.overallReadinessScore < 90) {
-      recommendations.push('Consider additional testing before production deployment');
+      recommendations.push('Consider additional testing before production deployment')
     }
 
-    recommendations.push(...productionResults.recommendations.slice(0, 3));
+    recommendations.push(...productionResults.recommendations.slice(0, 3))
 
-    return recommendations;
+    return recommendations
   }
 
   private printHandoffSummary(result: HandoffPackageResult, duration: number): void {
-    console.log('\n');
-    console.log('📦 CLIENT HANDOFF PACKAGE GENERATION COMPLETE');
-    console.log('============================================');
-    
-    console.log(`\n📊 Package Summary:`);
-    console.log(`   Package Location: ${result.packagePath}`);
-    console.log(`   Total Files Generated: ${result.summary.totalFiles}`);
-    console.log(`   Report Files: ${result.summary.reportFiles}`);
-    console.log(`   Documentation Files: ${result.summary.documentationFiles}`);
-    console.log(`   Support Files: ${result.summary.supportFiles}`);
-    console.log(`   Generation Time: ${(duration / 1000).toFixed(2)}s`);
+    console.log('\n')
+    console.log('📦 CLIENT HANDOFF PACKAGE GENERATION COMPLETE')
+    console.log('============================================')
 
-    console.log(`\n🎯 Readiness Assessment:`);
-    console.log(`   Production Readiness Score: ${result.readinessScore}/100`);
-    console.log(`   Package Status: ${result.success ? '✅ COMPLETE' : '❌ INCOMPLETE'}`);
+    console.log(`\n📊 Package Summary:`)
+    console.log(`   Package Location: ${result.packagePath}`)
+    console.log(`   Total Files Generated: ${result.summary.totalFiles}`)
+    console.log(`   Report Files: ${result.summary.reportFiles}`)
+    console.log(`   Documentation Files: ${result.summary.documentationFiles}`)
+    console.log(`   Support Files: ${result.summary.supportFiles}`)
+    console.log(`   Generation Time: ${(duration / 1000).toFixed(2)}s`)
+
+    console.log(`\n🎯 Readiness Assessment:`)
+    console.log(`   Production Readiness Score: ${result.readinessScore}/100`)
+    console.log(`   Package Status: ${result.success ? '✅ COMPLETE' : '❌ INCOMPLETE'}`)
 
     if (result.recommendations.length > 0) {
-      console.log(`\n💡 Key Recommendations:`);
-      result.recommendations.slice(0, 5).forEach(rec => {
-        console.log(`   • ${rec}`);
-      });
+      console.log(`\n💡 Key Recommendations:`)
+      result.recommendations.slice(0, 5).forEach((rec) => {
+        console.log(`   • ${rec}`)
+      })
     }
 
-    console.log(`\n📋 Generated Files:`);
-    result.generatedFiles.forEach(file => {
-      const fileName = path.basename(file);
-      console.log(`   📄 ${fileName}`);
-    });
+    console.log(`\n📋 Generated Files:`)
+    result.generatedFiles.forEach((file) => {
+      const fileName = path.basename(file)
+      console.log(`   📄 ${fileName}`)
+    })
 
-    console.log('\n============================================');
-    console.log('🎉 Handoff package ready for client delivery!');
+    console.log('\n============================================')
+    console.log('🎉 Handoff package ready for client delivery!')
   }
 
   // Additional helper methods for generating specific documentation sections
@@ -847,7 +902,7 @@ Verify deployment by accessing:
 
 ---
 *Generated automatically by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 
   private generateEnvironmentConfiguration(): string {
@@ -912,7 +967,7 @@ environment:
 
 ---
 *Generated automatically by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 
   private generateDockerDeploymentGuide(): string {
@@ -1014,7 +1069,7 @@ volumes:
 
 ---
 *Generated automatically by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 
   private generateMonitoringGuide(): string {
@@ -1105,7 +1160,7 @@ Configure log rotation to prevent disk space issues:
 
 ---
 *Generated automatically by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 
   private generateTroubleshootingGuide(): string {
@@ -1293,7 +1348,7 @@ curl -X POST http://localhost:3000/api/demo/seed?scenario=default
 
 ---
 *Generated automatically by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 
   private generatePerformanceTroubleshooting(): string {
@@ -1488,7 +1543,7 @@ Set up monitoring alerts for:
 
 ---
 *Generated automatically by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 
   private generateApiTroubleshooting(): string {
@@ -1721,7 +1776,7 @@ npm run test:comprehensive
 
 ---
 *Generated automatically by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 
   private generatePerformanceReport(integrationResults: any, productionResults: any): string {
@@ -1746,14 +1801,16 @@ ${this.formatProductionTestResults(productionResults.performanceValidation)}
 - ✅ **Error Rate:** < 1% under normal load
 
 ### Performance Recommendations
-${productionResults.performanceValidation
-  .filter((test: any) => test.recommendations && test.recommendations.length > 0)
-  .map((test: any) => test.recommendations.map((rec: string) => `- ${rec}`).join('\n'))
-  .join('\n') || 'No specific performance recommendations at this time.'}
+${
+  productionResults.performanceValidation
+    .filter((test: any) => test.recommendations && test.recommendations.length > 0)
+    .map((test: any) => test.recommendations.map((rec: string) => `- ${rec}`).join('\n'))
+    .join('\n') || 'No specific performance recommendations at this time.'
+}
 
 ---
 *Generated automatically by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 
   private generateSecurityReport(productionResults: any): string {
@@ -1773,10 +1830,12 @@ ${this.formatProductionTestResults(productionResults.securityValidation)}
 - ✅ **API Security:** Rate limiting and abuse prevention tested
 
 ### Security Recommendations
-${productionResults.securityValidation
-  .filter((test: any) => test.recommendations && test.recommendations.length > 0)
-  .map((test: any) => test.recommendations.map((rec: string) => `- ${rec}`).join('\n'))
-  .join('\n') || 'No specific security recommendations at this time.'}
+${
+  productionResults.securityValidation
+    .filter((test: any) => test.recommendations && test.recommendations.length > 0)
+    .map((test: any) => test.recommendations.map((rec: string) => `- ${rec}`).join('\n'))
+    .join('\n') || 'No specific security recommendations at this time.'
+}
 
 ### Security Best Practices
 - Configure security headers for production deployment
@@ -1786,6 +1845,6 @@ ${productionResults.securityValidation
 
 ---
 *Generated automatically by the Andreas Vibe Testing Suite.*
-`;
+`
   }
 }

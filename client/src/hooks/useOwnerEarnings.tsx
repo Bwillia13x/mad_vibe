@@ -64,7 +64,13 @@ export function OwnerEarningsProvider({ children }: { children: React.ReactNode 
   }, [state.includeBridgeSegments])
 
   const value = useMemo(
-    () => ({ state, toggleSegment, bridge: ownerEarningsBridge, historical: historicalOwnerEarnings, currentOwnerEarnings }),
+    () => ({
+      state,
+      toggleSegment,
+      bridge: ownerEarningsBridge,
+      historical: historicalOwnerEarnings,
+      currentOwnerEarnings
+    }),
     [state, toggleSegment, currentOwnerEarnings]
   )
 

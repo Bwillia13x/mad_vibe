@@ -11,11 +11,13 @@ This guide helps diagnose and resolve common issues encountered during test exec
 #### Problem: "Server failed to start within timeout"
 
 **Symptoms**:
+
 - Tests fail with timeout errors
 - Server startup takes longer than expected
 - Port binding failures
 
 **Diagnosis**:
+
 ```bash
 # Check if port is already in use
 lsof -i :3000
@@ -30,6 +32,7 @@ env | grep -E "(NODE_ENV|PORT|OPENAI_API_KEY)"
 **Solutions**:
 
 1. **Kill existing processes**:
+
 ```bash
 # Kill processes on port 3000
 kill -9 $(lsof -t -i:3000)
@@ -39,6 +42,7 @@ npm run test:cleanup
 ```
 
 2. **Increase timeout**:
+
 ```bash
 # Temporary fix - increase timeout
 export TEST_STARTUP_TIMEOUT=60000
@@ -46,12 +50,14 @@ npm run test
 ```
 
 3. **Use dynamic port allocation**:
+
 ```bash
 # Let the system choose an available port
 npm run test -- --dynamic-port
 ```
 
 4. **Check dependencies**:
+
 ```bash
 # Reinstall dependencies
 rm -rf node_modules package-lock.json
@@ -61,6 +67,7 @@ npm install
 #### Problem: "Database connection failed"
 
 **Symptoms**:
+
 - Database-related tests fail
 - Connection timeout errors
 - Authentication failures
@@ -68,6 +75,7 @@ npm install
 **Solutions**:
 
 1. **Verify database configuration**:
+
 ```bash
 # Check if PostgreSQL is running (if using external DB)
 pg_isready -h localhost -p 5432
@@ -77,6 +85,7 @@ psql -h localhost -p 5432 -U username -d database_name
 ```
 
 2. **Use in-memory storage** (default):
+
 ```bash
 # Ensure no DATABASE_URL is set for in-memory mode
 unset DATABASE_URL
@@ -84,6 +93,7 @@ npm run test
 ```
 
 3. **Reset database state**:
+
 ```bash
 # Reset to clean state
 npm run db:reset
@@ -95,11 +105,13 @@ npm run test
 #### Problem: "Test timeout exceeded"
 
 **Symptoms**:
+
 - Individual tests timeout
 - Long-running operations fail
 - Network request timeouts
 
 **Diagnosis**:
+
 ```bash
 # Run with verbose logging
 npm run test -- --verbose --grep "failing-test-name"
@@ -114,6 +126,7 @@ top -p $(pgrep node)
 **Solutions**:
 
 1. **Increase test timeout**:
+
 ```bash
 # For specific test
 npm run test -- --timeout 60000
@@ -124,6 +137,7 @@ npm run test
 ```
 
 2. **Check system resources**:
+
 ```bash
 # Monitor memory usage
 free -h
@@ -136,6 +150,7 @@ htop
 ```
 
 3. **Optimize test execution**:
+
 ```bash
 # Run tests sequentially instead of parallel
 npm run test -- --no-parallel
@@ -147,11 +162,13 @@ npm run test:performance -- --users=10
 #### Problem: "Flaky test failures"
 
 **Symptoms**:
+
 - Tests pass sometimes, fail other times
 - Inconsistent results across runs
 - Race conditions
 
 **Diagnosis**:
+
 ```bash
 # Run test multiple times to identify flakiness
 for i in {1..10}; do npm run test -- --grep "flaky-test" || echo "Failed on run $i"; done
@@ -163,25 +180,28 @@ npm run test -- --slow-mo=100
 **Solutions**:
 
 1. **Add proper waits**:
+
 ```javascript
 // Instead of fixed delays
-await new Promise(resolve => setTimeout(resolve, 1000));
+await new Promise((resolve) => setTimeout(resolve, 1000))
 
 // Use proper waiting
-await waitForElement('.loading-spinner', { hidden: true });
-await waitForResponse('/api/data');
+await waitForElement('.loading-spinner', { hidden: true })
+await waitForResponse('/api/data')
 ```
 
 2. **Increase retry attempts**:
+
 ```bash
 # Retry flaky tests
 npm run test -- --retries=3
 ```
 
 3. **Isolate test data**:
+
 ```javascript
 // Use unique test data for each test
-const testData = generateUniqueTestData();
+const testData = generateUniqueTestData()
 ```
 
 ### 3. Performance Test Issues
@@ -189,23 +209,26 @@ const testData = generateUniqueTestData();
 #### Problem: "Performance thresholds exceeded"
 
 **Symptoms**:
+
 - Response times higher than expected
 - Memory usage warnings
 - CPU utilization alerts
 
 **Diagnosis**:
+
 ```bash
 # Profile performance
 npm run test:performance -- --profile
 
 # Monitor system resources during test
-npm run test:performance & 
+npm run test:performance &
 watch -n 1 'ps aux | grep node'
 ```
 
 **Solutions**:
 
 1. **Adjust thresholds temporarily**:
+
 ```bash
 # Increase response time threshold
 export MAX_RESPONSE_TIME=500
@@ -213,6 +236,7 @@ npm run test:performance
 ```
 
 2. **Optimize system resources**:
+
 ```bash
 # Close unnecessary applications
 # Ensure adequate RAM (8GB+ recommended)
@@ -220,6 +244,7 @@ npm run test:performance
 ```
 
 3. **Scale down test load**:
+
 ```bash
 # Reduce concurrent users
 npm run test:performance -- --users=25 --duration=60
@@ -231,11 +256,13 @@ npm run test:performance -- --duration=30
 #### Problem: "Memory leaks detected"
 
 **Symptoms**:
+
 - Memory usage continuously increases
 - Out of memory errors
 - System becomes unresponsive
 
 **Diagnosis**:
+
 ```bash
 # Monitor memory usage over time
 npm run test:performance -- --memory-profile
@@ -247,12 +274,14 @@ node --inspect npm run test:performance
 **Solutions**:
 
 1. **Increase Node.js memory limit**:
+
 ```bash
 # Increase heap size
 node --max-old-space-size=8192 npm run test:performance
 ```
 
 2. **Check for memory leaks in code**:
+
 ```bash
 # Run memory leak detection
 npm run test:memory-leaks
@@ -266,11 +295,13 @@ npx clinic doctor -- npm run test:performance
 #### Problem: "Security tests failing"
 
 **Symptoms**:
+
 - Authentication tests fail
 - CORS errors
 - Security headers missing
 
 **Diagnosis**:
+
 ```bash
 # Check security configuration
 curl -I http://localhost:3000/api/health
@@ -282,6 +313,7 @@ npm run test:security:auth -- --verbose
 **Solutions**:
 
 1. **Verify security configuration**:
+
 ```bash
 # Check environment variables
 echo $OPENAI_API_KEY | wc -c  # Should be > 0
@@ -293,9 +325,10 @@ curl -H "Origin: http://localhost:3000" \
 ```
 
 2. **Update security test expectations**:
+
 ```javascript
 // If security headers changed, update tests
-expect(response.headers['x-frame-options']).toBe('DENY');
+expect(response.headers['x-frame-options']).toBe('DENY')
 ```
 
 ### 5. E2E Test Issues
@@ -303,11 +336,13 @@ expect(response.headers['x-frame-options']).toBe('DENY');
 #### Problem: "Browser automation failures"
 
 **Symptoms**:
+
 - Browser fails to launch
 - Element not found errors
 - Screenshot capture failures
 
 **Diagnosis**:
+
 ```bash
 # Run in headed mode to see what's happening
 npm run test:e2e -- --headed
@@ -319,6 +354,7 @@ npx playwright install --dry-run
 **Solutions**:
 
 1. **Install browser dependencies**:
+
 ```bash
 # Install Playwright browsers
 npx playwright install
@@ -328,25 +364,28 @@ npx playwright install-deps
 ```
 
 2. **Update selectors**:
+
 ```javascript
 // Use more robust selectors
-await page.waitForSelector('[data-testid="submit-button"]');
+await page.waitForSelector('[data-testid="submit-button"]')
 // Instead of
-await page.waitForSelector('.btn-primary');
+await page.waitForSelector('.btn-primary')
 ```
 
 3. **Add proper waits**:
+
 ```javascript
 // Wait for network requests to complete
-await page.waitForLoadState('networkidle');
+await page.waitForLoadState('networkidle')
 
 // Wait for specific elements
-await page.waitForSelector('.content', { state: 'visible' });
+await page.waitForSelector('.content', { state: 'visible' })
 ```
 
 #### Problem: "Screenshot comparison failures"
 
 **Symptoms**:
+
 - Visual regression test failures
 - Screenshot differences
 - Inconsistent rendering
@@ -354,6 +393,7 @@ await page.waitForSelector('.content', { state: 'visible' });
 **Solutions**:
 
 1. **Update baseline screenshots**:
+
 ```bash
 # Update all screenshots
 npm run test:e2e -- --update-snapshots
@@ -363,11 +403,12 @@ npm run test:e2e -- --update-snapshots --grep "specific-test"
 ```
 
 2. **Configure screenshot settings**:
+
 ```javascript
 // Disable animations for consistent screenshots
 await page.addStyleTag({
   content: '*, *::before, *::after { animation-duration: 0s !important; }'
-});
+})
 ```
 
 ### 6. CI/CD Issues
@@ -375,11 +416,13 @@ await page.addStyleTag({
 #### Problem: "Tests pass locally but fail in CI"
 
 **Symptoms**:
+
 - Different behavior in CI environment
 - Environment-specific failures
 - Resource constraints in CI
 
 **Diagnosis**:
+
 ```bash
 # Simulate CI environment locally
 docker run -it --rm -v $(pwd):/app -w /app node:18 npm test
@@ -391,6 +434,7 @@ docker run -it --rm -v $(pwd):/app -w /app node:18 npm test
 **Solutions**:
 
 1. **Match CI environment**:
+
 ```bash
 # Use same Node.js version as CI
 nvm use 18
@@ -400,6 +444,7 @@ npm ci
 ```
 
 2. **Adjust CI-specific settings**:
+
 ```yaml
 # In GitHub Actions
 - name: Run tests
@@ -411,12 +456,13 @@ npm ci
 ```
 
 3. **Add CI-specific configuration**:
+
 ```javascript
 // In test configuration
 if (process.env.CI) {
-  config.timeout = 60000;
-  config.retries = 2;
-  config.headless = true;
+  config.timeout = 60000
+  config.retries = 2
+  config.headless = true
 }
 ```
 

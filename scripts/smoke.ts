@@ -43,12 +43,12 @@ function getMemoryUsage(): number {
 async function getJson(url: string) {
   const startTime = Date.now()
   const startMemory = getMemoryUsage()
-  
+
   const res = await get(url)
-  
+
   const endTime = Date.now()
   const endMemory = getMemoryUsage()
-  
+
   performanceMetrics.push({
     url,
     method: 'GET',
@@ -56,7 +56,7 @@ async function getJson(url: string) {
     status: res.status,
     memoryUsage: endMemory - startMemory
   })
-  
+
   if (!res.ok) throw new Error(`${url} -> ${res.status}`)
   return await res.json()
 }
@@ -64,16 +64,16 @@ async function getJson(url: string) {
 async function postJson(url: string, body: unknown) {
   const startTime = Date.now()
   const startMemory = getMemoryUsage()
-  
+
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer smoke-test' },
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer smoke-test' },
     body: JSON.stringify(body)
   })
-  
+
   const endTime = Date.now()
   const endMemory = getMemoryUsage()
-  
+
   performanceMetrics.push({
     url,
     method: 'POST',
@@ -81,7 +81,7 @@ async function postJson(url: string, body: unknown) {
     status: res.status,
     memoryUsage: endMemory - startMemory
   })
-  
+
   if (!res.ok) throw new Error(`${url} -> ${res.status}`)
   return await res.json()
 }
@@ -133,18 +133,30 @@ async function streamSSE(url: string, body: unknown, timeoutMs = 10000): Promise
     return acc
   } finally {
     clearTimeout(t)
-    try { ctrl.abort() } catch {}
+    try {
+      ctrl.abort()
+    } catch {}
   }
 }
 
 async function main() {
   const portFile = path.resolve('.local', 'smoke_port')
-  try { fs.mkdirSync(path.dirname(portFile), { recursive: true }) } catch {}
-  try { if (fs.existsSync(portFile)) fs.unlinkSync(portFile) } catch {}
+  try {
+    fs.mkdirSync(path.dirname(portFile), { recursive: true })
+  } catch {}
+  try {
+    if (fs.existsSync(portFile)) fs.unlinkSync(portFile)
+  } catch {}
 
   // Start the server in production mode from dist
   const child = spawn(process.execPath, [path.resolve('dist', 'index.js')], {
-    env: { ...process.env, NODE_ENV: 'production', PORT: '0', PORT_FILE: portFile, SMOKE_MODE: '1' },
+    env: {
+      ...process.env,
+      NODE_ENV: 'production',
+      PORT: '0',
+      PORT_FILE: portFile,
+      SMOKE_MODE: '1'
+    },
     stdio: ['ignore', 'pipe', 'pipe']
   })
 
@@ -152,7 +164,9 @@ async function main() {
   child.stderr.on('data', (d) => process.stderr.write(d))
 
   let exitCode: number | null = null
-  child.on('exit', (code) => { exitCode = code ?? 0 })
+  child.on('exit', (code) => {
+    exitCode = code ?? 0
+  })
 
   try {
     const port = await waitForPortFile(portFile)
@@ -177,7 +191,7 @@ async function main() {
     if (!Array.isArray(analytics)) throw new Error('Analytics not array')
 
     // Test all API endpoints for comprehensive coverage
-    
+
     // Business Profile endpoint
     const profile = await getJson(`${base}/api/profile`)
     if (!profile || typeof profile !== 'object') throw new Error('Profile endpoint failed')
@@ -185,13 +199,15 @@ async function main() {
     // Individual service endpoint
     if (services.length > 0) {
       const firstService = await getJson(`${base}/api/services/${services[0].id}`)
-      if (!firstService || firstService.id !== services[0].id) throw new Error('Individual service endpoint failed')
+      if (!firstService || firstService.id !== services[0].id)
+        throw new Error('Individual service endpoint failed')
     }
 
     // Individual staff endpoint
     if (staff.length > 0) {
       const firstStaff = await getJson(`${base}/api/staff/${staff[0].id}`)
-      if (!firstStaff || firstStaff.id !== staff[0].id) throw new Error('Individual staff endpoint failed')
+      if (!firstStaff || firstStaff.id !== staff[0].id)
+        throw new Error('Individual staff endpoint failed')
     }
 
     // Customers endpoint
@@ -201,22 +217,25 @@ async function main() {
     // Individual appointment endpoint (if appointments exist)
     if (appts.length > 0) {
       const firstAppt = await getJson(`${base}/api/appointments/${appts[0].id}`)
-      if (!firstAppt || firstAppt.id !== appts[0].id) throw new Error('Individual appointment endpoint failed')
+      if (!firstAppt || firstAppt.id !== appts[0].id)
+        throw new Error('Individual appointment endpoint failed')
     }
 
     // Inventory endpoints
     const inventory = await getJson(`${base}/api/inventory`)
     if (!Array.isArray(inventory)) throw new Error('Inventory not array')
-    
+
     if (inventory.length > 0) {
       const firstItem = await getJson(`${base}/api/inventory/${inventory[0].id}`)
-      if (!firstItem || firstItem.id !== inventory[0].id) throw new Error('Individual inventory item endpoint failed')
+      if (!firstItem || firstItem.id !== inventory[0].id)
+        throw new Error('Individual inventory item endpoint failed')
     }
 
     // Individual analytics endpoint (if analytics exist)
     if (analytics.length > 0) {
       const firstAnalytics = await getJson(`${base}/api/analytics/${analytics[0].id}`)
-      if (!firstAnalytics || firstAnalytics.id !== analytics[0].id) throw new Error('Individual analytics endpoint failed')
+      if (!firstAnalytics || firstAnalytics.id !== analytics[0].id)
+        throw new Error('Individual analytics endpoint failed')
     }
 
     // POS endpoints
@@ -226,7 +245,12 @@ async function main() {
     // Test POS sale creation (use existing service)
     const newSale = await postJson(`${base}/api/pos/sales`, {
       items: [
-        { kind: 'service', id: services[0]?.id, name: services[0]?.name || 'Executive Cut', quantity: 1 }
+        {
+          kind: 'service',
+          id: services[0]?.id,
+          name: services[0]?.name || 'Executive Cut',
+          quantity: 1
+        }
       ],
       discountPct: 10,
       taxPct: 8.5
@@ -234,7 +258,10 @@ async function main() {
     if (!newSale || !newSale.id) throw new Error('POS sale creation failed')
 
     // Test POS sale deletion
-    const deleteResult = await fetch(`${base}/api/pos/sales/${newSale.id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer smoke-test' } })
+    const deleteResult = await fetch(`${base}/api/pos/sales/${newSale.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer smoke-test' }
+    })
     if (!deleteResult.ok) throw new Error('POS sale deletion failed')
 
     // Marketing endpoints
@@ -253,7 +280,7 @@ async function main() {
     // Test marketing campaign update
     const updatedCampaign = await fetch(`${base}/api/marketing/campaigns/${newCampaign.id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer smoke-test' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer smoke-test' },
       body: JSON.stringify({ status: 'active' })
     })
     if (!updatedCampaign.ok) throw new Error('Marketing campaign update failed')
@@ -281,7 +308,9 @@ async function main() {
 
     // Test loyalty entries with customer filter (if customers exist)
     if (customers.length > 0) {
-      const customerLoyalty = await getJson(`${base}/api/loyalty/entries?customerId=${customers[0].id}`)
+      const customerLoyalty = await getJson(
+        `${base}/api/loyalty/entries?customerId=${customers[0].id}`
+      )
       if (!Array.isArray(customerLoyalty)) throw new Error('Customer loyalty filter failed')
     }
 
@@ -291,7 +320,8 @@ async function main() {
     const ctype = csvRes.headers.get('content-type') || ''
     if (!ctype.includes('text/csv')) throw new Error('Analytics CSV export wrong content-type')
     const csvText = await csvRes.text()
-    if (!csvText.includes('totalRevenue')) throw new Error('Analytics CSV export content missing header')
+    if (!csvText.includes('totalRevenue'))
+      throw new Error('Analytics CSV export content missing header')
 
     // POS sales CSV export
     const posCsvRes = await fetch(`${base}/api/pos/sales/export`)
@@ -299,7 +329,8 @@ async function main() {
     const posCtype = posCsvRes.headers.get('content-type') || ''
     if (!posCtype.includes('text/csv')) throw new Error('POS CSV export wrong content-type')
     const posCsvText = await posCsvRes.text()
-    if (!posCsvText.includes('id,createdAt')) throw new Error('POS CSV export content missing headers')
+    if (!posCsvText.includes('id,createdAt'))
+      throw new Error('POS CSV export content missing headers')
 
     // Loyalty CSV export
     const loyaltyCsvRes = await fetch(`${base}/api/loyalty/entries/export`)
@@ -307,16 +338,17 @@ async function main() {
     const loyaltyCtype = loyaltyCsvRes.headers.get('content-type') || ''
     if (!loyaltyCtype.includes('text/csv')) throw new Error('Loyalty CSV export wrong content-type')
     const loyaltyCsvText = await loyaltyCsvRes.text()
-    if (!loyaltyCsvText.includes('id,customerId')) throw new Error('Loyalty CSV export content missing headers')
+    if (!loyaltyCsvText.includes('id,customerId'))
+      throw new Error('Loyalty CSV export content missing headers')
 
     // Security validation tests
     console.log('\n=== Security Validation ===')
-    
+
     // Test security headers
     const _securityHeaders = health
     const healthResponse = await fetch(`${base}/api/health`)
     const headers = healthResponse.headers
-    
+
     // Check for basic security headers
     const securityChecks = {
       'X-Content-Type-Options': headers.get('x-content-type-options'),
@@ -324,15 +356,15 @@ async function main() {
       'X-XSS-Protection': headers.get('x-xss-protection'),
       'Content-Type': headers.get('content-type')
     }
-    
+
     console.log('Security headers check:')
     Object.entries(securityChecks).forEach(([header, value]) => {
       console.log(`  ${header}: ${value || 'NOT SET'}`)
     })
-    
+
     // Test input validation - malicious payloads
     console.log('\nTesting input validation...')
-    
+
     // Test XSS prevention in chat
     try {
       const xssPayload = '<script>alert("xss")</script>'
@@ -348,7 +380,7 @@ async function main() {
     } catch {
       console.log('✓ Chat endpoint rejected malicious input')
     }
-    
+
     // Test SQL injection patterns (even though using in-memory storage)
     try {
       const sqlPayload = "'; DROP TABLE users; --"
@@ -361,7 +393,7 @@ async function main() {
     } catch {
       console.log('✓ Appointments endpoint rejected malicious input')
     }
-    
+
     // Test oversized payload handling
     try {
       const largePayload = 'x'.repeat(10000) // 10KB payload
@@ -375,7 +407,7 @@ async function main() {
           status: 'draft'
         })
       })
-      
+
       if (largeTest.status === 413 || largeTest.status === 400) {
         console.log('✓ Server properly handles oversized payloads')
       } else if (largeTest.ok) {
@@ -384,7 +416,7 @@ async function main() {
     } catch {
       console.log('✓ Server rejected oversized payload')
     }
-    
+
     // Test invalid JSON handling
     try {
       const invalidJsonRes = await fetch(`${base}/api/pos/sales`, {
@@ -392,7 +424,7 @@ async function main() {
         headers: { 'Content-Type': 'application/json' },
         body: '{"invalid": json}'
       })
-      
+
       if (invalidJsonRes.status === 400) {
         console.log('✓ Server properly handles invalid JSON')
       } else {
@@ -401,30 +433,34 @@ async function main() {
     } catch {
       console.log('✓ Server rejected invalid JSON')
     }
-    
+
     // Test CORS configuration (basic check)
     const corsHeaders = {
       'Access-Control-Allow-Origin': headers.get('access-control-allow-origin'),
       'Access-Control-Allow-Methods': headers.get('access-control-allow-methods'),
       'Access-Control-Allow-Headers': headers.get('access-control-allow-headers')
     }
-    
+
     console.log('\nCORS configuration:')
     Object.entries(corsHeaders).forEach(([header, value]) => {
       console.log(`  ${header}: ${value || 'NOT SET'}`)
     })
-    
+
     // Test error handling doesn't leak sensitive information
     const notFoundRes = await fetch(`${base}/api/nonexistent`)
     if (notFoundRes.status === 404) {
       const errorBody = await notFoundRes.text()
-      if (errorBody.includes('stack') || errorBody.includes('Error:') || errorBody.includes('at ')) {
+      if (
+        errorBody.includes('stack') ||
+        errorBody.includes('Error:') ||
+        errorBody.includes('at ')
+      ) {
         console.warn('⚠️  Error responses may leak stack traces')
       } else {
         console.log('✓ Error responses do not leak sensitive information')
       }
     }
-    
+
     console.log('Security validation completed.')
 
     // Chat (non-streaming, demo-friendly)
@@ -448,14 +484,25 @@ async function main() {
     // Demo scenario reseed: low_inventory should produce some out-of-stock
     await postJson(`${base}/api/demo/seed?scenario=low_inventory&seed=123`, {})
     const inv1 = await getJson(`${base}/api/inventory`)
-    const out1 = Array.isArray(inv1) ? inv1.filter((i: any) => i.status === 'out-of-stock').map((i: any) => i.sku).sort() : []
+    const out1 = Array.isArray(inv1)
+      ? inv1
+          .filter((i: any) => i.status === 'out-of-stock')
+          .map((i: any) => i.sku)
+          .sort()
+      : []
     if (out1.length === 0) throw new Error('Expected low inventory after reseed')
 
     // Reseed with same seed and expect same out-of-stock set
     await postJson(`${base}/api/demo/seed?scenario=low_inventory&seed=123`, {})
     const inv2 = await getJson(`${base}/api/inventory`)
-    const out2 = Array.isArray(inv2) ? inv2.filter((i: any) => i.status === 'out-of-stock').map((i: any) => i.sku).sort() : []
-    if (JSON.stringify(out1) !== JSON.stringify(out2)) throw new Error('Deterministic reseed mismatch')
+    const out2 = Array.isArray(inv2)
+      ? inv2
+          .filter((i: any) => i.status === 'out-of-stock')
+          .map((i: any) => i.sku)
+          .sort()
+      : []
+    if (JSON.stringify(out1) !== JSON.stringify(out2))
+      throw new Error('Deterministic reseed mismatch')
 
     // Freeze time and verify health shows frozen
     const frozenIso = new Date().toISOString()
@@ -472,24 +519,25 @@ async function main() {
     // Generate performance report
     console.log('\n=== Performance Metrics ===')
     const totalRequests = performanceMetrics.length
-    const avgResponseTime = performanceMetrics.reduce((sum, m) => sum + m.responseTime, 0) / totalRequests
-    const maxResponseTime = Math.max(...performanceMetrics.map(m => m.responseTime))
-    const minResponseTime = Math.min(...performanceMetrics.map(m => m.responseTime))
-    const slowRequests = performanceMetrics.filter(m => m.responseTime > 200)
-    
+    const avgResponseTime =
+      performanceMetrics.reduce((sum, m) => sum + m.responseTime, 0) / totalRequests
+    const maxResponseTime = Math.max(...performanceMetrics.map((m) => m.responseTime))
+    const minResponseTime = Math.min(...performanceMetrics.map((m) => m.responseTime))
+    const slowRequests = performanceMetrics.filter((m) => m.responseTime > 200)
+
     console.log(`Total API requests: ${totalRequests}`)
     console.log(`Average response time: ${avgResponseTime.toFixed(2)}ms`)
     console.log(`Min response time: ${minResponseTime}ms`)
     console.log(`Max response time: ${maxResponseTime}ms`)
     console.log(`Requests > 200ms: ${slowRequests.length}`)
-    
+
     if (slowRequests.length > 0) {
       console.log('\nSlow requests (>200ms):')
-      slowRequests.forEach(req => {
+      slowRequests.forEach((req) => {
         console.log(`  ${req.method} ${req.url}: ${req.responseTime}ms`)
       })
     }
-    
+
     // Performance baseline establishment
     const performanceBaseline = {
       timestamp: new Date().toISOString(),
@@ -498,23 +546,32 @@ async function main() {
       maxResponseTime,
       minResponseTime,
       slowRequestCount: slowRequests.length,
-      memoryUsagePattern: performanceMetrics.map(m => m.memoryUsage).filter(m => m !== undefined)
+      memoryUsagePattern: performanceMetrics
+        .map((m) => m.memoryUsage)
+        .filter((m) => m !== undefined)
     }
-    
+
     // Save baseline to file for future comparisons
     try {
-      fs.writeFileSync('.local/performance-baseline.json', JSON.stringify(performanceBaseline, null, 2))
+      fs.writeFileSync(
+        '.local/performance-baseline.json',
+        JSON.stringify(performanceBaseline, null, 2)
+      )
       console.log('\nPerformance baseline saved to .local/performance-baseline.json')
     } catch (err) {
       console.warn('Could not save performance baseline:', err)
     }
-    
+
     // Warn if performance is concerning
     if (avgResponseTime > 500) {
-      console.warn(`⚠️  Average response time (${avgResponseTime.toFixed(2)}ms) exceeds 500ms threshold`)
+      console.warn(
+        `⚠️  Average response time (${avgResponseTime.toFixed(2)}ms) exceeds 500ms threshold`
+      )
     }
     if (slowRequests.length > totalRequests * 0.2) {
-      console.warn(`⚠️  ${slowRequests.length} requests (${((slowRequests.length/totalRequests)*100).toFixed(1)}%) exceeded 200ms threshold`)
+      console.warn(
+        `⚠️  ${slowRequests.length} requests (${((slowRequests.length / totalRequests) * 100).toFixed(1)}%) exceeded 200ms threshold`
+      )
     }
 
     console.log('\nSmoke tests passed.')

@@ -3,125 +3,127 @@
  * Provides real-time performance monitoring interface
  */
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Alert, AlertDescription } from '../components/ui/alert';
-import { 
-  Activity, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  TrendingUp, 
+import React, { useState, useEffect } from 'react'
+import { PageContainer, PageHeader, GlassCard } from '@/components/layout/Page'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
+import { Badge } from '../components/ui/badge'
+import { Button } from '../components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
+import { Alert, AlertDescription } from '../components/ui/alert'
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  TrendingUp,
   TrendingDown,
   Users,
   Zap,
   BarChart3,
   Download,
   RefreshCw
-} from 'lucide-react';
+} from 'lucide-react'
 
 interface PerformanceMetrics {
-  timestamp: number;
+  timestamp: number
   requests: {
-    total: number;
-    successful: number;
-    failed: number;
-    errorRate: number;
-    requestsPerSecond: number;
-  };
+    total: number
+    successful: number
+    failed: number
+    errorRate: number
+    requestsPerSecond: number
+  }
   responseTime: {
-    average: number;
-    p50: number;
-    p95: number;
-    p99: number;
-    min: number;
-    max: number;
-  };
+    average: number
+    p50: number
+    p95: number
+    p99: number
+    min: number
+    max: number
+  }
   system: {
-    cpuUsage: number;
-    memoryUsage: number;
-    heapUtilization: number;
-    activeConnections: number;
-    uptime: number;
-  };
+    cpuUsage: number
+    memoryUsage: number
+    heapUtilization: number
+    activeConnections: number
+    uptime: number
+  }
   business: {
-    activeUsers: number;
-    transactionsPerMinute: number;
-    averageSessionDuration: number;
-  };
+    activeUsers: number
+    transactionsPerMinute: number
+    averageSessionDuration: number
+  }
 }
 
 interface PerformanceAlert {
-  id: string;
-  timestamp: number;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  metric: string;
-  value: number;
-  threshold: number;
-  message: string;
-  resolved?: boolean;
+  id: string
+  timestamp: number
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  metric: string
+  value: number
+  threshold: number
+  message: string
+  resolved?: boolean
 }
 
 interface DashboardData {
   summary: {
-    health: 'healthy' | 'warning' | 'critical';
-    uptime: number;
-    activeAlerts: number;
-    totalRequests: number;
-    errorRate: number;
-    averageResponseTime: number;
-  };
+    health: 'healthy' | 'warning' | 'critical'
+    uptime: number
+    activeAlerts: number
+    totalRequests: number
+    errorRate: number
+    averageResponseTime: number
+  }
   metrics: {
-    current: PerformanceMetrics | null;
-    history: PerformanceMetrics[];
-  };
+    current: PerformanceMetrics | null
+    history: PerformanceMetrics[]
+  }
   alerts: {
-    active: PerformanceAlert[];
-    recent: PerformanceAlert[];
-  };
+    active: PerformanceAlert[]
+    recent: PerformanceAlert[]
+  }
 }
 
 export default function PerformanceDashboard() {
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [autoRefresh, setAutoRefresh] = useState(true)
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('/api/performance/dashboard');
+      const response = await fetch('/api/performance/dashboard')
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-      const result = await response.json();
+      const result = await response.json()
       if (result.success) {
-        setDashboardData(result.data);
-        setError(null);
+        setDashboardData(result.data)
+        setError(null)
       } else {
-        throw new Error(result.error || 'Failed to fetch dashboard data');
+        throw new Error(result.error || 'Failed to fetch dashboard data')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const resolveAlert = async (alertId: string) => {
     try {
       const response = await fetch(`/api/performance/alerts/${alertId}/resolve`, {
         method: 'POST'
-      });
+      })
       if (response.ok) {
-        fetchDashboardData(); // Refresh data
+        fetchDashboardData() // Refresh data
       }
     } catch (err) {
-      console.error('Failed to resolve alert:', err);
+      console.error('Failed to resolve alert:', err)
     }
-  };
+  }
 
   const generateReport = async () => {
     try {
@@ -129,130 +131,156 @@ export default function PerformanceDashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ periodHours: 24 })
-      });
+      })
       if (response.ok) {
-        const result = await response.json();
+        const result = await response.json()
         // In a real app, you might navigate to a report view or download the report
-        alert('Report generated successfully!');
+        alert('Report generated successfully!')
       }
     } catch (err) {
-      console.error('Failed to generate report:', err);
+      console.error('Failed to generate report:', err)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    fetchDashboardData()
+  }, [])
 
   useEffect(() => {
-    if (!autoRefresh) return;
+    if (!autoRefresh) return
 
-    const interval = setInterval(fetchDashboardData, 15000); // Refresh every 15 seconds
-    return () => clearInterval(interval);
-  }, [autoRefresh]);
+    const interval = setInterval(fetchDashboardData, 15000) // Refresh every 15 seconds
+    return () => clearInterval(interval)
+  }, [autoRefresh])
 
   const formatUptime = (ms: number) => {
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+    const seconds = Math.floor(ms / 1000)
+    const minutes = Math.floor(seconds / 60)
+    const hours = Math.floor(minutes / 60)
+    const days = Math.floor(hours / 24)
 
-    if (days > 0) return `${days}d ${hours % 24}h`;
-    if (hours > 0) return `${hours}h ${minutes % 60}m`;
-    if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
-    return `${seconds}s`;
-  };
+    if (days > 0) return `${days}d ${hours % 24}h`
+    if (hours > 0) return `${hours}h ${minutes % 60}m`
+    if (minutes > 0) return `${minutes}m ${seconds % 60}s`
+    return `${seconds}s`
+  }
 
   const getHealthColor = (health: string) => {
     switch (health) {
-      case 'healthy': return 'text-green-600';
-      case 'warning': return 'text-yellow-600';
-      case 'critical': return 'text-red-600';
-      default: return 'text-gray-600';
+      case 'healthy':
+        return 'text-green-600'
+      case 'warning':
+        return 'text-yellow-600'
+      case 'critical':
+        return 'text-red-600'
+      default:
+        return 'text-gray-600'
     }
-  };
+  }
 
   const getHealthIcon = (health: string) => {
     switch (health) {
-      case 'healthy': return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case 'warning': return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
-      case 'critical': return <AlertTriangle className="h-5 w-5 text-red-600" />;
-      default: return <Activity className="h-5 w-5 text-gray-600" />;
+      case 'healthy':
+        return <CheckCircle className="h-5 w-5 text-green-600" />
+      case 'warning':
+        return <AlertTriangle className="h-5 w-5 text-yellow-600" />
+      case 'critical':
+        return <AlertTriangle className="h-5 w-5 text-red-600" />
+      default:
+        return <Activity className="h-5 w-5 text-gray-600" />
     }
-  };
+  }
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'low': return 'bg-blue-100 text-blue-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'critical': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'low':
+        return 'bg-blue-100 text-blue-800'
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'high':
+        return 'bg-orange-100 text-orange-800'
+      case 'critical':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
     }
-  };
+  }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading performance data...</span>
-      </div>
-    );
+      <PageContainer>
+        <PageHeader
+          title="Performance Dashboard"
+          subtitle="Real-time system performance monitoring"
+          testId="heading-performance"
+        />
+        <GlassCard className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-xl bg-slate-800/60" />
+          ))}
+        </GlassCard>
+      </PageContainer>
+    )
   }
 
   if (error) {
     return (
-      <Alert className="m-4">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          Failed to load performance dashboard: {error}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="ml-2"
-            onClick={fetchDashboardData}
-          >
-            Retry
-          </Button>
-        </AlertDescription>
-      </Alert>
-    );
+      <PageContainer>
+        <PageHeader
+          title="Performance Dashboard"
+          subtitle="Real-time system performance monitoring"
+          testId="heading-performance"
+        />
+        <Alert className="border-slate-800 bg-slate-900/60">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load performance dashboard: {error}
+            <Button variant="outline" size="sm" className="ml-2" onClick={fetchDashboardData}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </PageContainer>
+    )
   }
 
   if (!dashboardData) {
     return (
-      <Alert className="m-4">
-        <AlertDescription>No performance data available</AlertDescription>
-      </Alert>
-    );
+      <PageContainer>
+        <PageHeader
+          title="Performance Dashboard"
+          subtitle="Real-time system performance monitoring"
+          testId="heading-performance"
+        />
+        <Alert className="border-slate-800 bg-slate-900/60">
+          <AlertDescription>No performance data available</AlertDescription>
+        </Alert>
+      </PageContainer>
+    )
   }
 
-  const { summary, metrics, alerts } = dashboardData;
-  const current = metrics.current;
+  const { summary, metrics, alerts } = dashboardData
+  const current = metrics.current
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Performance Dashboard</h1>
-          <p className="text-gray-600">Real-time system performance monitoring</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setAutoRefresh(!autoRefresh)}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
-            {autoRefresh ? 'Auto-refresh On' : 'Auto-refresh Off'}
-          </Button>
-          <Button variant="outline" size="sm" onClick={generateReport}>
-            <Download className="h-4 w-4 mr-2" />
-            Generate Report
-          </Button>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Performance Dashboard"
+        subtitle="Real-time system performance monitoring"
+        testId="heading-performance"
+        actions={
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" onClick={() => setAutoRefresh(!autoRefresh)}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
+              {autoRefresh ? 'Auto-refresh On' : 'Auto-refresh Off'}
+            </Button>
+            <Button variant="outline" size="sm" onClick={generateReport}>
+              <Download className="h-4 w-4 mr-2" />
+              Generate Report
+            </Button>
+          </div>
+        }
+      />
 
       {/* System Health Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -265,9 +293,7 @@ export default function PerformanceDashboard() {
             <div className={`text-2xl font-bold ${getHealthColor(summary.health)}`}>
               {summary.health.charAt(0).toUpperCase() + summary.health.slice(1)}
             </div>
-            <p className="text-xs text-gray-600">
-              Uptime: {formatUptime(summary.uptime)}
-            </p>
+            <p className="text-xs text-gray-600">Uptime: {formatUptime(summary.uptime)}</p>
           </CardContent>
         </Card>
 
@@ -277,12 +303,8 @@ export default function PerformanceDashboard() {
             <Clock className="h-4 w-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {Math.round(summary.averageResponseTime)}ms
-            </div>
-            <p className="text-xs text-gray-600">
-              Average response time
-            </p>
+            <div className="text-2xl font-bold">{Math.round(summary.averageResponseTime)}ms</div>
+            <p className="text-xs text-gray-600">Average response time</p>
           </CardContent>
         </Card>
 
@@ -292,12 +314,12 @@ export default function PerformanceDashboard() {
             <TrendingDown className="h-4 w-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${summary.errorRate > 1 ? 'text-red-600' : 'text-green-600'}`}>
+            <div
+              className={`text-2xl font-bold ${summary.errorRate > 1 ? 'text-red-600' : 'text-green-600'}`}
+            >
               {summary.errorRate.toFixed(2)}%
             </div>
-            <p className="text-xs text-gray-600">
-              Current error rate
-            </p>
+            <p className="text-xs text-gray-600">Current error rate</p>
           </CardContent>
         </Card>
 
@@ -307,12 +329,12 @@ export default function PerformanceDashboard() {
             <AlertTriangle className="h-4 w-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${summary.activeAlerts > 0 ? 'text-red-600' : 'text-green-600'}`}>
+            <div
+              className={`text-2xl font-bold ${summary.activeAlerts > 0 ? 'text-red-600' : 'text-green-600'}`}
+            >
               {summary.activeAlerts}
             </div>
-            <p className="text-xs text-gray-600">
-              Alerts requiring attention
-            </p>
+            <p className="text-xs text-gray-600">Alerts requiring attention</p>
           </CardContent>
         </Card>
       </div>
@@ -339,7 +361,9 @@ export default function PerformanceDashboard() {
                   </div>
                   <div className="flex justify-between">
                     <span>Successful:</span>
-                    <span className="font-semibold text-green-600">{current.requests.successful}</span>
+                    <span className="font-semibold text-green-600">
+                      {current.requests.successful}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Failed:</span>
@@ -347,7 +371,9 @@ export default function PerformanceDashboard() {
                   </div>
                   <div className="flex justify-between">
                     <span>Requests/sec:</span>
-                    <span className="font-semibold">{current.requests.requestsPerSecond.toFixed(1)}</span>
+                    <span className="font-semibold">
+                      {current.requests.requestsPerSecond.toFixed(1)}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -359,7 +385,9 @@ export default function PerformanceDashboard() {
                 <CardContent className="space-y-2">
                   <div className="flex justify-between">
                     <span>Average:</span>
-                    <span className="font-semibold">{Math.round(current.responseTime.average)}ms</span>
+                    <span className="font-semibold">
+                      {Math.round(current.responseTime.average)}ms
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>95th Percentile:</span>
@@ -372,7 +400,8 @@ export default function PerformanceDashboard() {
                   <div className="flex justify-between">
                     <span>Min/Max:</span>
                     <span className="font-semibold">
-                      {Math.round(current.responseTime.min)}/{Math.round(current.responseTime.max)}ms
+                      {Math.round(current.responseTime.min)}/{Math.round(current.responseTime.max)}
+                      ms
                     </span>
                   </div>
                 </CardContent>
@@ -417,17 +446,13 @@ export default function PerformanceDashboard() {
                         </Badge>
                         <span className="font-medium">{alert.message}</span>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => resolveAlert(alert.id)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => resolveAlert(alert.id)}>
                         Resolve
                       </Button>
                     </div>
                     <div className="mt-2 text-sm text-gray-600">
-                      Value: {alert.value.toFixed(2)} | Threshold: {alert.threshold} | 
-                      Time: {new Date(alert.timestamp).toLocaleTimeString()}
+                      Value: {alert.value.toFixed(2)} | Threshold: {alert.threshold} | Time:{' '}
+                      {new Date(alert.timestamp).toLocaleTimeString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -449,11 +474,12 @@ export default function PerformanceDashboard() {
               <h3 className="text-lg font-semibold">Recent Alerts</h3>
               <div className="space-y-2">
                 {alerts.recent.slice(0, 5).map((alert) => (
-                  <div key={alert.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <div
+                    key={alert.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded"
+                  >
                     <div className="flex items-center space-x-3">
-                      <Badge className={getSeverityColor(alert.severity)}>
-                        {alert.severity}
-                      </Badge>
+                      <Badge className={getSeverityColor(alert.severity)}>{alert.severity}</Badge>
                       <span className="text-sm">{alert.message}</span>
                     </div>
                     <span className="text-xs text-gray-500">
@@ -481,10 +507,13 @@ export default function PerformanceDashboard() {
                         <span>{Math.round(current.system.heapUtilization)}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div 
+                        <div
                           className={`h-2 rounded-full ${
-                            current.system.heapUtilization > 85 ? 'bg-red-500' :
-                            current.system.heapUtilization > 70 ? 'bg-yellow-500' : 'bg-green-500'
+                            current.system.heapUtilization > 85
+                              ? 'bg-red-500'
+                              : current.system.heapUtilization > 70
+                                ? 'bg-yellow-500'
+                                : 'bg-green-500'
                           }`}
                           style={{ width: `${Math.min(100, current.system.heapUtilization)}%` }}
                         />
@@ -492,7 +521,9 @@ export default function PerformanceDashboard() {
                     </div>
                     <div className="flex justify-between">
                       <span>Memory Usage:</span>
-                      <span className="font-semibold">{Math.round(current.system.memoryUsage)}MB</span>
+                      <span className="font-semibold">
+                        {Math.round(current.system.memoryUsage)}MB
+                      </span>
                     </div>
                   </div>
                 </CardContent>
@@ -523,6 +554,6 @@ export default function PerformanceDashboard() {
           )}
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </PageContainer>
+  )
 }

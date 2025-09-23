@@ -1,31 +1,31 @@
-import { useMemo } from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { useWorkflow } from "@/hooks/useWorkflow"
-import { Badge } from "@/components/ui/badge"
+import { useMemo } from 'react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { useWorkflow } from '@/hooks/useWorkflow'
+import { Badge } from '@/components/ui/badge'
 
 const sizingSections = [
   {
-    title: "Sizing Math",
+    title: 'Sizing Math',
     bullets: [
-      "Use Kelly-capped sizing tied to scenario downside",
-      "Check liquidity stress against trade plan",
-      "Document scale-in vs. scale-out ladder"
+      'Use Kelly-capped sizing tied to scenario downside',
+      'Check liquidity stress against trade plan',
+      'Document scale-in vs. scale-out ladder'
     ]
   },
   {
-    title: "Correlation Mix",
+    title: 'Correlation Mix',
     bullets: [
-      "Measure factor exposure vs. current book",
-      "Flag concentration or unintended bets",
-      "Tag hedges that offset correlated risk"
+      'Measure factor exposure vs. current book',
+      'Flag concentration or unintended bets',
+      'Tag hedges that offset correlated risk'
     ]
   },
   {
-    title: "Governance",
+    title: 'Governance',
     bullets: [
-      "Capture reviewer sign-off with timestamp",
-      "Store stop and review triggers for Execution",
-      "Sync with monitoring alerts for drawdowns"
+      'Capture reviewer sign-off with timestamp',
+      'Store stop and review triggers for Execution',
+      'Sync with monitoring alerts for drawdowns'
     ]
   }
 ]
@@ -34,7 +34,7 @@ export function PortfolioSizingWorkbench() {
   const { getChecklist, checklistState, activeStage } = useWorkflow()
   const checklist = useMemo(() => getChecklist(activeStage.slug), [activeStage.slug, getChecklist])
   const stageState = checklistState[activeStage.slug] ?? {}
-  const signoffItem = checklist.find((item) => item.id.includes("signoff"))
+  const signoffItem = checklist.find((item) => item.id.includes('signoff'))
   const signoffDone = signoffItem ? stageState[signoffItem.id] : false
 
   return (
@@ -45,14 +45,14 @@ export function PortfolioSizingWorkbench() {
         </CardHeader>
         <CardContent className="space-y-2 text-xs text-slate-400">
           <p>
-            Portfolio fit finalizes sizing before the IC memo. Ensure the sign-off badge is green before
-            moving to Execution.
+            Portfolio fit finalizes sizing before the IC memo. Ensure the sign-off badge is green
+            before moving to Execution.
           </p>
           <Badge
             variant="outline"
-            className={`border-slate-700 text-[10px] uppercase ${signoffDone ? "text-emerald-300" : "text-amber-200"}`}
+            className={`border-slate-700 text-[10px] uppercase ${signoffDone ? 'text-emerald-300' : 'text-amber-200'}`}
           >
-            {signoffDone ? "Risk sign-off recorded" : "Awaiting risk sign-off"}
+            {signoffDone ? 'Risk sign-off recorded' : 'Awaiting risk sign-off'}
           </Badge>
         </CardContent>
       </Card>

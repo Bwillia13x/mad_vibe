@@ -8,15 +8,40 @@ import { useValuation } from '@/hooks/useValuation'
 import { useScenarioLab } from '@/hooks/useScenarioLab'
 import { useMonitoring } from '@/hooks/useMonitoring'
 import { useMemoComposer } from '@/hooks/useMemoComposer'
+import { useRedTeam } from '@/hooks/useRedTeam'
 
 const clampScore = (value: number): number => Math.max(0, Math.min(100, Math.round(value)))
 
 const gradeFromScore = (score: number) => {
-  if (score >= 92) return { label: 'A', tone: 'border-emerald-500 text-emerald-200', statement: 'IC ready – data and governance checks are green.' }
-  if (score >= 85) return { label: 'B+', tone: 'border-sky-500 text-sky-200', statement: 'Strong draft – tighten a few governance follow-ups.' }
-  if (score >= 76) return { label: 'B', tone: 'border-amber-500 text-amber-200', statement: 'Progressing – resolve outstanding issues before committee.' }
-  if (score >= 68) return { label: 'C+', tone: 'border-amber-600 text-amber-200', statement: 'At risk – several blocking items remain open.' }
-  return { label: 'Watch', tone: 'border-red-600 text-red-200', statement: 'Not ready – remediate data and governance gaps.' }
+  if (score >= 92)
+    return {
+      label: 'A',
+      tone: 'border-emerald-500 text-emerald-200',
+      statement: 'IC ready – data and governance checks are green.'
+    }
+  if (score >= 85)
+    return {
+      label: 'B+',
+      tone: 'border-sky-500 text-sky-200',
+      statement: 'Strong draft – tighten a few governance follow-ups.'
+    }
+  if (score >= 76)
+    return {
+      label: 'B',
+      tone: 'border-amber-500 text-amber-200',
+      statement: 'Progressing – resolve outstanding issues before committee.'
+    }
+  if (score >= 68)
+    return {
+      label: 'C+',
+      tone: 'border-amber-600 text-amber-200',
+      statement: 'At risk – several blocking items remain open.'
+    }
+  return {
+    label: 'Watch',
+    tone: 'border-red-600 text-red-200',
+    statement: 'Not ready – remediate data and governance gaps.'
+  }
 }
 
 export function QualityGovernanceScorecard() {
@@ -26,15 +51,22 @@ export function QualityGovernanceScorecard() {
   const { simulation, state: scenarioState } = useScenarioLab()
   const { alerts, deltas } = useMonitoring()
   const { reviewPrompts, state: memoState, exhibits, openCommentCount } = useMemoComposer()
+  const { coverage: redTeamCoverage, highOpen: redTeamHighOpen } = useRedTeam()
 
   const positiveOwnerEarningsYears = useMemo(() => {
     if (historical.length <= 1) return 0
-    return historical.slice(1).filter((entry, index) => entry.ownerEarnings >= historical[index].ownerEarnings).length
+    return historical
+      .slice(1)
+      .filter((entry, index) => entry.ownerEarnings >= historical[index].ownerEarnings).length
   }, [historical])
 
   const dataScore = useMemo(() => {
-    const reconciliationRatio = coverage.totalSources === 0 ? 1 : coverage.reconciledCount / coverage.totalSources
-    const base = coverage.avgCoverage * 0.35 + coverage.avgFootnoteCoverage * 0.25 + reconciliationRatio * 100 * 0.25
+    const reconciliationRatio =
+      coverage.totalSources === 0 ? 1 : coverage.reconciledCount / coverage.totalSources
+    const base =
+      coverage.avgCoverage * 0.35 +
+      coverage.avgFootnoteCoverage * 0.25 +
+      reconciliationRatio * 100 * 0.25
     const unmatchedPenalty = Math.min(coverage.totalUnmatched * 1.8, 25)
     const normalized = base - unmatchedPenalty + 10
     return clampScore(normalized)
@@ -42,9 +74,12 @@ export function QualityGovernanceScorecard() {
 
   const financialScore = useMemo(() => {
     const totalSegments = bridge.length || 1
-    const enabledSegments = bridge.filter((segment) => ownerState.includeBridgeSegments[segment.id]).length
+    const enabledSegments = bridge.filter(
+      (segment) => ownerState.includeBridgeSegments[segment.id]
+    ).length
     const segmentRatio = enabledSegments / totalSegments
-    const growthRatio = historical.length > 1 ? positiveOwnerEarningsYears / (historical.length - 1) : 1
+    const growthRatio =
+      historical.length > 1 ? positiveOwnerEarningsYears / (historical.length - 1) : 1
     const score = segmentRatio * 70 + growthRatio * 25 + 5
     return clampScore(score)
   }, [bridge, ownerState.includeBridgeSegments, historical, positiveOwnerEarningsYears])
@@ -52,12 +87,19 @@ export function QualityGovernanceScorecard() {
   const valuationScore = useMemo(() => {
     const marginOfSafety = currentScenario.impliedMoS
     const downside = simulation.downsideProbability
-    const iterationBonus = scenarioState.iterations >= 600 ? 10 : scenarioState.iterations >= 400 ? 6 : 3
+    const iterationBonus =
+      scenarioState.iterations >= 600 ? 10 : scenarioState.iterations >= 400 ? 6 : 3
     const overrideCount = Object.keys(valuationState.assumptionOverrides ?? {}).length
     const overrideBonus = Math.min(overrideCount * 2, 12)
-    const score = marginOfSafety * 0.7 + (100 - downside) * 0.45 + iterationBonus + overrideBonus - 20
+    const score =
+      marginOfSafety * 0.7 + (100 - downside) * 0.45 + iterationBonus + overrideBonus - 20
     return clampScore(score)
-  }, [currentScenario, simulation.downsideProbability, scenarioState.iterations, valuationState.assumptionOverrides])
+  }, [
+    currentScenario,
+    simulation.downsideProbability,
+    scenarioState.iterations,
+    valuationState.assumptionOverrides
+  ])
 
   const governanceScore = useMemo(() => {
     const totalPrompts = reviewPrompts.length || 1
@@ -86,9 +128,14 @@ export function QualityGovernanceScorecard() {
     }, 0)
     const deltaScore = Math.max(0, 100 - deltaPenalty)
 
-    const composite = reviewCompletion * 0.45 + commentScore * 0.25 + alertScore * 0.2 + deltaScore * 0.1
+    // Red Team integration: Penalty for unresolved critiques
+    const redTeamPenalty = redTeamHighOpen > 0 ? 15 : redTeamCoverage < 80 ? 10 : 0
+    const redTeamScore = Math.max(0, 100 - redTeamPenalty)
+
+    const composite =
+      reviewCompletion * 0.35 + commentScore * 0.2 + alertScore * 0.15 + deltaScore * 0.15 + redTeamScore * 0.15
     return clampScore(composite)
-  }, [alerts, deltas, memoState.reviewChecklist, openCommentCount, reviewPrompts.length])
+  }, [alerts, deltas, memoState.reviewChecklist, openCommentCount, reviewPrompts.length, redTeamHighOpen, redTeamCoverage])
 
   const categories = useMemo(
     () => [
@@ -129,11 +176,12 @@ export function QualityGovernanceScorecard() {
         id: 'governance',
         label: 'Governance Readiness',
         score: governanceScore,
-        description: 'Review sign-offs, outstanding commentary, and monitoring hooks.',
+        description: 'Review sign-offs, outstanding commentary, monitoring hooks, and red-team closure.',
         evidence: [
           `${Object.values(memoState.reviewChecklist).filter(Boolean).length}/${reviewPrompts.length} review prompts complete`,
           `${openCommentCount} open reviewer comments`,
-          `${alerts.filter((alert) => !alert.acknowledged).length} monitoring alerts awaiting acknowledgement`
+          `${alerts.filter((alert) => !alert.acknowledged).length} monitoring alerts awaiting acknowledgement`,
+          `Red-team: ${redTeamCoverage}% coverage, ${redTeamHighOpen} high open`
         ]
       }
     ],
@@ -150,6 +198,8 @@ export function QualityGovernanceScorecard() {
       memoState.reviewChecklist,
       openCommentCount,
       positiveOwnerEarningsYears,
+      redTeamCoverage,
+      redTeamHighOpen,
       reviewPrompts.length,
       simulation.downsideProbability,
       valuationScore,
@@ -174,8 +224,8 @@ export function QualityGovernanceScorecard() {
           <div>
             <CardTitle className="text-sm text-slate-200">Quality & Governance Summary</CardTitle>
             <p className="mt-2 text-xs text-slate-400">
-              Aggregate quality score blends data coverage, financial rigor, valuation discipline, and governance
-              readiness to signal IC preparedness.
+              Aggregate quality score blends data coverage, financial rigor, valuation discipline,
+              and governance readiness to signal IC preparedness.
             </p>
           </div>
           <Badge
@@ -189,14 +239,17 @@ export function QualityGovernanceScorecard() {
           <div>
             <p>{grade.statement}</p>
             <p className="mt-2 text-slate-500">
-              Exhibits packaged: {includedExhibits}/{exhibits.length}. Reviewer threads open: {openCommentCount}.
+              Exhibits packaged: {includedExhibits}/{exhibits.length}. Reviewer threads open:{' '}
+              {openCommentCount}.
             </p>
           </div>
           <div className="space-y-2 rounded border border-slate-800 bg-slate-950/50 p-3">
             <p className="text-[11px] uppercase text-slate-500">Scenario Snapshot</p>
             <p>
-              {valuationState.selectedScenario.toUpperCase()} case at ${currentScenario.value.toFixed(2)} with {currentScenario.impliedMoS}% MoS.
-              Monte Carlo mean ${simulation.meanValue.toFixed(2)} vs downside probability {simulation.downsideProbability}%.
+              {valuationState.selectedScenario.toUpperCase()} case at $
+              {currentScenario.value.toFixed(2)} with {currentScenario.impliedMoS}% MoS. Monte Carlo
+              mean ${simulation.meanValue.toFixed(2)} vs downside probability{' '}
+              {simulation.downsideProbability}%.
             </p>
             <p className="text-slate-500">Iterations run: {scenarioState.iterations}.</p>
           </div>

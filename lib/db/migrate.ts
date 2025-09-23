@@ -14,7 +14,7 @@ async function runMigration() {
 
     log('Database migration completed successfully', { timestamp: new Date().toISOString() })
   } catch (error) {
-    log('Database migration failed', { 
+    log('Database migration failed', {
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString()
     })

@@ -35,29 +35,86 @@ export default function DemoBanner() {
     <div className="w-full bg-yellow-100 dark:bg-yellow-900 text-yellow-900 dark:text-yellow-100 text-sm px-3 py-2 flex items-center justify-between">
       <div role="status" aria-live="polite">
         Demo mode: AI live responses disabled. Current scenario: <strong>{scenario}</strong>
-        {seed && <span className="ml-2">Seed: <strong>{seed}</strong></span>}
+        {seed && (
+          <span className="ml-2">
+            Seed: <strong>{seed}</strong>
+          </span>
+        )}
         {frozen && (
-          <span className="ml-2">Time frozen at <strong>{new Date(freezeDate).toLocaleString()}</strong></span>
+          <span className="ml-2">
+            Time frozen at <strong>{new Date(freezeDate).toLocaleString()}</strong>
+          </span>
         )}
         <span className="ml-3 opacity-80">Tip: Click Reset to restore the default demo state.</span>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         <span>Switch scenario:</span>
-        <Button variant="outline" size="sm" onClick={() => reseed('default')} disabled={isFetching}>Default</Button>
-        <Button variant="outline" size="sm" onClick={() => reseed('busy_day')} disabled={isFetching}>Busy Day</Button>
-        <Button variant="outline" size="sm" onClick={() => reseed('low_inventory')} disabled={isFetching}>Low Inventory</Button>
-        <Button variant="outline" size="sm" onClick={() => reseed('appointment_gaps')} disabled={isFetching}>Appointment Gaps</Button>
+        <Button variant="outline" size="sm" onClick={() => reseed('default')} disabled={isFetching}>
+          Default
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => reseed('busy_day')}
+          disabled={isFetching}
+        >
+          Busy Day
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => reseed('low_inventory')}
+          disabled={isFetching}
+        >
+          Low Inventory
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => reseed('appointment_gaps')}
+          disabled={isFetching}
+        >
+          Appointment Gaps
+        </Button>
         <span className="mx-2">|</span>
         {!frozen ? (
-          <Button aria-label="Freeze time now" variant="outline" size="sm" onClick={freezeNow} disabled={isFetching}>Freeze Now</Button>
+          <Button
+            aria-label="Freeze time now"
+            variant="outline"
+            size="sm"
+            onClick={freezeNow}
+            disabled={isFetching}
+          >
+            Freeze Now
+          </Button>
         ) : (
-          <Button aria-label="Clear time freeze" variant="outline" size="sm" onClick={clearFreeze} disabled={isFetching}>Clear Freeze</Button>
+          <Button
+            aria-label="Clear time freeze"
+            variant="outline"
+            size="sm"
+            onClick={clearFreeze}
+            disabled={isFetching}
+          >
+            Clear Freeze
+          </Button>
         )}
         <span className="mx-2">|</span>
-        <Button aria-label="Open demo controls" variant="outline" size="sm" onClick={() => setOpen(true)} data-testid="button-demo-controls">
+        <Button
+          aria-label="Open demo controls"
+          variant="outline"
+          size="sm"
+          onClick={() => setOpen(true)}
+          data-testid="button-demo-controls"
+        >
           Controls
         </Button>
-        <Button aria-label="Reset demo" variant="outline" size="sm" onClick={resetDemo} data-testid="button-reset-demo">
+        <Button
+          aria-label="Reset demo"
+          variant="outline"
+          size="sm"
+          onClick={resetDemo}
+          data-testid="button-reset-demo"
+        >
           Reset
         </Button>
 
@@ -70,7 +127,9 @@ export default function DemoBanner() {
             variant="outline"
             size="sm"
             onClick={async () => {
-              await fetch(`/api/demo/seed?scenario=${encodeURIComponent(scenario)}&seed=${p}` , { method: 'POST' })
+              await fetch(`/api/demo/seed?scenario=${encodeURIComponent(scenario)}&seed=${p}`, {
+                method: 'POST'
+              })
               await refetch()
             }}
             aria-label={`Apply seed ${p}`}

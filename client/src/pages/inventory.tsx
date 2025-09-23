@@ -12,7 +12,12 @@ export default function InventoryPage() {
   const [sendingOrder, setSendingOrder] = useState(false)
   const { toast } = useToast()
 
-  const { data: inventory = [], isLoading, error, refetch } = useQuery<InventoryItem[]>({
+  const {
+    data: inventory = [],
+    isLoading,
+    error,
+    refetch
+  } = useQuery<InventoryItem[]>({
     queryKey: ['/api', 'inventory'],
     staleTime: 5 * 60 * 1000
   })
@@ -79,7 +84,11 @@ export default function InventoryPage() {
   if (error) {
     return (
       <PageContainer>
-        <PageHeader title="Inventory" subtitle="Track critical supplies and pro-actively trigger vendor workflows." />
+        <PageHeader
+          title="Inventory"
+          subtitle="Track critical supplies and pro-actively trigger vendor workflows."
+          testId="heading-inventory"
+        />
         <GlassCard className="border-rose-500/40 bg-rose-900/20 p-6">
           <div className="flex items-center justify-between text-sm text-rose-200">
             <span>Failed to load inventory data. Retry?</span>
@@ -100,7 +109,11 @@ export default function InventoryPage() {
   if (isLoading) {
     return (
       <PageContainer>
-        <PageHeader title="Inventory" subtitle="Track critical supplies and pro-actively trigger vendor workflows." />
+        <PageHeader
+          title="Inventory"
+          subtitle="Track critical supplies and pro-actively trigger vendor workflows."
+          testId="heading-inventory"
+        />
         <GlassCard className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <div key={index} className="h-32 animate-pulse rounded-xl bg-slate-800/60" />
@@ -115,6 +128,7 @@ export default function InventoryPage() {
       <PageHeader
         title="Inventory"
         subtitle="Monitor supply positions, detect risks, and coordinate with vendors directly from the command center."
+        testId="heading-inventory"
         badge={
           <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-600/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-violet-200">
             <Sparkles className="h-3 w-3" /> Operations
@@ -144,7 +158,9 @@ export default function InventoryPage() {
         <CardHeader className="flex flex-col gap-2 border-b border-slate-800/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="text-sm text-slate-200">Low stock watchlist</CardTitle>
-            <p className="text-xs text-slate-500">Prioritize replenishment for critical grooming supplies.</p>
+            <p className="text-xs text-slate-500">
+              Prioritize replenishment for critical grooming supplies.
+            </p>
           </div>
           <div className="text-xs text-slate-400">
             {lowStockItems.length} of {inventory.length} items below safety stock
@@ -152,12 +168,17 @@ export default function InventoryPage() {
         </CardHeader>
         <CardContent className="divide-y divide-slate-800/60 text-sm">
           {lowStockItems.length === 0 && (
-            <div className="py-6 text-center text-slate-400">All SKUs are healthy. No action required.</div>
+            <div className="py-6 text-center text-slate-400">
+              All SKUs are healthy. No action required.
+            </div>
           )}
           {lowStockItems.map((item) => {
             const status = getStatusData(item)
             return (
-              <div key={item.id} className="grid gap-4 py-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+              <div
+                key={item.id}
+                className="grid gap-4 py-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]"
+              >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-slate-200">
                     <Package className="h-4 w-4 text-slate-500" />
@@ -170,7 +191,9 @@ export default function InventoryPage() {
                   <span>Minimum: {item.minStock}</span>
                 </div>
                 <div className="flex items-center justify-between gap-2 sm:justify-end">
-                  <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs ${status.tone}`}>
+                  <span
+                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs ${status.tone}`}
+                  >
                     {status.icon}
                     {status.label}
                   </span>
@@ -192,7 +215,9 @@ export default function InventoryPage() {
         <CardHeader className="flex flex-col gap-2 border-b border-slate-800/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="text-sm text-slate-200">Full inventory roster</CardTitle>
-            <p className="text-xs text-slate-500">Command view across all SKUs with cost basis and reorder cadence.</p>
+            <p className="text-xs text-slate-500">
+              Command view across all SKUs with cost basis and reorder cadence.
+            </p>
           </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
@@ -223,7 +248,9 @@ export default function InventoryPage() {
                     <td className="px-4 py-3 text-right text-slate-200">{item.minStock}</td>
                     <td className="px-4 py-3 text-xs text-slate-400">{item.status ?? 'Tracked'}</td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs ${status.tone}`}>
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs ${status.tone}`}
+                      >
                         {status.icon}
                         {status.label}
                       </span>
@@ -245,11 +272,14 @@ export default function InventoryPage() {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           {lowStockItems.map((item) => (
-              <div key={item.id} className="flex items-start justify-between rounded-xl border border-slate-800/70 bg-slate-950/60 p-4 text-sm">
-                <div>
-                  <div className="font-medium text-slate-100">{item.name}</div>
-                  <p className="text-xs text-slate-500">{item.supplier ?? 'No supplier on file'}</p>
-                </div>
+            <div
+              key={item.id}
+              className="flex items-start justify-between rounded-xl border border-slate-800/70 bg-slate-950/60 p-4 text-sm"
+            >
+              <div>
+                <div className="font-medium text-slate-100">{item.name}</div>
+                <p className="text-xs text-slate-500">{item.supplier ?? 'No supplier on file'}</p>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
@@ -270,7 +300,9 @@ export default function InventoryPage() {
 
       <GlassCard className="flex flex-wrap items-center justify-between gap-4 border-violet-500/30 bg-violet-600/10 px-5 py-4 text-sm text-violet-100">
         <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-violet-200">Omni-prompt shortcut</div>
+          <div className="text-xs uppercase tracking-[0.18em] text-violet-200">
+            Omni-prompt shortcut
+          </div>
           <p>“Flag supply risk for items with &lt;2 week cover and propose bundled orders.”</p>
         </div>
         <Button

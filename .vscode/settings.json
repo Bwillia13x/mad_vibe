@@ -1,5 +1,5 @@
 {
-    "kiroAgent.configureMCP": "Disabled",
-    "kiroAgent.enableDebugLogs": true,
-    "kiroAgent.enableTabAutocomplete": true
+  "kiroAgent.configureMCP": "Disabled",
+  "kiroAgent.enableDebugLogs": true,
+  "kiroAgent.enableTabAutocomplete": true
 }

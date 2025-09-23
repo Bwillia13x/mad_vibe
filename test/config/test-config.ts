@@ -4,47 +4,47 @@
  */
 
 export interface TestConfig {
-  environment: 'local' | 'staging' | 'docker';
-  testSuites: TestSuite[];
-  thresholds: PerformanceThresholds;
-  security: SecurityConfig;
-  reporting: ReportingConfig;
-  server: ServerConfig;
+  environment: 'local' | 'staging' | 'docker'
+  testSuites: TestSuite[]
+  thresholds: PerformanceThresholds
+  security: SecurityConfig
+  reporting: ReportingConfig
+  server: ServerConfig
 }
 
 export interface TestSuite {
-  name: string;
-  type: 'functional' | 'performance' | 'security' | 'deployment' | 'uat';
-  enabled: boolean;
-  config: Record<string, any>;
+  name: string
+  type: 'functional' | 'performance' | 'security' | 'deployment' | 'uat'
+  enabled: boolean
+  config: Record<string, any>
 }
 
 export interface PerformanceThresholds {
-  maxResponseTime: number; // milliseconds
-  maxMemoryUsage: number; // MB
-  minConcurrentUsers: number;
-  maxErrorRate: number; // percentage
+  maxResponseTime: number // milliseconds
+  maxMemoryUsage: number // MB
+  minConcurrentUsers: number
+  maxErrorRate: number // percentage
 }
 
 export interface SecurityConfig {
-  enableVulnerabilityScanning: boolean;
-  enableInputValidationTests: boolean;
-  enableAuthenticationTests: boolean;
-  maxSecurityRiskLevel: 'low' | 'medium' | 'high' | 'critical';
+  enableVulnerabilityScanning: boolean
+  enableInputValidationTests: boolean
+  enableAuthenticationTests: boolean
+  maxSecurityRiskLevel: 'low' | 'medium' | 'high' | 'critical'
 }
 
 export interface ReportingConfig {
-  outputDir: string;
-  formats: ('html' | 'json' | 'csv')[];
-  includeScreenshots: boolean;
-  includeMetrics: boolean;
+  outputDir: string
+  formats: ('html' | 'json' | 'csv')[]
+  includeScreenshots: boolean
+  includeMetrics: boolean
 }
 
 export interface ServerConfig {
-  startupTimeoutMs: number;
-  portFile: string;
-  baseUrl?: string;
-  env: Record<string, string>;
+  startupTimeoutMs: number
+  portFile: string
+  baseUrl?: string
+  env: Record<string, string>
 }
 
 /**
@@ -64,7 +64,7 @@ export const defaultTestConfig: TestConfig = {
     },
     {
       name: 'api-tests',
-      type: 'functional', 
+      type: 'functional',
       enabled: true,
       config: {
         timeout: 15000,
@@ -128,7 +128,7 @@ export const defaultTestConfig: TestConfig = {
       SKIP_RATE_LIMIT: 'true' // Skip rate limiting in tests to avoid interference
     }
   }
-};
+}
 
 /**
  * Load test configuration from file or use defaults
@@ -138,40 +138,40 @@ export function loadTestConfig(configPath?: string): TestConfig {
     try {
       // In a real implementation, we'd load from file
       // For now, return defaults
-      return defaultTestConfig;
+      return defaultTestConfig
     } catch (error) {
-      console.warn(`Failed to load config from ${configPath}, using defaults`);
-      return defaultTestConfig;
+      console.warn(`Failed to load config from ${configPath}, using defaults`)
+      return defaultTestConfig
     }
   }
-  return defaultTestConfig;
+  return defaultTestConfig
 }
 
 /**
  * Validate test configuration
  */
 export function validateTestConfig(config: TestConfig): string[] {
-  const errors: string[] = [];
-  
+  const errors: string[] = []
+
   if (config.thresholds.maxResponseTime <= 0) {
-    errors.push('maxResponseTime must be positive');
+    errors.push('maxResponseTime must be positive')
   }
-  
+
   if (config.thresholds.maxMemoryUsage <= 0) {
-    errors.push('maxMemoryUsage must be positive');
+    errors.push('maxMemoryUsage must be positive')
   }
-  
+
   if (config.thresholds.maxErrorRate < 0 || config.thresholds.maxErrorRate > 100) {
-    errors.push('maxErrorRate must be between 0 and 100');
+    errors.push('maxErrorRate must be between 0 and 100')
   }
-  
+
   if (!config.reporting.outputDir) {
-    errors.push('reporting.outputDir is required');
+    errors.push('reporting.outputDir is required')
   }
-  
+
   if (config.reporting.formats.length === 0) {
-    errors.push('at least one reporting format must be specified');
+    errors.push('at least one reporting format must be specified')
   }
-  
-  return errors;
+
+  return errors
 }

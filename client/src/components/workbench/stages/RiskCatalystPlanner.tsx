@@ -1,31 +1,31 @@
-import { useMemo } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useWorkflow } from "@/hooks/useWorkflow"
-import { Badge } from "@/components/ui/badge"
+import { useMemo } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useWorkflow } from '@/hooks/useWorkflow'
+import { Badge } from '@/components/ui/badge'
 
 const riskColumns = [
   {
-    title: "Top Risks",
+    title: 'Top Risks',
     bullets: [
-      "Score likelihood × impact for each risk",
-      "Attach mitigation owners and review cadence",
-      "Flag tail events that require escalation"
+      'Score likelihood × impact for each risk',
+      'Attach mitigation owners and review cadence',
+      'Flag tail events that require escalation'
     ]
   },
   {
-    title: "Catalysts",
+    title: 'Catalysts',
     bullets: [
-      "Map expected data points with precise dates",
-      "Define alert thresholds and playbooks",
-      "Sync with execution monitoring tasks"
+      'Map expected data points with precise dates',
+      'Define alert thresholds and playbooks',
+      'Sync with execution monitoring tasks'
     ]
   },
   {
-    title: "Alerting",
+    title: 'Alerting',
     bullets: [
-      "Push high-severity items to Monitoring",
-      "Ensure stop triggers match scenario outputs",
-      "Capture follow-ups in the lessons library"
+      'Push high-severity items to Monitoring',
+      'Ensure stop triggers match scenario outputs',
+      'Capture follow-ups in the lessons library'
     ]
   }
 ]
@@ -44,17 +44,24 @@ export function RiskCatalystPlanner() {
         </CardHeader>
         <CardContent className="space-y-2 text-xs text-slate-400">
           <p>
-            Document the top five risks and their mitigations before promoting to Quality & Governance. The
-            catalyst calendar drives monitoring alerts later in the workflow.
+            Document the top five risks and their mitigations before promoting to Quality &
+            Governance. The catalyst calendar drives monitoring alerts later in the workflow.
           </p>
           <div className="flex flex-wrap gap-2">
             {outstanding.length === 0 ? (
-              <Badge variant="outline" className="border-slate-700 text-[10px] uppercase text-emerald-300">
+              <Badge
+                variant="outline"
+                className="border-slate-700 text-[10px] uppercase text-emerald-300"
+              >
                 Gate complete
               </Badge>
             ) : (
               outstanding.map((item) => (
-                <Badge key={item.id} variant="outline" className="border-slate-700 text-[10px] uppercase text-amber-200">
+                <Badge
+                  key={item.id}
+                  variant="outline"
+                  className="border-slate-700 text-[10px] uppercase text-amber-200"
+                >
                   {item.label}
                 </Badge>
               ))

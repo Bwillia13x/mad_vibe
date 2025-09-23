@@ -1,22 +1,11 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState
-} from "react"
-import {
-  type StageGateChecklistItem,
-  type WorkflowStage,
-  workflowStages
-} from "@/lib/workflow"
-import { createResearchLogEntry, fetchResearchLog } from "@/lib/workflow-api"
-import type { ResearchLogEntry, ResearchLogInput } from "@shared/types"
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { type StageGateChecklistItem, type WorkflowStage, workflowStages } from '@/lib/workflow'
+import { createResearchLogEntry, fetchResearchLog } from '@/lib/workflow-api'
+import type { ResearchLogEntry, ResearchLogInput } from '@shared/types'
 
-export type StageStatus = "locked" | "in-progress" | "complete"
+export type StageStatus = 'locked' | 'in-progress' | 'complete'
 
-const STORAGE_KEY = "valor-workflow-state"
+const STORAGE_KEY = 'valor-workflow-state'
 
 export type StageChecklistState = Record<string, Record<string, boolean>>
 
@@ -35,26 +24,21 @@ export interface WorkflowContextValue {
   logEvent: (entry: ResearchLogInput) => Promise<void>
 }
 
-const WorkflowContext = createContext<WorkflowContextValue | undefined>(
-  undefined
-)
+const WorkflowContext = createContext<WorkflowContextValue | undefined>(undefined)
 
 const buildDefaultChecklistState = (): StageChecklistState => {
   return workflowStages.reduce<StageChecklistState>((acc, stage) => {
     if (stage.gateChecklist.length === 0) return acc
-    acc[stage.slug] = stage.gateChecklist.reduce<Record<string, boolean>>(
-      (stageAcc, item) => {
-        stageAcc[item.id] = false
-        return stageAcc
-      },
-      {}
-    )
+    acc[stage.slug] = stage.gateChecklist.reduce<Record<string, boolean>>((stageAcc, item) => {
+      stageAcc[item.id] = false
+      return stageAcc
+    }, {})
     return acc
   }, {})
 }
 
 const loadState = (): StageChecklistState => {
-  if (typeof window === "undefined") return buildDefaultChecklistState()
+  if (typeof window === 'undefined') return buildDefaultChecklistState()
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (!raw) return buildDefaultChecklistState()
@@ -64,18 +48,14 @@ const loadState = (): StageChecklistState => {
       ...parsed
     }
   } catch (error) {
-    console.warn("Failed to parse workflow state", error)
+    console.warn('Failed to parse workflow state', error)
     return buildDefaultChecklistState()
   }
 }
 
-export function WorkflowProvider({
-  children
-}: {
-  children: React.ReactNode
-}) {
+export function WorkflowProvider({ children }: { children: React.ReactNode }) {
   const [checklists, setChecklists] = useState<StageChecklistState>(() => loadState())
-  const [activeSlug, setActiveSlug] = useState<string>(workflowStages[0]?.slug ?? "home")
+  const [activeSlug, setActiveSlug] = useState<string>(workflowStages[0]?.slug ?? 'home')
   const [researchLog, setResearchLog] = useState<ResearchLogEntry[]>([])
 
   const appendLogEntry = useCallback((entry: ResearchLogEntry) => {
@@ -94,10 +74,10 @@ export function WorkflowProvider({
         const created = await createResearchLogEntry(entry)
         appendLogEntry(created)
       } catch (error) {
-        console.warn("Failed to persist research log entry", error)
+        console.warn('Failed to persist research log entry', error)
         appendLogEntry({
           id:
-            typeof crypto !== "undefined" && crypto.randomUUID
+            typeof crypto !== 'undefined' && crypto.randomUUID
               ? crypto.randomUUID()
               : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
           stageSlug: entry.stageSlug,
@@ -112,11 +92,11 @@ export function WorkflowProvider({
   )
 
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (typeof window === 'undefined') return
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(checklists))
     } catch (error) {
-      console.warn("Failed to persist workflow state", error)
+      console.warn('Failed to persist workflow state', error)
     }
   }, [checklists])
 
@@ -129,7 +109,7 @@ export function WorkflowProvider({
           setResearchLog(data)
         }
       } catch (error) {
-        console.warn("Failed to load research log", error)
+        console.warn('Failed to load research log', error)
       }
     })()
     return () => {
@@ -144,16 +124,14 @@ export function WorkflowProvider({
     workflowStages.forEach((stage) => {
       const checklist = stage.gateChecklist
       const stageState = checklists[stage.slug] ?? {}
-      const allDone =
-        checklist.length === 0 ||
-        checklist.every((item) => stageState[item.id])
+      const allDone = checklist.length === 0 || checklist.every((item) => stageState[item.id])
 
       if (!previousComplete && stage.id !== 0) {
-        statuses[stage.slug] = "locked"
+        statuses[stage.slug] = 'locked'
       } else if (allDone) {
-        statuses[stage.slug] = "complete"
+        statuses[stage.slug] = 'complete'
       } else {
-        statuses[stage.slug] = "in-progress"
+        statuses[stage.slug] = 'in-progress'
       }
 
       previousComplete = previousComplete && allDone
@@ -164,10 +142,8 @@ export function WorkflowProvider({
 
   useEffect(() => {
     const currentStatus = stageStatuses[activeSlug]
-    if (currentStatus === "locked") {
-      const fallback = workflowStages.find(
-        (stage) => stageStatuses[stage.slug] !== "locked"
-      )
+    if (currentStatus === 'locked') {
+      const fallback = workflowStages.find((stage) => stageStatuses[stage.slug] !== 'locked')
       if (fallback) setActiveSlug(fallback.slug)
     }
   }, [activeSlug, stageStatuses])
@@ -175,39 +151,33 @@ export function WorkflowProvider({
   const setActiveStage = useCallback(
     (slug: string) => {
       const status = stageStatuses[slug]
-      if (status === "locked" || slug === activeSlug) return
+      if (status === 'locked' || slug === activeSlug) return
       const stage = workflowStages.find((entry) => entry.slug === slug)
       if (!stage) return
       setActiveSlug(slug)
       void logEvent({
         stageSlug: stage.slug,
         stageTitle: stage.title,
-        action: "Stage opened"
+        action: 'Stage opened'
       })
     },
     [activeSlug, logEvent, stageStatuses]
   )
 
-  const ensureStageState = useCallback(
-    (stageSlug: string) => {
-      setChecklists((prev) => {
-        if (prev[stageSlug]) return prev
-        const stage = workflowStages.find((entry) => entry.slug === stageSlug)
-        if (!stage || stage.gateChecklist.length === 0) return prev
-        return {
-          ...prev,
-          [stageSlug]: stage.gateChecklist.reduce<Record<string, boolean>>(
-            (acc, item) => {
-              acc[item.id] = false
-              return acc
-            },
-            {}
-          )
-        }
-      })
-    },
-    []
-  )
+  const ensureStageState = useCallback((stageSlug: string) => {
+    setChecklists((prev) => {
+      if (prev[stageSlug]) return prev
+      const stage = workflowStages.find((entry) => entry.slug === stageSlug)
+      if (!stage || stage.gateChecklist.length === 0) return prev
+      return {
+        ...prev,
+        [stageSlug]: stage.gateChecklist.reduce<Record<string, boolean>>((acc, item) => {
+          acc[item.id] = false
+          return acc
+        }, {})
+      }
+    })
+  }, [])
 
   const toggleChecklistItem = useCallback(
     (stageSlug: string, itemId: string) => {
@@ -226,64 +196,62 @@ export function WorkflowProvider({
     [ensureStageState]
   )
 
-  const markStageComplete = useCallback((stageSlug: string) => {
-    const stage = workflowStages.find((entry) => entry.slug === stageSlug)
-    if (!stage) return
-    if (stage.gateChecklist.length === 0) return
-    setChecklists((prev) => {
-      return {
-        ...prev,
-        [stageSlug]: stage.gateChecklist.reduce<Record<string, boolean>>(
-          (acc, item) => {
+  const markStageComplete = useCallback(
+    (stageSlug: string) => {
+      const stage = workflowStages.find((entry) => entry.slug === stageSlug)
+      if (!stage) return
+      if (stage.gateChecklist.length === 0) return
+      setChecklists((prev) => {
+        return {
+          ...prev,
+          [stageSlug]: stage.gateChecklist.reduce<Record<string, boolean>>((acc, item) => {
             acc[item.id] = true
             return acc
-          },
-          {}
-        )
-      }
-    })
-    void logEvent({
-      stageSlug: stage.slug,
-      stageTitle: stage.title,
-      action: "Stage marked ready",
-      details: "Checklist confirmed"
-    })
-  }, [logEvent])
+          }, {})
+        }
+      })
+      void logEvent({
+        stageSlug: stage.slug,
+        stageTitle: stage.title,
+        action: 'Stage marked ready',
+        details: 'Checklist confirmed'
+      })
+    },
+    [logEvent]
+  )
 
-  const resetStage = useCallback((stageSlug: string) => {
-    const stage = workflowStages.find((entry) => entry.slug === stageSlug)
-    if (!stage || stage.gateChecklist.length === 0) return
-    setChecklists((prev) => {
-      const next = { ...prev }
-      delete next[stageSlug]
-      return next
-    })
-    void logEvent({
-      stageSlug: stage.slug,
-      stageTitle: stage.title,
-      action: "Stage checklist reset"
-    })
-  }, [logEvent])
+  const resetStage = useCallback(
+    (stageSlug: string) => {
+      const stage = workflowStages.find((entry) => entry.slug === stageSlug)
+      if (!stage || stage.gateChecklist.length === 0) return
+      setChecklists((prev) => {
+        const next = { ...prev }
+        delete next[stageSlug]
+        return next
+      })
+      void logEvent({
+        stageSlug: stage.slug,
+        stageTitle: stage.title,
+        action: 'Stage checklist reset'
+      })
+    },
+    [logEvent]
+  )
 
   const isStageComplete = useCallback(
-    (stageSlug: string) => stageStatuses[stageSlug] === "complete",
+    (stageSlug: string) => stageStatuses[stageSlug] === 'complete',
     [stageStatuses]
   )
 
-  const getChecklist = useCallback(
-    (stageSlug: string) => {
-      const stage = workflowStages.find((entry) => entry.slug === stageSlug)
-      return stage?.gateChecklist ?? []
-    },
-    []
-  )
+  const getChecklist = useCallback((stageSlug: string) => {
+    const stage = workflowStages.find((entry) => entry.slug === stageSlug)
+    return stage?.gateChecklist ?? []
+  }, [])
 
   const value: WorkflowContextValue = useMemo(
     () => ({
       stages: workflowStages,
-      activeStage:
-        workflowStages.find((stage) => stage.slug === activeSlug) ??
-        workflowStages[0],
+      activeStage: workflowStages.find((stage) => stage.slug === activeSlug) ?? workflowStages[0],
       stageStatuses,
       checklistState: checklists,
       setActiveStage,
@@ -310,13 +278,11 @@ export function WorkflowProvider({
     ]
   )
 
-  return (
-    <WorkflowContext.Provider value={value}>{children}</WorkflowContext.Provider>
-  )
+  return <WorkflowContext.Provider value={value}>{children}</WorkflowContext.Provider>
 }
 
 export function useWorkflow() {
   const ctx = useContext(WorkflowContext)
-  if (!ctx) throw new Error("useWorkflow must be used within a WorkflowProvider")
+  if (!ctx) throw new Error('useWorkflow must be used within a WorkflowProvider')
   return ctx
 }

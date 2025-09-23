@@ -3,7 +3,8 @@ import express from 'express'
 import type { AddressInfo } from 'node:net'
 import type { ResearchLogEntry } from '@shared/types'
 
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgres://valor_user:valorpass@localhost:5432/valor_vibe'
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL || 'postgres://valor_user:valorpass@localhost:5432/valor_vibe'
 
 vi.mock(new URL('../../../lib/db/index.ts', import.meta.url).pathname, () => ({
   db: {}
@@ -13,7 +14,9 @@ vi.mock('../../../lib/db', () => ({
   db: {}
 }))
 
-const workflowModule = await import(new URL('../../../server/routes/workflow.ts', import.meta.url).pathname)
+const workflowModule = await import(
+  new URL('../../../server/routes/workflow.ts', import.meta.url).pathname
+)
 const { createWorkflowRouter } = workflowModule
 
 let selectMock: ReturnType<typeof vi.fn>
@@ -27,7 +30,12 @@ const buildSelectChain = (rows: any[]) => {
   return { limit, orderBy, from }
 }
 
-const performRequest = async (app: express.Express, method: string, path: string, body?: unknown) => {
+const performRequest = async (
+  app: express.Express,
+  method: string,
+  path: string,
+  body?: unknown
+) => {
   return await new Promise<{ status: number; body: any }>((resolve, reject) => {
     const server = app.listen(0, async () => {
       const { port } = server.address() as AddressInfo

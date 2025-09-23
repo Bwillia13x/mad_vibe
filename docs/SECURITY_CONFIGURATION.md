@@ -15,63 +15,58 @@ The platform implements a multi-layered security configuration system that inclu
 
 ### Required Variables
 
-| Variable | Description | Example | Validation |
-|----------|-------------|---------|------------|
+| Variable   | Description             | Example      | Validation                                |
+| ---------- | ----------------------- | ------------ | ----------------------------------------- |
 | `NODE_ENV` | Application environment | `production` | Must be: development, production, or test |
-| `PORT` | Server port | `5000` | Must be 1-65535 |
+| `PORT`     | Server port             | `5000`       | Must be 1-65535                           |
 
 ### Optional Variables
 
-| Variable | Description | Example | Validation |
-|----------|-------------|---------|------------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgres://user:pass@host:5432/db` | Must be valid PostgreSQL URL |
-| `POSTGRES_URL` | Alternative database URL | `postgres://user:pass@host:5432/db` | Must be valid PostgreSQL URL |
-| `OPENAI_API_KEY` | OpenAI API key | `sk-...` | Must be valid OpenAI key or placeholder |
-| `ADMIN_TOKEN` | Admin authentication token | `abc123...` | Min 32 alphanumeric characters |
-| `DEMO_SCENARIO` | Demo data scenario | `restaurant` | Any string |
-| `DEMO_SEED` | Demo data seed | `12345` | Any number |
-| `DEMO_DATE` | Fixed demo date | `2024-01-01` | Valid date string |
-| `SMOKE_MODE` | Enable smoke testing | `1` | Boolean (1/0, true/false) |
-| `OPERATIONS_WS_PORT` | WebSocket port | `8080` | Must be 1-65535 |
-| `SKIP_RATE_LIMIT` | Disable rate limiting | `true` | Boolean |
-| `TEST_VERBOSE` | Verbose test output | `true` | Boolean |
+| Variable             | Description                  | Example                             | Validation                              |
+| -------------------- | ---------------------------- | ----------------------------------- | --------------------------------------- |
+| `DATABASE_URL`       | PostgreSQL connection string | `postgres://user:pass@host:5432/db` | Must be valid PostgreSQL URL            |
+| `POSTGRES_URL`       | Alternative database URL     | `postgres://user:pass@host:5432/db` | Must be valid PostgreSQL URL            |
+| `OPENAI_API_KEY`     | OpenAI API key               | `sk-...`                            | Must be valid OpenAI key or placeholder |
+| `ADMIN_TOKEN`        | Admin authentication token   | `abc123...`                         | Min 32 alphanumeric characters          |
+| `DEMO_SCENARIO`      | Demo data scenario           | `restaurant`                        | Any string                              |
+| `DEMO_SEED`          | Demo data seed               | `12345`                             | Any number                              |
+| `DEMO_DATE`          | Fixed demo date              | `2024-01-01`                        | Valid date string                       |
+| `SMOKE_MODE`         | Enable smoke testing         | `1`                                 | Boolean (1/0, true/false)               |
+| `OPERATIONS_WS_PORT` | WebSocket port               | `8080`                              | Must be 1-65535                         |
+| `SKIP_RATE_LIMIT`    | Disable rate limiting        | `true`                              | Boolean                                 |
+| `TEST_VERBOSE`       | Verbose test output          | `true`                              | Boolean                                 |
 
 ## Secure Configuration Usage
 
 ### Basic Usage
 
 ```typescript
-import { getEnvVar, hasEnvVar, validateEnvConfig } from './lib/env-security';
+import { getEnvVar, hasEnvVar, validateEnvConfig } from './lib/env-security'
 
 // Get configuration values
-const port = getEnvVar('PORT');
-const nodeEnv = getEnvVar('NODE_ENV');
+const port = getEnvVar('PORT')
+const nodeEnv = getEnvVar('NODE_ENV')
 
 // Check if configuration exists
 if (hasEnvVar('OPENAI_API_KEY')) {
-  const apiKey = getEnvVar('OPENAI_API_KEY');
+  const apiKey = getEnvVar('OPENAI_API_KEY')
 }
 
 // Validate configuration
-const validation = validateEnvConfig();
+const validation = validateEnvConfig()
 if (!validation.isValid) {
-  console.error('Configuration errors:', validation.errors);
+  console.error('Configuration errors:', validation.errors)
 }
 ```
 
 ### Advanced Configuration Management
 
 ```typescript
-import { 
-  configManager, 
-  validateConfig, 
-  configureRotation,
-  watchConfig 
-} from './lib/config-manager';
+import { configManager, validateConfig, configureRotation, watchConfig } from './lib/config-manager'
 
 // Validate all configuration
-const validation = validateConfig();
-console.log('Configuration valid:', validation.valid);
+const validation = validateConfig()
+console.log('Configuration valid:', validation.valid)
 
 // Configure secret rotation
 configureRotation({
@@ -79,15 +74,15 @@ configureRotation({
   rotationIntervalHours: 24 * 7, // Weekly rotation
   rotationCallback: async (newToken) => {
     // Update external systems with new token
-    await updateExternalSystems(newToken);
+    await updateExternalSystems(newToken)
   }
-});
+})
 
 // Watch for configuration changes
 const unwatch = watchConfig('OPENAI_API_KEY', (newValue) => {
-  console.log('OpenAI API key updated');
+  console.log('OpenAI API key updated')
   // Reinitialize OpenAI client
-});
+})
 ```
 
 ## Security Features
@@ -95,6 +90,7 @@ const unwatch = watchConfig('OPENAI_API_KEY', (newValue) => {
 ### 1. Input Validation and Sanitization
 
 All environment variables are automatically:
+
 - **Validated** against type and format requirements
 - **Sanitized** to remove control characters and normalize values
 - **Checked** for security vulnerabilities
@@ -102,6 +98,7 @@ All environment variables are automatically:
 ### 2. Sensitive Data Protection
 
 Sensitive configuration values are:
+
 - **Masked** in logs and error messages
 - **Excluded** from safe configuration exports
 - **Protected** from accidental exposure
@@ -109,6 +106,7 @@ Sensitive configuration values are:
 ### 3. Configuration Validation
 
 The system validates:
+
 - **Required variables** are present
 - **Data types** match expectations
 - **Format requirements** are met (e.g., API key format)
@@ -117,6 +115,7 @@ The system validates:
 ### 4. Secrets Rotation
 
 Automatic rotation capabilities for:
+
 - **Admin tokens** with configurable intervals
 - **API keys** with callback notifications
 - **Database credentials** with zero-downtime updates
@@ -126,6 +125,7 @@ Automatic rotation capabilities for:
 ### Environment Setup
 
 1. **Set required variables**:
+
    ```bash
    export NODE_ENV=production
    export PORT=5000
@@ -133,6 +133,7 @@ Automatic rotation capabilities for:
    ```
 
 2. **Configure secrets**:
+
    ```bash
    export ADMIN_TOKEN=$(openssl rand -hex 32)
    export OPENAI_API_KEY=sk-your-actual-key
@@ -158,21 +159,23 @@ Automatic rotation capabilities for:
 The system provides:
 
 1. **Configuration Summary**:
+
    ```typescript
-   const summary = configManager.getConfigurationSummary();
-   console.log('Config status:', summary);
+   const summary = configManager.getConfigurationSummary()
+   console.log('Config status:', summary)
    ```
 
 2. **Change History**:
+
    ```typescript
-   const changes = configManager.getChangeHistory();
-   console.log('Recent changes:', changes);
+   const changes = configManager.getChangeHistory()
+   console.log('Recent changes:', changes)
    ```
 
 3. **Rotation Status**:
    ```typescript
-   const rotations = configManager.getRotationStatus();
-   console.log('Rotation schedule:', rotations);
+   const rotations = configManager.getRotationStatus()
+   console.log('Rotation schedule:', rotations)
    ```
 
 ## Security Best Practices
@@ -231,21 +234,24 @@ The system provides:
 ### Debugging
 
 Enable verbose logging:
+
 ```bash
 export TEST_VERBOSE=true
 ```
 
 Check configuration status:
+
 ```typescript
-import { configManager } from './lib/config-manager';
-console.log(configManager.getConfigurationSummary());
+import { configManager } from './lib/config-manager'
+console.log(configManager.getConfigurationSummary())
 ```
 
 Validate specific variables:
+
 ```typescript
-import { validateEnvConfig } from './lib/env-security';
-const result = validateEnvConfig();
-console.log('Validation result:', result);
+import { validateEnvConfig } from './lib/env-security'
+const result = validateEnvConfig()
+console.log('Validation result:', result)
 ```
 
 ## Security Compliance

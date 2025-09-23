@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState
-} from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import {
   defaultDataNormalizationState,
   type DataNormalizationState,
@@ -121,7 +114,8 @@ export function DataNormalizationProvider({ children }: { children: React.ReactN
                   setSyncError('Normalization state refreshed due to concurrent edits.')
                 }
               } catch (refreshError) {
-                const message = refreshError instanceof Error ? refreshError.message : 'Unknown persistence error'
+                const message =
+                  refreshError instanceof Error ? refreshError.message : 'Unknown persistence error'
                 setSyncError(message)
               }
             } else {
@@ -200,7 +194,9 @@ export function DataNormalizationProvider({ children }: { children: React.ReactN
     [coverage, hydrated, isSyncing, lastSavedAt, state, syncError, toggleAdjustment, toggleSource]
   )
 
-  return <DataNormalizationContext.Provider value={value}>{children}</DataNormalizationContext.Provider>
+  return (
+    <DataNormalizationContext.Provider value={value}>{children}</DataNormalizationContext.Provider>
+  )
 }
 
 export function useDataNormalization() {

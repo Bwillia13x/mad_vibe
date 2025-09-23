@@ -12,12 +12,12 @@ The primary configuration is located at `test/config/test-config.ts`:
 
 ```typescript
 export interface TestConfig {
-  environment: 'local' | 'staging' | 'docker';
-  testSuites: TestSuite[];
-  thresholds: PerformanceThresholds;
-  security: SecurityConfig;
-  reporting: ReportingConfig;
-  server: ServerConfig;
+  environment: 'local' | 'staging' | 'docker'
+  testSuites: TestSuite[]
+  thresholds: PerformanceThresholds
+  security: SecurityConfig
+  reporting: ReportingConfig
+  server: ServerConfig
 }
 ```
 
@@ -49,7 +49,7 @@ const localConfig: TestConfig = {
     minConcurrentUsers: 50,
     maxErrorRate: 1
   }
-};
+}
 ```
 
 ### Staging Environment
@@ -70,7 +70,7 @@ const stagingConfig: TestConfig = {
     minConcurrentUsers: 100,
     maxErrorRate: 0.5
   }
-};
+}
 ```
 
 ### Docker Environment
@@ -92,7 +92,7 @@ const dockerConfig: TestConfig = {
     minConcurrentUsers: 25,
     maxErrorRate: 2
   }
-};
+}
 ```
 
 ## Test Suite Configuration
@@ -207,18 +207,20 @@ const dockerConfig: TestConfig = {
 
 ```typescript
 interface PerformanceThresholds {
-  maxResponseTime: number;     // Global max response time (ms)
-  endpointThresholds: {        // Per-endpoint thresholds
-    '/api/health': 50,
-    '/api/chat': 2000,         // AI chat may be slower
-    '/api/services': 100,
+  maxResponseTime: number // Global max response time (ms)
+  endpointThresholds: {
+    // Per-endpoint thresholds
+    '/api/health': 50
+    '/api/chat': 2000 // AI chat may be slower
+    '/api/services': 100
     '/api/pos/sales': 150
-  };
-  percentileThresholds: {      // Percentile-based thresholds
-    p50: 100,  // 50th percentile
-    p95: 200,  // 95th percentile
-    p99: 500   // 99th percentile
-  };
+  }
+  percentileThresholds: {
+    // Percentile-based thresholds
+    p50: 100 // 50th percentile
+    p95: 200 // 95th percentile
+    p99: 500 // 99th percentile
+  }
 }
 ```
 
@@ -226,10 +228,10 @@ interface PerformanceThresholds {
 
 ```typescript
 interface MemoryThresholds {
-  maxMemoryUsage: number;      // Peak memory usage (MB)
-  memoryLeakThreshold: number; // Memory increase over time (MB/min)
-  gcPressureThreshold: number; // GC frequency threshold
-  heapUtilization: number;     // Max heap utilization (%)
+  maxMemoryUsage: number // Peak memory usage (MB)
+  memoryLeakThreshold: number // Memory increase over time (MB/min)
+  gcPressureThreshold: number // GC frequency threshold
+  heapUtilization: number // Max heap utilization (%)
 }
 ```
 
@@ -237,10 +239,10 @@ interface MemoryThresholds {
 
 ```typescript
 interface ConcurrencyThresholds {
-  minConcurrentUsers: number;  // Minimum users to handle
-  maxConcurrentUsers: number;  // Target maximum users
-  errorRateThreshold: number;  // Max acceptable error rate (%)
-  throughputThreshold: number; // Min requests per second
+  minConcurrentUsers: number // Minimum users to handle
+  maxConcurrentUsers: number // Target maximum users
+  errorRateThreshold: number // Max acceptable error rate (%)
+  throughputThreshold: number // Min requests per second
 }
 ```
 
@@ -250,25 +252,25 @@ interface ConcurrencyThresholds {
 
 ```typescript
 interface SecurityConfig {
-  enableVulnerabilityScanning: boolean;
-  enableInputValidationTests: boolean;
-  enableAuthenticationTests: boolean;
-  maxSecurityRiskLevel: 'low' | 'medium' | 'high' | 'critical';
-  
+  enableVulnerabilityScanning: boolean
+  enableInputValidationTests: boolean
+  enableAuthenticationTests: boolean
+  maxSecurityRiskLevel: 'low' | 'medium' | 'high' | 'critical'
+
   authentication: {
     testUsers: [
-      { username: 'testuser1', password: 'testpass1', role: 'admin' },
-      { username: 'testuser2', password: 'testpass2', role: 'user' }
-    ];
-    sessionTimeout: 3600000; // 1 hour
-    maxLoginAttempts: 5;
-  };
-  
+      { username: 'testuser1'; password: 'testpass1'; role: 'admin' },
+      { username: 'testuser2'; password: 'testpass2'; role: 'user' }
+    ]
+    sessionTimeout: 3600000 // 1 hour
+    maxLoginAttempts: 5
+  }
+
   inputValidation: {
-    testPayloads: string[];
-    skipEndpoints: string[];
-    customValidators: Record<string, (input: string) => boolean>;
-  };
+    testPayloads: string[]
+    skipEndpoints: string[]
+    customValidators: Record<string, (input: string) => boolean>
+  }
 }
 ```
 
@@ -276,10 +278,10 @@ interface SecurityConfig {
 
 ```typescript
 interface CorsConfig {
-  testOrigins: string[];
-  allowedMethods: string[];
-  allowedHeaders: string[];
-  credentials: boolean;
+  testOrigins: string[]
+  allowedMethods: string[]
+  allowedHeaders: string[]
+  credentials: boolean
 }
 ```
 
@@ -289,27 +291,27 @@ interface CorsConfig {
 
 ```typescript
 interface ReportingConfig {
-  outputDir: string;
-  formats: ('html' | 'json' | 'csv' | 'junit')[];
-  includeScreenshots: boolean;
-  includeMetrics: boolean;
-  
+  outputDir: string
+  formats: ('html' | 'json' | 'csv' | 'junit')[]
+  includeScreenshots: boolean
+  includeMetrics: boolean
+
   html: {
-    template: 'default' | 'detailed' | 'minimal';
-    includeCharts: boolean;
-    includeTrends: boolean;
-  };
-  
+    template: 'default' | 'detailed' | 'minimal'
+    includeCharts: boolean
+    includeTrends: boolean
+  }
+
   json: {
-    pretty: boolean;
-    includeRawData: boolean;
-  };
-  
+    pretty: boolean
+    includeRawData: boolean
+  }
+
   notifications: {
-    enabled: boolean;
-    channels: NotificationChannel[];
-    rules: NotificationRule[];
-  };
+    enabled: boolean
+    channels: NotificationChannel[]
+    rules: NotificationRule[]
+  }
 }
 ```
 
@@ -317,20 +319,20 @@ interface ReportingConfig {
 
 ```typescript
 interface CoverageConfig {
-  enabled: boolean;
-  threshold: number;        // Minimum coverage percentage
-  includeUntested: boolean; // Include untested endpoints
-  excludePatterns: string[]; // Patterns to exclude
-  
+  enabled: boolean
+  threshold: number // Minimum coverage percentage
+  includeUntested: boolean // Include untested endpoints
+  excludePatterns: string[] // Patterns to exclude
+
   endpoints: {
-    trackCoverage: boolean;
-    expectedEndpoints: string[];
-  };
-  
+    trackCoverage: boolean
+    expectedEndpoints: string[]
+  }
+
   features: {
-    trackCoverage: boolean;
-    criticalFeatures: string[];
-  };
+    trackCoverage: boolean
+    criticalFeatures: string[]
+  }
 }
 ```
 
@@ -416,9 +418,7 @@ Create `test/config/test-config.json`:
       "config": {
         "timeout": 45000,
         "retries": 3,
-        "customEndpoints": [
-          "/api/custom-endpoint"
-        ]
+        "customEndpoints": ["/api/custom-endpoint"]
       }
     }
   ],
@@ -461,7 +461,7 @@ const config = loadTestConfig({
       maxResponseTime: parseInt(process.env.MAX_RESPONSE_TIME) || 200
     }
   }
-});
+})
 ```
 
 ### Command Line Overrides
@@ -485,30 +485,34 @@ npm run test -- --format=json --no-screenshots
 ### Schema Validation
 
 ```typescript
-import Joi from 'joi';
+import Joi from 'joi'
 
 const configSchema = Joi.object({
   environment: Joi.string().valid('local', 'staging', 'docker').required(),
-  testSuites: Joi.array().items(
-    Joi.object({
-      name: Joi.string().required(),
-      type: Joi.string().valid('functional', 'performance', 'security', 'deployment', 'uat').required(),
-      enabled: Joi.boolean().required(),
-      config: Joi.object().required()
-    })
-  ).required(),
+  testSuites: Joi.array()
+    .items(
+      Joi.object({
+        name: Joi.string().required(),
+        type: Joi.string()
+          .valid('functional', 'performance', 'security', 'deployment', 'uat')
+          .required(),
+        enabled: Joi.boolean().required(),
+        config: Joi.object().required()
+      })
+    )
+    .required(),
   thresholds: Joi.object({
     maxResponseTime: Joi.number().positive().required(),
     maxMemoryUsage: Joi.number().positive().required(),
     minConcurrentUsers: Joi.number().positive().required(),
     maxErrorRate: Joi.number().min(0).max(100).required()
   }).required()
-});
+})
 
 // Validate configuration
-const { error, value } = configSchema.validate(config);
+const { error, value } = configSchema.validate(config)
 if (error) {
-  throw new Error(`Configuration validation failed: ${error.message}`);
+  throw new Error(`Configuration validation failed: ${error.message}`)
 }
 ```
 

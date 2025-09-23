@@ -1,24 +1,24 @@
-import { TestReporter } from '../reporting/test-reporter';
+import { TestReporter } from '../reporting/test-reporter'
 
 export interface TestEnvironment {
-  baseUrl: string;
-  makeRequest: (path: string, options?: RequestInit) => Promise<Response>;
+  baseUrl: string
+  makeRequest: (path: string, options?: RequestInit) => Promise<Response>
 }
 
 export interface InputValidationTestResult {
-  testName: string;
-  status: 'pass' | 'fail' | 'skip';
-  duration: number;
-  error?: string;
-  details?: Record<string, any>;
+  testName: string
+  status: 'pass' | 'fail' | 'skip'
+  duration: number
+  error?: string
+  details?: Record<string, any>
 }
 
 export interface EndpointTestCase {
-  path: string;
-  method: string;
-  requiresAuth: boolean;
-  inputFields: string[];
-  description: string;
+  path: string
+  method: string
+  requiresAuth: boolean
+  inputFields: string[]
+  description: string
 }
 
 /**
@@ -26,13 +26,13 @@ export interface EndpointTestCase {
  * Tests all API endpoints for proper input validation and malicious payload detection
  */
 export class InputValidationTestSuite {
-  private testEnv: TestEnvironment;
-  private reporter: TestReporter;
-  private results: InputValidationTestResult[] = [];
+  private testEnv: TestEnvironment
+  private reporter: TestReporter
+  private results: InputValidationTestResult[] = []
 
   constructor(testEnv: TestEnvironment, reporter: TestReporter) {
-    this.testEnv = testEnv;
-    this.reporter = reporter;
+    this.testEnv = testEnv
+    this.reporter = reporter
   }
 
   /**
@@ -158,17 +158,17 @@ export class InputValidationTestSuite {
         inputFields: ['id'],
         description: 'Delete POS sale by ID'
       }
-    ];
+    ]
   }
 
   /**
    * Get malicious payloads for testing
    */
   private getMaliciousPayloads(): Array<{
-    payload: any;
-    description: string;
-    category: string;
-    expectedBehavior: 'reject' | 'sanitize' | 'error';
+    payload: any
+    description: string
+    category: string
+    expectedBehavior: 'reject' | 'sanitize' | 'error'
   }> {
     return [
       // XSS payloads
@@ -205,7 +205,7 @@ export class InputValidationTestSuite {
         expectedBehavior: 'reject'
       },
       {
-        payload: "UNION SELECT * FROM users",
+        payload: 'UNION SELECT * FROM users',
         description: 'SQL injection union select',
         category: 'sql',
         expectedBehavior: 'reject'
@@ -290,72 +290,72 @@ export class InputValidationTestSuite {
         category: 'unicode',
         expectedBehavior: 'sanitize'
       }
-    ];
+    ]
   }
 
   /**
    * Run comprehensive input validation tests
    */
   async runAllTests(): Promise<InputValidationTestResult[]> {
-    this.results = [];
-    
-    await this.testEndpointInputValidation();
-    await this.testMaliciousPayloadDetection();
-    await this.testInputSanitization();
-    await this.testParameterValidation();
-    await this.testContentTypeValidation();
-    await this.testRequestSizeValidation();
-    
-    return this.results;
+    this.results = []
+
+    await this.testEndpointInputValidation()
+    await this.testMaliciousPayloadDetection()
+    await this.testInputSanitization()
+    await this.testParameterValidation()
+    await this.testContentTypeValidation()
+    await this.testRequestSizeValidation()
+
+    return this.results
   }
 
   /**
    * Test input validation across all endpoints
    */
   private async testEndpointInputValidation(): Promise<void> {
-    const testName = 'Endpoint Input Validation Coverage';
-    const startTime = Date.now();
-    
+    const testName = 'Endpoint Input Validation Coverage'
+    const startTime = Date.now()
+
     try {
-      const endpoints = this.getEndpointsToTest();
-      const testResults = [];
-      let validationGaps = 0;
+      const endpoints = this.getEndpointsToTest()
+      const testResults = []
+      let validationGaps = 0
 
       for (const endpoint of endpoints) {
         try {
           // Test with malicious input
-          const maliciousPayload = '<script>alert("test")</script>';
-          let response: Response;
+          const maliciousPayload = '<script>alert("test")</script>'
+          let response: Response
 
           if (endpoint.method === 'GET') {
             // Test query parameters
-            const queryParam = endpoint.inputFields[0] || 'test';
-            const url = `${endpoint.path}?${queryParam}=${encodeURIComponent(maliciousPayload)}`;
-            response = await this.testEnv.makeRequest(url);
+            const queryParam = endpoint.inputFields[0] || 'test'
+            const url = `${endpoint.path}?${queryParam}=${encodeURIComponent(maliciousPayload)}`
+            response = await this.testEnv.makeRequest(url)
           } else {
             // Test request body
-            const body: any = {};
-            endpoint.inputFields.forEach(field => {
-              body[field] = maliciousPayload;
-            });
+            const body: any = {}
+            endpoint.inputFields.forEach((field) => {
+              body[field] = maliciousPayload
+            })
 
             const headers: Record<string, string> = {
               'Content-Type': 'application/json'
-            };
+            }
 
             if (endpoint.requiresAuth) {
-              headers['Authorization'] = 'Bearer admin';
+              headers['Authorization'] = 'Bearer admin'
             }
 
             response = await this.testEnv.makeRequest(endpoint.path, {
               method: endpoint.method,
               headers,
               body: JSON.stringify(body)
-            });
+            })
           }
 
-          const isValidated = this.isInputValidated(response, maliciousPayload);
-          
+          const isValidated = this.isInputValidated(response, maliciousPayload)
+
           testResults.push({
             endpoint: `${endpoint.method} ${endpoint.path}`,
             description: endpoint.description,
@@ -363,12 +363,11 @@ export class InputValidationTestSuite {
             status: response.status,
             validated: isValidated,
             requiresAuth: endpoint.requiresAuth
-          });
+          })
 
           if (!isValidated) {
-            validationGaps++;
+            validationGaps++
           }
-
         } catch (error) {
           testResults.push({
             endpoint: `${endpoint.method} ${endpoint.path}`,
@@ -376,12 +375,12 @@ export class InputValidationTestSuite {
             status: 'error',
             validated: true, // Errors are acceptable for malicious input
             error: error instanceof Error ? error.message : String(error)
-          });
+          })
         }
       }
 
       if (validationGaps > 0) {
-        throw new Error(`Input validation gaps found in ${validationGaps} endpoints`);
+        throw new Error(`Input validation gaps found in ${validationGaps} endpoints`)
       }
 
       this.results.push({
@@ -393,14 +392,14 @@ export class InputValidationTestSuite {
           validationGaps,
           testResults
         }
-      });
+      })
     } catch (error) {
       this.results.push({
         testName,
         status: 'fail',
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error)
-      });
+      })
     }
   }
 
@@ -408,16 +407,16 @@ export class InputValidationTestSuite {
    * Test malicious payload detection and blocking
    */
   private async testMaliciousPayloadDetection(): Promise<void> {
-    const testName = 'Malicious Payload Detection';
-    const startTime = Date.now();
-    
+    const testName = 'Malicious Payload Detection'
+    const startTime = Date.now()
+
     try {
-      const payloads = this.getMaliciousPayloads();
-      const testResults = [];
-      let undetectedPayloads = 0;
+      const payloads = this.getMaliciousPayloads()
+      const testResults = []
+      let undetectedPayloads = 0
 
       // Test against a representative endpoint
-      const testEndpoint = '/api/marketing/campaigns';
+      const testEndpoint = '/api/marketing/campaigns'
 
       for (const payloadTest of payloads) {
         try {
@@ -425,19 +424,19 @@ export class InputValidationTestSuite {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer admin'
+              Authorization: 'Bearer admin'
             },
             body: JSON.stringify({
               name: payloadTest.payload,
               description: 'Malicious payload test'
             })
-          });
+          })
 
           const isDetected = this.isMaliciousPayloadDetected(
-            response, 
-            payloadTest.payload, 
+            response,
+            payloadTest.payload,
             payloadTest.expectedBehavior
-          );
+          )
 
           testResults.push({
             payload: payloadTest.description,
@@ -445,12 +444,11 @@ export class InputValidationTestSuite {
             expectedBehavior: payloadTest.expectedBehavior,
             status: response.status,
             detected: isDetected
-          });
+          })
 
           if (!isDetected) {
-            undetectedPayloads++;
+            undetectedPayloads++
           }
-
         } catch (error) {
           testResults.push({
             payload: payloadTest.description,
@@ -458,12 +456,12 @@ export class InputValidationTestSuite {
             status: 'error',
             detected: true, // Errors are acceptable for malicious payloads
             error: error instanceof Error ? error.message : String(error)
-          });
+          })
         }
       }
 
       if (undetectedPayloads > 0) {
-        console.warn(`${undetectedPayloads} malicious payloads were not properly detected`);
+        console.warn(`${undetectedPayloads} malicious payloads were not properly detected`)
       }
 
       this.results.push({
@@ -474,16 +472,18 @@ export class InputValidationTestSuite {
           totalPayloads: payloads.length,
           undetectedPayloads,
           testResults,
-          detectionRate: ((payloads.length - undetectedPayloads) / payloads.length * 100).toFixed(1)
+          detectionRate: (((payloads.length - undetectedPayloads) / payloads.length) * 100).toFixed(
+            1
+          )
         }
-      });
+      })
     } catch (error) {
       this.results.push({
         testName,
         status: 'fail',
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error)
-      });
+      })
     }
   }
 
@@ -491,9 +491,9 @@ export class InputValidationTestSuite {
    * Test input sanitization effectiveness
    */
   private async testInputSanitization(): Promise<void> {
-    const testName = 'Input Sanitization Effectiveness';
-    const startTime = Date.now();
-    
+    const testName = 'Input Sanitization Effectiveness'
+    const startTime = Date.now()
+
     try {
       const sanitizationTests = [
         {
@@ -516,9 +516,9 @@ export class InputValidationTestSuite {
           expected: 'handled',
           description: 'Empty input handling'
         }
-      ];
+      ]
 
-      const testResults = [];
+      const testResults = []
 
       for (const test of sanitizationTests) {
         try {
@@ -526,17 +526,17 @@ export class InputValidationTestSuite {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer admin'
+              Authorization: 'Bearer admin'
             },
             body: JSON.stringify({
               name: test.input,
               description: 'Sanitization test'
             })
-          });
+          })
 
-          let responseData = null;
+          let responseData = null
           try {
-            responseData = await response.json();
+            responseData = await response.json()
           } catch {
             // Response might not be JSON
           }
@@ -546,7 +546,7 @@ export class InputValidationTestSuite {
             test.expected,
             response,
             responseData
-          );
+          )
 
           testResults.push({
             input: test.description,
@@ -554,7 +554,7 @@ export class InputValidationTestSuite {
             status: response.status,
             properlyHandled: isProperlyHandled,
             responseData: responseData ? JSON.stringify(responseData).substring(0, 100) : null
-          });
+          })
         } catch (error) {
           testResults.push({
             input: test.description,
@@ -562,14 +562,14 @@ export class InputValidationTestSuite {
             status: 'error',
             properlyHandled: true, // Errors are acceptable for some inputs
             error: error instanceof Error ? error.message : String(error)
-          });
+          })
         }
       }
 
-      const improperlyHandled = testResults.filter(r => !r.properlyHandled);
-      
+      const improperlyHandled = testResults.filter((r) => !r.properlyHandled)
+
       if (improperlyHandled.length > 0) {
-        console.warn(`${improperlyHandled.length} sanitization tests were not handled properly`);
+        console.warn(`${improperlyHandled.length} sanitization tests were not handled properly`)
       }
 
       this.results.push({
@@ -579,17 +579,17 @@ export class InputValidationTestSuite {
         details: {
           testResults,
           totalTests: testResults.length,
-          properlyHandled: testResults.filter(r => r.properlyHandled).length,
+          properlyHandled: testResults.filter((r) => r.properlyHandled).length,
           improperlyHandled: improperlyHandled.length
         }
-      });
+      })
     } catch (error) {
       this.results.push({
         testName,
         status: 'fail',
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error)
-      });
+      })
     }
   }
 
@@ -597,9 +597,9 @@ export class InputValidationTestSuite {
    * Test parameter validation (types, ranges, etc.)
    */
   private async testParameterValidation(): Promise<void> {
-    const testName = 'Parameter Validation';
-    const startTime = Date.now();
-    
+    const testName = 'Parameter Validation'
+    const startTime = Date.now()
+
     try {
       const parameterTests = [
         {
@@ -626,9 +626,9 @@ export class InputValidationTestSuite {
           body: { customerId: 'test', type: 'invalid-type', points: 10 },
           description: 'Invalid enum value validation'
         }
-      ];
+      ]
 
-      const testResults = [];
+      const testResults = []
 
       for (const test of parameterTests) {
         try {
@@ -636,20 +636,20 @@ export class InputValidationTestSuite {
             method: test.method,
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer admin'
+              Authorization: 'Bearer admin'
             },
             body: JSON.stringify(test.body)
-          });
+          })
 
           // Parameter validation should reject invalid inputs
-          const isValidated = response.status === 400 || response.status === 422;
+          const isValidated = response.status === 400 || response.status === 422
 
           testResults.push({
             description: test.description,
             endpoint: `${test.method} ${test.endpoint}`,
             status: response.status,
             validated: isValidated
-          });
+          })
         } catch (error) {
           testResults.push({
             description: test.description,
@@ -657,14 +657,14 @@ export class InputValidationTestSuite {
             status: 'error',
             validated: true, // Errors are acceptable for invalid parameters
             error: error instanceof Error ? error.message : String(error)
-          });
+          })
         }
       }
 
-      const unvalidatedParams = testResults.filter(r => !r.validated);
-      
+      const unvalidatedParams = testResults.filter((r) => !r.validated)
+
       if (unvalidatedParams.length > 0) {
-        console.warn(`${unvalidatedParams.length} parameter validation tests failed`);
+        console.warn(`${unvalidatedParams.length} parameter validation tests failed`)
       }
 
       this.results.push({
@@ -674,17 +674,17 @@ export class InputValidationTestSuite {
         details: {
           testResults,
           totalTests: testResults.length,
-          validated: testResults.filter(r => r.validated).length,
+          validated: testResults.filter((r) => r.validated).length,
           unvalidated: unvalidatedParams.length
         }
-      });
+      })
     } catch (error) {
       this.results.push({
         testName,
         status: 'fail',
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error)
-      });
+      })
     }
   }
 
@@ -692,9 +692,9 @@ export class InputValidationTestSuite {
    * Test Content-Type validation
    */
   private async testContentTypeValidation(): Promise<void> {
-    const testName = 'Content-Type Validation';
-    const startTime = Date.now();
-    
+    const testName = 'Content-Type Validation'
+    const startTime = Date.now()
+
     try {
       const contentTypeTests = [
         {
@@ -713,35 +713,35 @@ export class InputValidationTestSuite {
           contentType: '',
           description: 'Missing content type rejection'
         }
-      ];
+      ]
 
-      const testResults = [];
+      const testResults = []
 
       for (const test of contentTypeTests) {
         try {
           const headers: Record<string, string> = {
-            'Authorization': 'Bearer admin'
-          };
+            Authorization: 'Bearer admin'
+          }
 
           if (test.contentType) {
-            headers['Content-Type'] = test.contentType;
+            headers['Content-Type'] = test.contentType
           }
 
           const response = await this.testEnv.makeRequest('/api/marketing/campaigns', {
             method: 'POST',
             headers,
             body: JSON.stringify({ name: 'Test', description: 'Test' })
-          });
+          })
 
           // Should reject unsupported content types
-          const isRejected = response.status === 415 || response.status === 400;
+          const isRejected = response.status === 415 || response.status === 400
 
           testResults.push({
             description: test.description,
             contentType: test.contentType || 'missing',
             status: response.status,
             rejected: isRejected
-          });
+          })
         } catch (error) {
           testResults.push({
             description: test.description,
@@ -749,7 +749,7 @@ export class InputValidationTestSuite {
             status: 'error',
             rejected: true, // Errors are acceptable for invalid content types
             error: error instanceof Error ? error.message : String(error)
-          });
+          })
         }
       }
 
@@ -760,16 +760,16 @@ export class InputValidationTestSuite {
         details: {
           testResults,
           totalTests: testResults.length,
-          rejected: testResults.filter(r => r.rejected).length
+          rejected: testResults.filter((r) => r.rejected).length
         }
-      });
+      })
     } catch (error) {
       this.results.push({
         testName,
         status: 'fail',
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error)
-      });
+      })
     }
   }
 
@@ -777,27 +777,27 @@ export class InputValidationTestSuite {
    * Test request size validation
    */
   private async testRequestSizeValidation(): Promise<void> {
-    const testName = 'Request Size Validation';
-    const startTime = Date.now();
-    
+    const testName = 'Request Size Validation'
+    const startTime = Date.now()
+
     try {
       // Test with large payload
-      const largePayload = 'A'.repeat(5 * 1024 * 1024); // 5MB payload
+      const largePayload = 'A'.repeat(5 * 1024 * 1024) // 5MB payload
 
       const response = await this.testEnv.makeRequest('/api/marketing/campaigns', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer admin'
+          Authorization: 'Bearer admin'
         },
         body: JSON.stringify({
           name: largePayload,
           description: 'Large payload test'
         })
-      });
+      })
 
       // Should reject large payloads
-      const isRejected = response.status === 413 || response.status === 400;
+      const isRejected = response.status === 413 || response.status === 400
 
       this.results.push({
         testName,
@@ -809,7 +809,7 @@ export class InputValidationTestSuite {
           rejected: isRejected,
           description: 'Large payload rejection test'
         }
-      });
+      })
     } catch (error) {
       this.results.push({
         testName,
@@ -820,7 +820,7 @@ export class InputValidationTestSuite {
           error: error instanceof Error ? error.message : String(error),
           description: 'Large payload caused network error (acceptable)'
         }
-      });
+      })
     }
   }
 
@@ -832,33 +832,33 @@ export class InputValidationTestSuite {
     // 1. Request is rejected (400, 401, 403, 422)
     // 2. Server doesn't crash (not 500)
     // 3. Malicious content doesn't appear in response
-    
+
     if (response.status >= 400 && response.status < 500) {
-      return true; // Properly rejected
+      return true // Properly rejected
     }
-    
+
     if (response.status >= 500) {
-      return false; // Server error indicates poor validation
+      return false // Server error indicates poor validation
     }
-    
+
     // For successful responses, check that malicious content is sanitized
-    return true; // Assume sanitized if no server error
+    return true // Assume sanitized if no server error
   }
 
   private isMaliciousPayloadDetected(
-    response: Response, 
-    payload: any, 
+    response: Response,
+    payload: any,
     expectedBehavior: string
   ): boolean {
     switch (expectedBehavior) {
       case 'reject':
-        return response.status >= 400 && response.status < 500;
+        return response.status >= 400 && response.status < 500
       case 'sanitize':
-        return response.status !== 500; // Should not crash
+        return response.status !== 500 // Should not crash
       case 'error':
-        return response.status >= 500; // Expected to cause error
+        return response.status >= 500 // Expected to cause error
       default:
-        return true;
+        return true
     }
   }
 
@@ -870,35 +870,28 @@ export class InputValidationTestSuite {
   ): boolean {
     switch (expected) {
       case 'sanitized':
-        return response.status !== 500 && !this.containsMaliciousContent(responseData);
+        return response.status !== 500 && !this.containsMaliciousContent(responseData)
       case 'preserved':
-        return response.status === 200 || response.status === 201 || response.status === 401;
+        return response.status === 200 || response.status === 201 || response.status === 401
       case 'trimmed':
-        return response.status !== 500;
+        return response.status !== 500
       case 'handled':
-        return response.status !== 500;
+        return response.status !== 500
       default:
-        return true;
+        return true
     }
   }
 
   private containsMaliciousContent(data: any): boolean {
-    if (!data) return false;
-    
-    const dataStr = JSON.stringify(data).toLowerCase();
-    const maliciousPatterns = [
-      '<script',
-      'javascript:',
-      'onerror=',
-      'onload=',
-      'eval(',
-      'alert('
-    ];
+    if (!data) return false
 
-    return maliciousPatterns.some(pattern => dataStr.includes(pattern));
+    const dataStr = JSON.stringify(data).toLowerCase()
+    const maliciousPatterns = ['<script', 'javascript:', 'onerror=', 'onload=', 'eval(', 'alert(']
+
+    return maliciousPatterns.some((pattern) => dataStr.includes(pattern))
   }
 
   getResults(): InputValidationTestResult[] {
-    return this.results;
+    return this.results
   }
 }

@@ -13,7 +13,9 @@ vi.mock('../../../lib/db', () => ({
   db: {}
 }))
 
-const workflowModule = await import(new URL('../../../server/routes/workflow.ts', import.meta.url).pathname)
+const workflowModule = await import(
+  new URL('../../../server/routes/workflow.ts', import.meta.url).pathname
+)
 const { createWorkflowRouter } = workflowModule
 
 const performRequest = async (
@@ -107,9 +109,7 @@ describe('Workflow presence API', () => {
 
     expect(fetchPresence.status).toBe(200)
     expect(fetchPresence.body).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ actorId: 'analyst-1', stageSlug })
-      ])
+      expect.arrayContaining([expect.objectContaining({ actorId: 'analyst-1', stageSlug })])
     )
 
     const secondHeartbeat = await performRequest(
@@ -145,26 +145,15 @@ describe('Workflow presence API', () => {
     const missingStage = await performRequest(app, 'POST', '/api/workflow/presence/heartbeat', {})
     expect(missingStage.status).toBe(400)
 
-    const blankStage = await performRequest(
-      app,
-      'POST',
-      '/api/workflow/presence/heartbeat',
-      { stageSlug: '   ' }
-    )
+    const blankStage = await performRequest(app, 'POST', '/api/workflow/presence/heartbeat', {
+      stageSlug: '   '
+    })
     expect(blankStage.status).toBe(400)
 
-    const missingQuery = await performRequest(
-      app,
-      'GET',
-      '/api/workflow/presence'
-    )
+    const missingQuery = await performRequest(app, 'GET', '/api/workflow/presence')
     expect(missingQuery.status).toBe(400)
 
-    const blankQuery = await performRequest(
-      app,
-      'GET',
-      '/api/workflow/presence?stage=   '
-    )
+    const blankQuery = await performRequest(app, 'GET', '/api/workflow/presence?stage=   ')
     expect(blankQuery.status).toBe(400)
   })
 

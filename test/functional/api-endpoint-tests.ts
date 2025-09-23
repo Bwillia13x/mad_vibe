@@ -3,9 +3,9 @@
  * Tests all API endpoints with schema validation and error scenarios
  */
 
-import type { ApiEndpointTest, ErrorScenarioTest } from './api-testing-framework.js';
-import type { TestDataManager } from '../utils/test-environment.js';
-import * as schemas from './api-schemas.js';
+import type { ApiEndpointTest, ErrorScenarioTest } from './api-testing-framework.js'
+import type { TestDataManager } from '../utils/test-environment.js'
+import * as schemas from './api-schemas.js'
 
 /**
  * Create comprehensive API endpoint tests
@@ -235,24 +235,24 @@ export function createApiEndpointTests(dataManager: TestDataManager): ApiEndpoin
       responseSchema: schemas.DemoResetResponseSchema,
       cleanup: async () => {
         // Reset to clean state after test
-        await dataManager.resetDemoData();
+        await dataManager.resetDemoData()
       }
     }
-  ];
+  ]
 }
 
 /**
  * Create tests for individual resource endpoints (requires existing data)
  */
 export function createIndividualResourceTests(): ApiEndpointTest[] {
-  let serviceId: string;
-  let staffId: string;
-  let appointmentId: string;
-  let inventoryId: string;
-  let analyticsId: string;
-  let customerId: string;
-  let campaignId: string;
-  let saleId: string;
+  let serviceId: string
+  let staffId: string
+  let appointmentId: string
+  let inventoryId: string
+  let analyticsId: string
+  let customerId: string
+  let campaignId: string
+  let saleId: string
 
   return [
     // Get individual service
@@ -262,12 +262,14 @@ export function createIndividualResourceTests(): ApiEndpointTest[] {
       path: '/api/services/placeholder',
       expectedStatus: 200,
       responseSchema: schemas.ServiceSchema,
-      setup: async function() {
+      setup: async function () {
         // This will be replaced with actual ID during test execution
-        const services = await fetch(this.httpClient.baseUrl + '/api/services').then(r => r.json());
+        const services = await fetch(this.httpClient.baseUrl + '/api/services').then((r) =>
+          r.json()
+        )
         if (services.length > 0) {
-          serviceId = services[0].id;
-          this.path = `/api/services/${serviceId}`;
+          serviceId = services[0].id
+          this.path = `/api/services/${serviceId}`
         }
       },
       skipIf: () => !serviceId
@@ -280,11 +282,11 @@ export function createIndividualResourceTests(): ApiEndpointTest[] {
       path: '/api/staff/placeholder',
       expectedStatus: 200,
       responseSchema: schemas.StaffSchema,
-      setup: async function() {
-        const staff = await fetch(this.httpClient.baseUrl + '/api/staff').then(r => r.json());
+      setup: async function () {
+        const staff = await fetch(this.httpClient.baseUrl + '/api/staff').then((r) => r.json())
         if (staff.length > 0) {
-          staffId = staff[0].id;
-          this.path = `/api/staff/${staffId}`;
+          staffId = staff[0].id
+          this.path = `/api/staff/${staffId}`
         }
       },
       skipIf: () => !staffId
@@ -297,11 +299,13 @@ export function createIndividualResourceTests(): ApiEndpointTest[] {
       path: '/api/appointments/placeholder',
       expectedStatus: 200,
       responseSchema: schemas.AppointmentSchema,
-      setup: async function() {
-        const appointments = await fetch(this.httpClient.baseUrl + '/api/appointments').then(r => r.json());
+      setup: async function () {
+        const appointments = await fetch(this.httpClient.baseUrl + '/api/appointments').then((r) =>
+          r.json()
+        )
         if (appointments.length > 0) {
-          appointmentId = appointments[0].id;
-          this.path = `/api/appointments/${appointmentId}`;
+          appointmentId = appointments[0].id
+          this.path = `/api/appointments/${appointmentId}`
         }
       },
       skipIf: () => !appointmentId
@@ -314,11 +318,13 @@ export function createIndividualResourceTests(): ApiEndpointTest[] {
       path: '/api/inventory/placeholder',
       expectedStatus: 200,
       responseSchema: schemas.InventoryItemSchema,
-      setup: async function() {
-        const inventory = await fetch(this.httpClient.baseUrl + '/api/inventory').then(r => r.json());
+      setup: async function () {
+        const inventory = await fetch(this.httpClient.baseUrl + '/api/inventory').then((r) =>
+          r.json()
+        )
         if (inventory.length > 0) {
-          inventoryId = inventory[0].id;
-          this.path = `/api/inventory/${inventoryId}`;
+          inventoryId = inventory[0].id
+          this.path = `/api/inventory/${inventoryId}`
         }
       },
       skipIf: () => !inventoryId
@@ -331,16 +337,18 @@ export function createIndividualResourceTests(): ApiEndpointTest[] {
       path: '/api/analytics/placeholder',
       expectedStatus: 200,
       responseSchema: schemas.AnalyticsSchema,
-      setup: async function() {
-        const analytics = await fetch(this.httpClient.baseUrl + '/api/analytics').then(r => r.json());
+      setup: async function () {
+        const analytics = await fetch(this.httpClient.baseUrl + '/api/analytics').then((r) =>
+          r.json()
+        )
         if (analytics.length > 0) {
-          analyticsId = analytics[0].id;
-          this.path = `/api/analytics/${analyticsId}`;
+          analyticsId = analytics[0].id
+          this.path = `/api/analytics/${analyticsId}`
         }
       },
       skipIf: () => !analyticsId
     }
-  ];
+  ]
 }
 
 /**
@@ -529,5 +537,5 @@ export function createErrorScenarioTests(): ErrorScenarioTest[] {
       expectedStatus: 404,
       description: 'Should return 404 for nonexistent endpoints'
     }
-  ];
+  ]
 }

@@ -1,20 +1,6 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState
-} from 'react'
-import {
-  memoSections,
-  memoReviewPrompts,
-  memoExhibits
-} from '@/lib/workflow-data'
-import {
-  fetchMemoComposerState,
-  persistMemoComposerState
-} from '@/lib/workflow-api'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { memoSections, memoReviewPrompts, memoExhibits } from '@/lib/workflow-data'
+import { fetchMemoComposerState, persistMemoComposerState } from '@/lib/workflow-api'
 import type {
   MemoAttachmentState,
   MemoComment,
@@ -224,7 +210,8 @@ export function MemoComposerProvider({ children }: { children: React.ReactNode }
                   setSyncError('Memo refreshed due to concurrent edits.')
                 }
               } catch (refreshError) {
-                const message = refreshError instanceof Error ? refreshError.message : 'Unknown persistence error'
+                const message =
+                  refreshError instanceof Error ? refreshError.message : 'Unknown persistence error'
                 setSyncError(message)
               }
             } else {
@@ -290,29 +277,26 @@ export function MemoComposerProvider({ children }: { children: React.ReactNode }
     }))
   }, [])
 
-  const addComment = useCallback(
-    (sectionId: string, message: string, author = 'Reviewer') => {
-      const trimmed = message.trim()
-      if (!trimmed) return
-      setState((prev) => {
-        const nextThreads = { ...prev.commentThreads }
-        const thread = nextThreads[sectionId] ? [...nextThreads[sectionId]] : []
-        thread.unshift({
-          id: ensureUuid(),
-          author,
-          message: trimmed,
-          status: 'open',
-          createdAt: new Date().toISOString()
-        })
-        nextThreads[sectionId] = thread
-        return {
-          ...prev,
-          commentThreads: nextThreads
-        }
+  const addComment = useCallback((sectionId: string, message: string, author = 'Reviewer') => {
+    const trimmed = message.trim()
+    if (!trimmed) return
+    setState((prev) => {
+      const nextThreads = { ...prev.commentThreads }
+      const thread = nextThreads[sectionId] ? [...nextThreads[sectionId]] : []
+      thread.unshift({
+        id: ensureUuid(),
+        author,
+        message: trimmed,
+        status: 'open',
+        createdAt: new Date().toISOString()
       })
-    },
-    []
-  )
+      nextThreads[sectionId] = thread
+      return {
+        ...prev,
+        commentThreads: nextThreads
+      }
+    })
+  }, [])
 
   const setCommentStatus = useCallback(
     (sectionId: string, commentId: string, status: MemoCommentStatus) => {
@@ -426,21 +410,22 @@ export function MemoComposerProvider({ children }: { children: React.ReactNode }
           .join('\n')
       : '1. Exhibits not selected.'
 
-    const commentsMarkdown = commentThreads
-      .map((thread) => {
-        if (!thread.comments.length) return null
-        const rendered = thread.comments
-          .map((comment) => {
-            const status = comment.status === 'resolved' ? 'Resolved' : 'Open'
-            return `- [${status}] ${comment.message} _(via ${comment.author} • ${new Date(
-              comment.createdAt
-            ).toLocaleDateString()})_`
-          })
-          .join('\n')
-        return `#### ${thread.title}\n${rendered}`
-      })
-      .filter(Boolean)
-      .join('\n\n') || 'No reviewer comments on record.'
+    const commentsMarkdown =
+      commentThreads
+        .map((thread) => {
+          if (!thread.comments.length) return null
+          const rendered = thread.comments
+            .map((comment) => {
+              const status = comment.status === 'resolved' ? 'Resolved' : 'Open'
+              return `- [${status}] ${comment.message} _(via ${comment.author} • ${new Date(
+                comment.createdAt
+              ).toLocaleDateString()})_`
+            })
+            .join('\n')
+          return `#### ${thread.title}\n${rendered}`
+        })
+        .filter(Boolean)
+        .join('\n\n') || 'No reviewer comments on record.'
 
     return `# Investment Memo\n\n${sectionMarkdown}\n\n---\n\n### Review Checklist\n${reviewMarkdown}\n\n### Exhibits\n${exhibitsMarkdown}\n\n### Reviewer Comment Threads\n${commentsMarkdown}`
   }, [state.sections, state.reviewChecklist, includedExhibits, commentThreads])
@@ -486,29 +471,30 @@ export function MemoComposerProvider({ children }: { children: React.ReactNode }
           .join('')
       : '<p class="empty">No exhibits selected.</p>'
 
-    const commentsHtml = commentThreads
-      .map((thread) => {
-        if (!thread.comments.length) return ''
-        const rendered = thread.comments
-          .map((comment) => {
-            const status = comment.status === 'resolved' ? 'resolved' : 'open'
-            const date = new Date(comment.createdAt).toLocaleString()
-            return `<li data-status="${status}">
+    const commentsHtml =
+      commentThreads
+        .map((thread) => {
+          if (!thread.comments.length) return ''
+          const rendered = thread.comments
+            .map((comment) => {
+              const status = comment.status === 'resolved' ? 'resolved' : 'open'
+              const date = new Date(comment.createdAt).toLocaleString()
+              return `<li data-status="${status}">
                 <div class="meta">
                   <span class="author">${escapeHtml(comment.author)}</span>
                   <span class="date">${escapeHtml(date)}</span>
                 </div>
                 <p>${escapeHtml(comment.message)}</p>
               </li>`
-          })
-          .join('')
-        return `<section class="comment-thread">
+            })
+            .join('')
+          return `<section class="comment-thread">
             <h4>${escapeHtml(thread.title)}</h4>
             <ul>${rendered}</ul>
           </section>`
-      })
-      .filter(Boolean)
-      .join('') || '<p class="empty">No reviewer comments on record.</p>'
+        })
+        .filter(Boolean)
+        .join('') || '<p class="empty">No reviewer comments on record.</p>'
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -784,7 +770,9 @@ export function MemoComposerProvider({ children }: { children: React.ReactNode }
     ]
   )
 
-  return <MemoComposerContext.Provider value={contextValue}>{children}</MemoComposerContext.Provider>
+  return (
+    <MemoComposerContext.Provider value={contextValue}>{children}</MemoComposerContext.Provider>
+  )
 }
 
 export function useMemoComposer() {

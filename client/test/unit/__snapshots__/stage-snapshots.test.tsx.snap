@@ -1,0 +1,684 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Stage Component Snapshots > renders HomeDailyBrief with stage overview 1`] = `
+<div>
+  <div
+    class="space-y-6"
+  >
+    <div
+      class="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+    >
+      <div
+        class="rounded-lg border text-card-foreground shadow-sm bg-slate-900/60 border-slate-800 transition-all duration-200 ease-in-out hover:bg-slate-900/70"
+      >
+        <div
+          class="flex flex-col space-y-1.5 p-6"
+        >
+          <div
+            class="font-semibold tracking-tight text-sm text-slate-200"
+          >
+            Current Stage
+          </div>
+        </div>
+        <div
+          class="p-6 pt-0 text-xs text-slate-400"
+        >
+          <div
+            class="text-lg font-semibold text-slate-50"
+          >
+            Home / Daily Brief
+          </div>
+          <p
+            class="mt-1"
+          >
+            Re-enter context in seconds
+          </p>
+        </div>
+      </div>
+      <div
+        class="rounded-lg border text-card-foreground shadow-sm bg-slate-900/60 border-slate-800 transition-all duration-200 ease-in-out hover:bg-slate-900/70"
+      >
+        <div
+          class="flex flex-col space-y-1.5 p-6"
+        >
+          <div
+            class="font-semibold tracking-tight text-sm text-slate-200"
+          >
+            Next Up
+          </div>
+        </div>
+        <div
+          class="p-6 pt-0 text-xs text-slate-400"
+        >
+          <div>
+            <div
+              class="text-lg font-semibold text-slate-50"
+            >
+              Idea Intake (Triage)
+            </div>
+            <p
+              class="mt-1"
+            >
+              Unlock once gates are cleared.
+            </p>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 mt-3 border-slate-700 text-[10px] uppercase text-slate-300 transition-all ease-in-out animate-in fade-in duration-500"
+            >
+              Locked
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="rounded-lg border text-card-foreground shadow-sm bg-slate-900/60 border-slate-800 transition-all duration-200 ease-in-out hover:bg-slate-900/70"
+      >
+        <div
+          class="flex flex-col space-y-1.5 p-6"
+        >
+          <div
+            class="font-semibold tracking-tight text-sm text-slate-200"
+          >
+            Pipeline View
+          </div>
+        </div>
+        <div
+          class="p-6 pt-0 space-y-2 text-xs text-slate-400"
+        >
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Home
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            >
+              in-progress
+            </div>
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Intake
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            >
+              locked
+            </div>
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Screener
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              One-Pager
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Dossier
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Data
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Financials
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Valuation
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Scenarios
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Risk
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Quality
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Portfolio
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Memo
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Execution
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+          <div
+            class="flex items-center justify-between transition-all duration-200 ease-in-out hover:bg-slate-800/30 rounded-lg px-2 py-1"
+          >
+            <span>
+              Monitoring
+            </span>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-slate-700 text-[10px] uppercase text-slate-300 transition-all duration-200 ease-in-out hover:scale-105"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="rounded-lg border text-card-foreground shadow-sm bg-slate-900/60 border-slate-800 transition-all duration-200 ease-in-out hover:bg-slate-900/70"
+    >
+      <div
+        class="flex flex-col space-y-1.5 p-6"
+      >
+        <div
+          class="font-semibold tracking-tight text-sm text-slate-200"
+        >
+          Recent Research Log Entries
+        </div>
+      </div>
+      <div
+        class="p-6 pt-0"
+      >
+        <ul
+          class="space-y-2 text-xs text-slate-400"
+        >
+          <li
+            class="flex items-start gap-3 rounded border border-slate-800 bg-slate-950/60 px-3 py-2 transition-all duration-200 ease-in-out hover:bg-slate-950/80 hover:border-slate-700"
+          >
+            <span
+              class="mt-[2px] text-[10px] font-semibold uppercase text-slate-500"
+            >
+              03:30 AM
+            </span>
+            <div>
+              <p
+                class="font-medium text-slate-200"
+              >
+                Home
+              </p>
+              <p>
+                Submitted prompt
+              </p>
+              <span
+                class="text-[11px] text-slate-500"
+              >
+                Test research log entry
+              </span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Stage Component Snapshots > renders MemoComposer with sections and progress 1`] = `
+<div>
+  <div
+    class="space-y-6"
+  >
+    <div
+      class="rounded-lg border text-card-foreground shadow-sm border-slate-800 bg-slate-900/60"
+    >
+      <div
+        class="flex flex-col space-y-1.5 p-6"
+      >
+        <div
+          class="font-semibold tracking-tight text-sm text-slate-200"
+        >
+          Memo Progress
+        </div>
+      </div>
+      <div
+        class="p-6 pt-0 grid gap-4 text-xs text-slate-400 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        <div
+          class="transition-all duration-200 ease-in-out hover:bg-slate-800/20 rounded-lg px-2 py-1"
+        >
+          <p
+            class="text-[11px] uppercase text-slate-500"
+          >
+            Overall completion
+          </p>
+          <p
+            class="text-lg font-semibold text-slate-100"
+          >
+            60
+            %
+          </p>
+        </div>
+        <div
+          class="transition-all duration-200 ease-in-out hover:bg-slate-800/20 rounded-lg px-2 py-1"
+        >
+          <p
+            class="text-[11px] uppercase text-slate-500"
+          >
+            Sections ready
+          </p>
+          <p
+            class="text-lg font-semibold text-slate-100"
+          >
+            0
+            /
+            2
+          </p>
+        </div>
+        <div
+          class="transition-all duration-200 ease-in-out hover:bg-slate-800/20 rounded-lg px-2 py-1"
+        >
+          <p
+            class="text-[11px] uppercase text-slate-500"
+          >
+            Review checks
+          </p>
+          <p
+            class="text-lg font-semibold text-slate-100"
+          >
+            1
+            /
+            1
+          </p>
+        </div>
+        <div
+          class="transition-all duration-200 ease-in-out hover:bg-slate-800/20 rounded-lg px-2 py-1"
+        >
+          <p
+            class="text-[11px] uppercase text-slate-500"
+          >
+            Reviewer threads
+          </p>
+          <div
+            class="flex items-center gap-2"
+          >
+            <p
+              class="text-lg font-semibold text-slate-100"
+            >
+              0
+            </p>
+            <div
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/80 border-slate-700 text-[10px] uppercase transition-all duration-200 ease-in-out"
+            >
+              All cleared
+            </div>
+          </div>
+        </div>
+        <div
+          class="sm:col-span-2 xl:col-span-4"
+        >
+          <div
+            class="flex flex-wrap items-center gap-3 text-[11px] uppercase text-slate-500"
+          >
+            <span>
+              Autosave
+            </span>
+            <div
+              class="inline-flex items-center rounded-full font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-secondary/80 border px-2 py-1 text-[10px] transition-all duration-300 ease-in-out border-emerald-600 bg-emerald-900/30 text-emerald-100"
+            >
+              Saved 03:30 AM
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      data-orientation="horizontal"
+      dir="ltr"
+    >
+      <div
+        aria-orientation="horizontal"
+        class="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground"
+        data-orientation="horizontal"
+        role="tablist"
+        style="outline: none;"
+        tabindex="0"
+      >
+        <button
+          aria-controls="radix-:r0:-content-composer"
+          aria-selected="true"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+          data-orientation="horizontal"
+          data-radix-collection-item=""
+          data-state="active"
+          id="radix-:r0:-trigger-composer"
+          role="tab"
+          tabindex="-1"
+          type="button"
+        >
+          Composer
+        </button>
+        <button
+          aria-controls="radix-:r0:-content-preview"
+          aria-selected="false"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+          data-orientation="horizontal"
+          data-radix-collection-item=""
+          data-state="inactive"
+          id="radix-:r0:-trigger-preview"
+          role="tab"
+          tabindex="-1"
+          type="button"
+        >
+          Preview
+        </button>
+      </div>
+      <div
+        aria-labelledby="radix-:r0:-trigger-composer"
+        class="ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mt-4"
+        data-orientation="horizontal"
+        data-state="active"
+        id="radix-:r0:-content-composer"
+        role="tabpanel"
+        style="animation-duration: 0s;"
+        tabindex="0"
+      >
+        <div
+          class="grid gap-4 xl:grid-cols-[2fr_1fr]"
+        >
+          <div
+            class="space-y-4"
+          >
+            <div
+              class="rounded-lg border text-card-foreground shadow-sm border-slate-800 bg-slate-900/60"
+            >
+              <div
+                class="flex flex-col space-y-1.5 p-6"
+              >
+                <div
+                  class="font-semibold tracking-tight flex items-center justify-between text-sm text-slate-200"
+                >
+                  <span>
+                    Executive Summary
+                  </span>
+                  <div
+                    class="inline-flex items-center rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border px-2 py-1 text-[10px] uppercase border-slate-700 text-slate-300"
+                  >
+                    50
+                    /
+                    100
+                     words
+                  </div>
+                </div>
+              </div>
+              <div
+                class="p-6 pt-0"
+              >
+                <textarea
+                  class="flex min-h-[80px] rounded-md border px-3 py-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-48 w-full border-slate-700 bg-slate-950 text-sm text-slate-100 placeholder:text-slate-600 focus-visible:border-emerald-500 focus-visible:ring-emerald-500"
+                  placeholder="Write executive summary..."
+                >
+                  Test section content
+                </textarea>
+              </div>
+            </div>
+            <div
+              class="rounded-lg border text-card-foreground shadow-sm border-slate-800 bg-slate-900/60"
+            >
+              <div
+                class="flex flex-col space-y-1.5 p-6"
+              >
+                <div
+                  class="font-semibold tracking-tight flex items-center justify-between text-sm text-slate-200"
+                >
+                  <span>
+                    Investment Thesis
+                  </span>
+                  <div
+                    class="inline-flex items-center rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border px-2 py-1 text-[10px] uppercase border-slate-700 text-slate-300"
+                  >
+                    150
+                    /
+                    200
+                     words
+                  </div>
+                </div>
+              </div>
+              <div
+                class="p-6 pt-0"
+              >
+                <textarea
+                  class="flex min-h-[80px] rounded-md border px-3 py-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-48 w-full border-slate-700 bg-slate-950 text-sm text-slate-100 placeholder:text-slate-600 focus-visible:border-emerald-500 focus-visible:ring-emerald-500"
+                  placeholder="Describe investment thesis..."
+                >
+                  Test thesis content
+                </textarea>
+              </div>
+            </div>
+          </div>
+          <div
+            class="space-y-4"
+          >
+            <div
+              class="rounded-lg border text-card-foreground shadow-sm border-slate-800 bg-slate-900/60"
+            >
+              <div
+                class="flex flex-col space-y-1.5 p-6"
+              >
+                <div
+                  class="font-semibold tracking-tight text-sm text-slate-200"
+                >
+                  Review Checklist
+                </div>
+              </div>
+              <div
+                class="p-6 pt-0 space-y-3"
+              >
+                <p
+                  class="text-xs text-slate-400"
+                >
+                  Complete the review prompts and tie each answer back to memo sections or exhibits. Reviewers use this to gate IC approval.
+                </p>
+                <div
+                  class="space-y-3"
+                >
+                  <label
+                    class="flex items-start gap-2 rounded border px-3 py-2 text-xs transition-all ease-in-out hover:bg-slate-900/60 border-emerald-600 bg-emerald-900/20 text-emerald-200 animate-in zoom-in-95 duration-300"
+                  >
+                    <button
+                      aria-checked="true"
+                      class="peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground mt-0.5"
+                      data-state="checked"
+                      role="checkbox"
+                      type="button"
+                      value="on"
+                    >
+                      <span
+                        class="flex items-center justify-center text-current"
+                        data-state="checked"
+                        style="pointer-events: none;"
+                      >
+                        <svg
+                          class="lucide lucide-check h-4 w-4"
+                          fill="none"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 6 9 17l-5-5"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                    <div>
+                      <p
+                        class="font-medium text-slate-200"
+                      >
+                        Is the business model sustainable?
+                      </p>
+                      <p
+                        class="text-[11px] text-slate-500"
+                      >
+                        Evaluate long-term viability
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div
+              class="rounded-lg border text-card-foreground shadow-sm border-slate-800 bg-slate-900/60"
+            >
+              <div
+                class="flex flex-col space-y-1.5 p-6"
+              >
+                <div
+                  class="font-semibold tracking-tight text-sm text-slate-200"
+                >
+                  Reviewer Threads
+                </div>
+              </div>
+              <div
+                class="p-6 pt-0 space-y-4"
+              >
+                <form
+                  class="space-y-2"
+                >
+                  <p
+                    class="text-[11px] uppercase text-slate-500"
+                  >
+                    Log a reviewer note
+                  </p>
+                  <div
+                    class="grid gap-2 sm:grid-cols-[1fr_1fr]"
+                  >
+                    <select
+                      class="rounded border border-slate-800 bg-slate-950 px-2 py-2 text-xs text-slate-100 focus:border-emerald-500 focus:outline-none"
+                    >
+                      <option
+                        value="section-1"
+                      >
+                        Executive Summary
+                      </option>
+                      <option
+                        value="section-2"
+                      >
+                        Investment Thesis
+                      </option>
+                    </select>
+                    <input
+                      class="flex w-full rounded-md border px-3 py-2 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-9 border-slate-800 bg-slate-950 text-xs text-slate-100 placeholder:text-slate-500"
+                      placeholder="Reviewer"
+                      value="Reviewer"
+                    />
+                  </div>
+                  <textarea
+                    class="flex w-full rounded-md border px-3 py-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[88px] border-slate-800 bg-slate-950 text-xs text-slate-100 placeholder:text-slate-500 focus-visible:border-emerald-500 focus-visible:ring-emerald-500"
+                    placeholder="Document new feedback or follow-up actions."
+                  />
+                  <div
+                    class="flex justify-end"
+                  >
+                    <button
+                      class="rounded border border-emerald-600 px-3 py-1 text-[11px] uppercase text-emerald-200 transition hover:bg-emerald-900/20"
+                      disabled=""
+                      type="submit"
+                    >
+                      Add comment
+                    </button>
+                  </div>
+                </form>
+                <div
+                  class="space-y-3"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        aria-labelledby="radix-:r0:-trigger-preview"
+        class="ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mt-4 space-y-4"
+        data-orientation="horizontal"
+        data-state="inactive"
+        hidden=""
+        id="radix-:r0:-content-preview"
+        role="tabpanel"
+        tabindex="0"
+      />
+    </div>
+  </div>
+</div>
+`;

@@ -18,25 +18,25 @@ export async function startWebSocketServer(): Promise<void> {
     log('WebSocket server already running', { port: getPort() })
     return
   }
-  
+
   const port = getPort()
-  
+
   try {
     // Create HTTP server for WebSocket
     httpServer = createServer()
-    
+
     // Create WebSocket server
-    wsServer = new WebSocketServer({ 
+    wsServer = new WebSocketServer({
       server: httpServer,
       path: '/ws'
     })
-    
+
     wsServer.on('connection', (ws: WebSocket) => {
       log('WebSocket client connected', { connections: wsServer?.clients.size || 0 })
-      
+
       ws.on('message', (data) => {
         log('WebSocket message received', { message: data.toString() })
-        
+
         // Echo message to all clients
         wsServer?.clients.forEach((client) => {
           if (client.readyState === WebSocket.OPEN) {
@@ -44,19 +44,21 @@ export async function startWebSocketServer(): Promise<void> {
           }
         })
       })
-      
+
       ws.on('close', () => {
         log('WebSocket client disconnected', { connections: wsServer?.clients.size || 0 })
       })
-      
+
       // Send welcome message
-      ws.send(JSON.stringify({
-        type: 'welcome',
-        message: 'Connected to Andreas Vibe WebSocket',
-        timestamp: new Date().toISOString()
-      }))
+      ws.send(
+        JSON.stringify({
+          type: 'welcome',
+          message: 'Connected to Andreas Vibe WebSocket',
+          timestamp: new Date().toISOString()
+        })
+      )
     })
-    
+
     // Start HTTP server
     await new Promise<void>((resolve, reject) => {
       httpServer!.listen(port, '0.0.0.0', (error?: Error) => {
@@ -64,17 +66,16 @@ export async function startWebSocketServer(): Promise<void> {
           reject(error)
           return
         }
-        
+
         startTime = new Date()
         log('WebSocket server started', { port, timestamp: startTime.toISOString() })
         resolve()
       })
     })
-    
   } catch (error) {
-    log('Failed to start WebSocket server', { 
+    log('Failed to start WebSocket server', {
       error: error instanceof Error ? error.message : 'Unknown error',
-      port 
+      port
     })
     throw error
   }
@@ -85,12 +86,12 @@ export function stopWebSocketServer(): void {
     wsServer.close()
     wsServer = null
   }
-  
+
   if (httpServer) {
     httpServer.close()
     httpServer = null
   }
-  
+
   startTime = null
   log('WebSocket server stopped')
 }
@@ -104,7 +105,7 @@ export function getWebSocketStatus(): WebSocketStatus {
   }
 }
 
-import { getEnvVar } from './env-security';
+import { getEnvVar } from './env-security'
 
 function getPort(): number {
   return getEnvVar('OPERATIONS_WS_PORT') || 8080
@@ -116,17 +117,17 @@ export function broadcastMessage(message: string | object): void {
     log('Cannot broadcast: WebSocket server not running')
     return
   }
-  
+
   const data = typeof message === 'string' ? message : JSON.stringify(message)
-  
+
   wsServer.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(data)
     }
   })
-  
-  log('Message broadcast to WebSocket clients', { 
+
+  log('Message broadcast to WebSocket clients', {
     message: typeof message,
-    clients: wsServer.clients.size 
+    clients: wsServer.clients.size
   })
 }

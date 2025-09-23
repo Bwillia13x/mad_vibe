@@ -90,7 +90,7 @@ export interface InventoryItem {
 // Schedule and availability types
 export interface TimeSlot {
   start: string // HH:MM format
-  end: string   // HH:MM format
+  end: string // HH:MM format
 }
 
 export interface DaySchedule {

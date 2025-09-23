@@ -2,7 +2,7 @@
 
 /**
  * Smoke Test Suite for Andreas Vibe Production Readiness
- * 
+ *
  * This script validates critical endpoints and functionality without external dependencies
  * when SMOKE_MODE=1 is set. It ensures the application is production-ready.
  */
@@ -51,7 +51,7 @@ class SmokeTestRunner {
     if (response.status !== 200) {
       throw new Error(`Expected 200, got ${response.status}`)
     }
-    
+
     const html = await response.text()
     if (!html.includes('Andreas Vibe')) {
       throw new Error('Home page does not contain expected content')
@@ -63,7 +63,7 @@ class SmokeTestRunner {
     if (response.status !== 200) {
       throw new Error(`Expected 200, got ${response.status}`)
     }
-    
+
     const html = await response.text()
     if (!html.includes('Order Pickup Service')) {
       throw new Error('Pickup page does not contain expected content')
@@ -75,7 +75,7 @@ class SmokeTestRunner {
     if (response.status !== 200) {
       throw new Error(`Expected 200, got ${response.status}`)
     }
-    
+
     const data = await response.json()
     if (!data.status || !data.timestamp) {
       throw new Error('Health endpoint missing required fields')
@@ -92,7 +92,7 @@ class SmokeTestRunner {
     if (response.status !== 200) {
       throw new Error(`Expected 200, got ${response.status}`)
     }
-    
+
     const data = await response.json()
     if (!Array.isArray(data.models)) {
       throw new Error('Models endpoint should return models array')
@@ -118,7 +118,7 @@ class SmokeTestRunner {
     if (response.status !== 200) {
       throw new Error(`Expected 200, got ${response.status}`)
     }
-    
+
     const data = await response.json()
     if (!data.query || !Array.isArray(data.results)) {
       throw new Error('Search endpoint missing required fields')
@@ -133,7 +133,7 @@ class SmokeTestRunner {
     const response = await this.fetch(`${BASE_URL}/admin`, {
       redirect: 'manual'
     })
-    
+
     // Should either show admin page (if authorized) or redirect to auth
     if (response.status !== 200 && response.status !== 302 && response.status !== 307) {
       throw new Error(`Expected 200 or 30x redirect, got ${response.status}`)
@@ -153,7 +153,7 @@ class SmokeTestRunner {
     if (statusResponse.status !== 200) {
       throw new Error(`Operations status endpoint returned ${statusResponse.status}`)
     }
-    
+
     const statusData = await statusResponse.json()
     if (typeof statusData.connected !== 'boolean' || typeof statusData.port !== 'number') {
       throw new Error('Operations status endpoint missing required fields')
@@ -183,7 +183,6 @@ class SmokeTestRunner {
           throw new Error(`Missing required script: ${script}`)
         }
       }
-
     } catch (error) {
       throw new Error(`Build artifacts validation failed: ${error.message}`)
     }
@@ -218,7 +217,6 @@ class SmokeTestRunner {
       } catch (error) {
         throw new Error('Next.js configuration missing: next.config.ts')
       }
-
     } catch (error) {
       throw new Error(`TypeScript configuration validation failed: ${error.message}`)
     }
@@ -234,16 +232,16 @@ class SmokeTestRunner {
     console.log(`✅ Passed: ${this.passed}`)
     console.log(`❌ Failed: ${this.failed}`)
     console.log(`Success Rate: ${Math.round((this.passed / this.results.length) * 100)}%`)
-    
+
     if (this.failed > 0) {
       console.log('\n❌ FAILED TESTS:')
       this.results
-        .filter(r => r.status === 'FAIL')
-        .forEach(r => console.log(`  - ${r.name}: ${r.error}`))
+        .filter((r) => r.status === 'FAIL')
+        .forEach((r) => console.log(`  - ${r.name}: ${r.error}`))
     }
-    
+
     console.log('='.repeat(60))
-    
+
     if (this.failed === 0) {
       console.log('🎉 ALL SMOKE TESTS PASSED - Production Ready!')
       return true
@@ -267,7 +265,7 @@ class SmokeTestRunner {
     await this.runTest('Search Endpoint (POST /api/search)', () => this.testSearchEndpoint())
     await this.runTest('Admin Redirects', () => this.testAdminRedirect())
     await this.runTest('Operations WebSocket Status', () => this.testOperationsEndpoint())
-    
+
     // Configuration and setup tests
     await this.runTest('Build Artifacts', () => this.testBuildArtifacts())
     await this.runTest('Database Configuration', () => this.testDatabaseConfiguration())
@@ -280,8 +278,9 @@ class SmokeTestRunner {
 // Run smoke tests if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const runner = new SmokeTestRunner()
-  
-  runner.run()
+
+  runner
+    .run()
     .then((success) => {
       process.exit(success ? 0 : 1)
     })

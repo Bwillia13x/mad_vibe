@@ -57,10 +57,7 @@
               {
                 "test": "valid_token_session",
                 "status": 200,
-                "expected": [
-                  200,
-                  400
-                ],
+                "expected": [200, 400],
                 "passed": true
               },
               {
@@ -71,13 +68,7 @@
               },
               {
                 "test": "concurrent_sessions",
-                "statuses": [
-                  200,
-                  200,
-                  200,
-                  200,
-                  200
-                ],
+                "statuses": [200, 200, 200, 200, 200],
                 "passed": true
               },
               {
@@ -180,10 +171,7 @@
               {
                 "endpoint": "/api/demo/seed",
                 "headers": {
-                  "Authorization": [
-                    "Bearer fake",
-                    "Bearer admin"
-                  ]
+                  "Authorization": ["Bearer fake", "Bearer admin"]
                 },
                 "status": 200,
                 "shouldBeRejected": false,
@@ -319,10 +307,7 @@
               {
                 "endpoint": "/api/demo/time",
                 "headers": {
-                  "Authorization": [
-                    "Bearer fake",
-                    "Bearer admin"
-                  ]
+                  "Authorization": ["Bearer fake", "Bearer admin"]
                 },
                 "status": 200,
                 "shouldBeRejected": false,
@@ -458,10 +443,7 @@
               {
                 "endpoint": "/api/demo/reset",
                 "headers": {
-                  "Authorization": [
-                    "Bearer fake",
-                    "Bearer admin"
-                  ]
+                  "Authorization": ["Bearer fake", "Bearer admin"]
                 },
                 "status": 200,
                 "shouldBeRejected": false,
@@ -597,10 +579,7 @@
               {
                 "endpoint": "/api/pos/sales",
                 "headers": {
-                  "Authorization": [
-                    "Bearer fake",
-                    "Bearer admin"
-                  ]
+                  "Authorization": ["Bearer fake", "Bearer admin"]
                 },
                 "status": 400,
                 "shouldBeRejected": false,
@@ -736,10 +715,7 @@
               {
                 "endpoint": "/api/marketing/campaigns",
                 "headers": {
-                  "Authorization": [
-                    "Bearer fake",
-                    "Bearer admin"
-                  ]
+                  "Authorization": ["Bearer fake", "Bearer admin"]
                 },
                 "status": 400,
                 "shouldBeRejected": false,
@@ -875,10 +851,7 @@
               {
                 "endpoint": "/api/loyalty/entries",
                 "headers": {
-                  "Authorization": [
-                    "Bearer fake",
-                    "Bearer admin"
-                  ]
+                  "Authorization": ["Bearer fake", "Bearer admin"]
                 },
                 "status": 400,
                 "shouldBeRejected": false,
@@ -976,11 +949,7 @@
             "sessionId2": null,
             "manipulatedResponseStatus": 200,
             "concurrentRequestsSuccessful": true,
-            "concurrentStatuses": [
-              200,
-              200,
-              200
-            ]
+            "concurrentStatuses": [200, 200, 200]
           }
         },
         {
@@ -1014,9 +983,7 @@
                     {
                       "endpoint": "POST /api/chat",
                       "description": "Chat API endpoint",
-                      "inputFields": [
-                        "messages"
-                      ],
+                      "inputFields": ["messages"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": false
@@ -1024,10 +991,7 @@
                     {
                       "endpoint": "POST /api/demo/seed",
                       "description": "Demo data seeding",
-                      "inputFields": [
-                        "scenario",
-                        "seed"
-                      ],
+                      "inputFields": ["scenario", "seed"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": true
@@ -1035,10 +999,7 @@
                     {
                       "endpoint": "POST /api/demo/time",
                       "description": "Demo time controls",
-                      "inputFields": [
-                        "date",
-                        "clear"
-                      ],
+                      "inputFields": ["date", "clear"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": true
@@ -1046,11 +1007,7 @@
                     {
                       "endpoint": "POST /api/pos/sales",
                       "description": "POS sales creation",
-                      "inputFields": [
-                        "items",
-                        "discountPct",
-                        "taxPct"
-                      ],
+                      "inputFields": ["items", "discountPct", "taxPct"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": true
@@ -1058,12 +1015,7 @@
                     {
                       "endpoint": "POST /api/marketing/campaigns",
                       "description": "Marketing campaign creation",
-                      "inputFields": [
-                        "name",
-                        "description",
-                        "channel",
-                        "status"
-                      ],
+                      "inputFields": ["name", "description", "channel", "status"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": true
@@ -1071,12 +1023,7 @@
                     {
                       "endpoint": "PATCH /api/marketing/campaigns/test-id",
                       "description": "Marketing campaign update",
-                      "inputFields": [
-                        "name",
-                        "description",
-                        "channel",
-                        "status"
-                      ],
+                      "inputFields": ["name", "description", "channel", "status"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": true
@@ -1084,12 +1031,7 @@
                     {
                       "endpoint": "POST /api/loyalty/entries",
                       "description": "Loyalty entry creation",
-                      "inputFields": [
-                        "customerId",
-                        "type",
-                        "points",
-                        "note"
-                      ],
+                      "inputFields": ["customerId", "type", "points", "note"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": true
@@ -1097,10 +1039,7 @@
                     {
                       "endpoint": "GET /api/appointments",
                       "description": "Appointments with query filters",
-                      "inputFields": [
-                        "day",
-                        "date"
-                      ],
+                      "inputFields": ["day", "date"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": false
@@ -1108,9 +1047,7 @@
                     {
                       "endpoint": "GET /api/loyalty/entries",
                       "description": "Loyalty entries with customer filter",
-                      "inputFields": [
-                        "customerId"
-                      ],
+                      "inputFields": ["customerId"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": false
@@ -1118,9 +1055,7 @@
                     {
                       "endpoint": "GET /api/staff/test-id",
                       "description": "Staff member by ID",
-                      "inputFields": [
-                        "id"
-                      ],
+                      "inputFields": ["id"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": false
@@ -1128,9 +1063,7 @@
                     {
                       "endpoint": "GET /api/services/test-id",
                       "description": "Service by ID",
-                      "inputFields": [
-                        "id"
-                      ],
+                      "inputFields": ["id"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": false
@@ -1138,9 +1071,7 @@
                     {
                       "endpoint": "GET /api/appointments/test-id",
                       "description": "Appointment by ID",
-                      "inputFields": [
-                        "id"
-                      ],
+                      "inputFields": ["id"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": false
@@ -1148,9 +1079,7 @@
                     {
                       "endpoint": "GET /api/inventory/test-id",
                       "description": "Inventory item by ID",
-                      "inputFields": [
-                        "id"
-                      ],
+                      "inputFields": ["id"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": false
@@ -1158,9 +1087,7 @@
                     {
                       "endpoint": "GET /api/analytics/test-id",
                       "description": "Analytics data by ID",
-                      "inputFields": [
-                        "id"
-                      ],
+                      "inputFields": ["id"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": false
@@ -1168,9 +1095,7 @@
                     {
                       "endpoint": "DELETE /api/pos/sales/test-id",
                       "description": "Delete POS sale by ID",
-                      "inputFields": [
-                        "id"
-                      ],
+                      "inputFields": ["id"],
                       "status": 429,
                       "validated": true,
                       "requiresAuth": true
@@ -3514,12 +3439,7 @@
           "status": "pass",
           "duration": 0,
           "details": {
-            "safeConfigKeys": [
-              "PORT",
-              "NODE_ENV",
-              "SMOKE_MODE",
-              "OPERATIONS_WS_PORT"
-            ],
+            "safeConfigKeys": ["PORT", "NODE_ENV", "SMOKE_MODE", "OPERATIONS_WS_PORT"],
             "exposedSensitiveKeys": [],
             "maskingResults": [
               {
@@ -3556,12 +3476,7 @@
           "duration": 0,
           "details": {
             "audit": {
-              "configuredKeys": [
-                "PORT",
-                "NODE_ENV",
-                "SMOKE_MODE",
-                "OPERATIONS_WS_PORT"
-              ],
+              "configuredKeys": ["PORT", "NODE_ENV", "SMOKE_MODE", "OPERATIONS_WS_PORT"],
               "sensitiveKeys": [],
               "missingRecommended": [],
               "weakConfigurations": []
@@ -3870,9 +3785,7 @@
             }
           ]
         },
-        "recommendations": [
-          "Directory traversal protection is working correctly"
-        ]
+        "recommendations": ["Directory traversal protection is working correctly"]
       },
       {
         "testName": "HTTP Method Tampering Prevention",
@@ -3913,9 +3826,7 @@
             }
           ]
         },
-        "recommendations": [
-          "HTTP method restrictions are properly configured"
-        ]
+        "recommendations": ["HTTP method restrictions are properly configured"]
       },
       {
         "testName": "Header Injection Attack Prevention",
@@ -3938,9 +3849,7 @@
             }
           ]
         },
-        "recommendations": [
-          "Header injection protection is working correctly"
-        ]
+        "recommendations": ["Header injection protection is working correctly"]
       },
       {
         "testName": "Authentication Bypass Prevention",
@@ -4221,9 +4130,7 @@
             }
           ]
         },
-        "recommendations": [
-          "Authentication bypass protection is working correctly"
-        ]
+        "recommendations": ["Authentication bypass protection is working correctly"]
       },
       {
         "testName": "Session Fixation Attack Prevention",
@@ -4304,9 +4211,7 @@
             }
           ]
         },
-        "recommendations": [
-          "CSRF protection is properly implemented"
-        ]
+        "recommendations": ["CSRF protection is properly implemented"]
       },
       {
         "testName": "Information Disclosure Prevention",
@@ -4373,9 +4278,7 @@
             }
           ]
         },
-        "recommendations": [
-          "Information disclosure protection is working correctly"
-        ]
+        "recommendations": ["Information disclosure protection is working correctly"]
       },
       {
         "testName": "Rate Limiting Bypass Prevention",
@@ -4388,26 +4291,8 @@
               "test": "Rapid requests",
               "requestCount": 20,
               "statusCodes": [
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429,
-                429
+                429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429,
+                429, 429, 429
               ],
               "rateLimited": true,
               "allSuccessful": false
@@ -4419,9 +4304,7 @@
             }
           ]
         },
-        "recommendations": [
-          "Rate limiting protection is working correctly"
-        ]
+        "recommendations": ["Rate limiting protection is working correctly"]
       }
     ]
   },

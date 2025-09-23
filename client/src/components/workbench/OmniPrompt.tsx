@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect } from 'react'
 import {
   CommandDialog,
   CommandEmpty,
@@ -6,10 +6,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList
-} from "@/components/ui/command"
-import { useWorkflow } from "@/hooks/useWorkflow"
-import { Badge } from "@/components/ui/badge"
-import { ArrowRight, CheckCircle2, Circle, Lock } from "lucide-react"
+} from '@/components/ui/command'
+import { useWorkflow } from '@/hooks/useWorkflow'
+import { Badge } from '@/components/ui/badge'
+import { ArrowRight, CheckCircle2, Circle, Lock } from 'lucide-react'
 
 export interface OmniPromptProps {
   open: boolean
@@ -18,24 +18,18 @@ export interface OmniPromptProps {
 }
 
 export function OmniPrompt({ open, onOpenChange, onNavigateStage }: OmniPromptProps) {
-  const {
-    stages,
-    stageStatuses,
-    activeStage,
-    markStageComplete,
-    resetStage,
-    isStageComplete
-  } = useWorkflow()
+  const { stages, stageStatuses, activeStage, markStageComplete, resetStage, isStageComplete } =
+    useWorkflow()
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
         onOpenChange(true)
       }
     }
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
   }, [onOpenChange])
 
   return (
@@ -50,16 +44,16 @@ export function OmniPrompt({ open, onOpenChange, onNavigateStage }: OmniPromptPr
               <CommandItem
                 key={stage.slug}
                 value={`stage ${stage.title}`}
-                disabled={status === "locked"}
+                disabled={status === 'locked'}
                 onSelect={() => {
-                  if (status === "locked") return
+                  if (status === 'locked') return
                   onNavigateStage(stage.slug)
                   onOpenChange(false)
                 }}
               >
-                {status === "complete" ? (
+                {status === 'complete' ? (
                   <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-400" />
-                ) : status === "locked" ? (
+                ) : status === 'locked' ? (
                   <Lock className="mr-2 h-4 w-4" />
                 ) : (
                   <Circle className="mr-2 h-4 w-4 text-slate-400" />
@@ -68,9 +62,7 @@ export function OmniPrompt({ open, onOpenChange, onNavigateStage }: OmniPromptPr
                 <Badge variant="outline" className="border-slate-600 text-[10px] uppercase">
                   Stage {stage.id + 1}
                 </Badge>
-                {status === "locked" && (
-                  <span className="ml-2 text-xs text-slate-500">Locked</span>
-                )}
+                {status === 'locked' && <span className="ml-2 text-xs text-slate-500">Locked</span>}
               </CommandItem>
             )
           })}

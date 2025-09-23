@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'wouter'
 import { useMemo } from 'react'
+import { queryClient } from '@/lib/queryClient'
 import { Sparkles, PanelsTopLeft, ChartBar, Briefcase } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useWorkflow } from '@/hooks/useWorkflow'
@@ -56,6 +57,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:rounded-xl focus:bg-slate-900 focus:px-3 focus:py-2 focus:text-slate-100"
+      >
+        Skip to content
+      </a>
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <button
@@ -69,6 +76,25 @@ export function AppShell({ children }: { children: ReactNode }) {
             {navItems.map((item) => (
               <Link key={item.label} href={item.href}>
                 <a
+                  onMouseEnter={() => {
+                    // Prefetch common queries when user hovers a nav item
+                    if (item.href.startsWith('/analytics')) {
+                      queryClient.prefetchQuery({ queryKey: ['/api/analytics'] })
+                      queryClient.prefetchQuery({ queryKey: ['/api/marketing/campaigns'] })
+                    } else if (
+                      item.href.startsWith('/inventory') ||
+                      item.href.startsWith('/staff') ||
+                      item.href.startsWith('/scheduling') ||
+                      item.href.startsWith('/loyalty') ||
+                      item.href.startsWith('/marketing') ||
+                      item.href.startsWith('/pos')
+                    ) {
+                      queryClient.prefetchQuery({ queryKey: ['/api/inventory'] })
+                      queryClient.prefetchQuery({ queryKey: ['/api/appointments', 'today'] })
+                      queryClient.prefetchQuery({ queryKey: ['/api/loyalty/entries'] })
+                      queryClient.prefetchQuery({ queryKey: ['/api/marketing/campaigns'] })
+                    }
+                  }}
                   className={cn(
                     'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition',
                     item.match(location)
@@ -84,7 +110,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
         </div>
       </header>
-      <main className="flex-1">
+      <main id="main" className="flex-1" role="main" aria-live="polite">
         {children}
       </main>
     </div>

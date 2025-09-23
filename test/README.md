@@ -15,21 +15,25 @@ The testing infrastructure consists of several key components:
 ## Quick Start
 
 ### Run All Tests
+
 ```bash
 npm run test:comprehensive
 ```
 
 ### Run Specific Test Suites
+
 ```bash
 npm run test:comprehensive -- --suites smoke-tests,api-tests
 ```
 
 ### Run with Verbose Output
+
 ```bash
 npm run test:comprehensive -- --verbose
 ```
 
 ### List Available Test Suites
+
 ```bash
 npm run test:comprehensive -- --list
 ```
@@ -39,6 +43,7 @@ npm run test:comprehensive -- --list
 ### Functional Tests
 
 #### Smoke Tests (`smoke-tests`)
+
 - Basic functionality and health checks
 - Core API endpoint validation
 - Demo scenario functionality
@@ -47,6 +52,7 @@ npm run test:comprehensive -- --list
 - **Duration**: ~30 seconds
 
 #### API Tests (`api-tests`)
+
 - Comprehensive API endpoint testing
 - Request/response validation
 - Error scenario testing
@@ -54,6 +60,7 @@ npm run test:comprehensive -- --list
 - **Duration**: ~2-3 minutes
 
 #### E2E Tests (`e2e-tests`)
+
 - End-to-end user workflow testing
 - UI component integration
 - Navigation and routing tests
@@ -61,6 +68,7 @@ npm run test:comprehensive -- --list
 - **Duration**: ~5-10 minutes
 
 ### Performance Tests (`performance-tests`)
+
 - Load testing and concurrent user simulation
 - Response time and latency measurement
 - Memory usage monitoring
@@ -68,6 +76,7 @@ npm run test:comprehensive -- --list
 - **Duration**: ~5-15 minutes
 
 ### Security Tests (`security-tests`)
+
 - Authentication and session security
 - Input validation and injection testing
 - API security validation
@@ -77,9 +86,11 @@ npm run test:comprehensive -- --list
 ## Configuration
 
 ### Default Configuration
+
 The system uses sensible defaults defined in `test/config/test-config.ts`. No configuration file is required for basic usage.
 
 ### Custom Configuration
+
 Create a custom configuration file based on `test/config/test-config.example.json`:
 
 ```bash
@@ -91,12 +102,14 @@ npm run test:comprehensive -- --config test/config/my-config.json
 ### Configuration Options
 
 #### Performance Thresholds
+
 - `maxResponseTime`: Maximum acceptable response time (default: 200ms)
 - `maxMemoryUsage`: Maximum memory usage threshold (default: 512MB)
 - `minConcurrentUsers`: Minimum concurrent users for load testing (default: 50)
 - `maxErrorRate`: Maximum acceptable error rate percentage (default: 1%)
 
 #### Reporting Options
+
 - `outputDir`: Directory for test reports (default: "test-results")
 - `formats`: Report formats - html, json, csv (default: ["html", "json"])
 - `includeScreenshots`: Include screenshots in reports (default: true)
@@ -107,17 +120,20 @@ npm run test:comprehensive -- --config test/config/my-config.json
 Test reports are generated in multiple formats:
 
 ### HTML Report
+
 - Comprehensive visual report with charts and metrics
 - Production readiness score
 - Detailed test results and recommendations
 - Performance metrics visualization
 
 ### JSON Report
+
 - Machine-readable format for CI/CD integration
 - Complete test data and metrics
 - Suitable for further processing or analysis
 
 ### CSV Summary
+
 - Tabular summary of test suite results
 - Easy import into spreadsheet applications
 - Quick overview of pass/fail rates
@@ -147,6 +163,7 @@ The system calculates a production readiness score (0-100) based on:
 - **Test Coverage** (10% weight): Completeness of test suite execution
 
 ### Score Interpretation
+
 - **90-100**: Ready for production deployment
 - **70-89**: Suitable for staging, some issues to address
 - **50-69**: Significant issues, not ready for deployment
@@ -172,25 +189,33 @@ The comprehensive testing infrastructure builds upon and enhances the existing t
 ### Common Issues
 
 #### Server Startup Timeout
+
 If tests fail with server startup timeout:
+
 - Increase `server.startupTimeoutMs` in configuration
 - Check for port conflicts
 - Verify the build completed successfully
 
 #### Memory Issues
+
 If tests fail with memory errors:
+
 - Increase `thresholds.maxMemoryUsage` in configuration
 - Run tests with more available system memory
 - Check for memory leaks in application code
 
 #### Performance Threshold Failures
+
 If performance tests fail:
+
 - Review `thresholds.maxResponseTime` setting
 - Check system load during test execution
 - Optimize slow API endpoints identified in reports
 
 ### Debug Mode
+
 Run tests with verbose output for debugging:
+
 ```bash
 TEST_VERBOSE=1 npm run test:comprehensive -- --verbose
 ```

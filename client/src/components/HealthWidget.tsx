@@ -19,18 +19,42 @@ export default function HealthWidget() {
         <div className="w-64 sm:w-72 max-w-[90vw] rounded-lg border bg-white dark:bg-gray-800 shadow-lg p-3 text-sm">
           <div className="flex items-center justify-between mb-2">
             <div className="font-medium">System Health</div>
-            <button aria-label="Close system health panel" className="text-xs opacity-70 hover:opacity-100" onClick={() => setOpen(false)}>Close</button>
+            <button
+              aria-label="Close system health panel"
+              className="text-xs opacity-70 hover:opacity-100"
+              onClick={() => setOpen(false)}
+            >
+              Close
+            </button>
           </div>
           <div className="space-y-1">
-            <div><span className="opacity-70">Env:</span> {data?.env}</div>
-            <div><span className="opacity-70">Time:</span> {data?.timestamp ? new Date(data.timestamp).toLocaleString() : '—'}</div>
-            <div><span className="opacity-70">AI Demo:</span> {data?.aiDemoMode ? 'Yes' : 'No'}</div>
-            <div><span className="opacity-70">Scenario:</span> {data?.scenario || 'default'}</div>
-            <div><span className="opacity-70">Seed:</span> {typeof data?.seed !== 'undefined' ? String(data.seed) : '—'}</div>
-            <div><span className="opacity-70">Freeze:</span> {data?.freeze?.frozen ? new Date(data.freeze.date).toLocaleString() : 'No'}</div>
+            <div>
+              <span className="opacity-70">Env:</span> {data?.env}
+            </div>
+            <div>
+              <span className="opacity-70">Time:</span>{' '}
+              {data?.timestamp ? new Date(data.timestamp).toLocaleString() : '—'}
+            </div>
+            <div>
+              <span className="opacity-70">AI Demo:</span> {data?.aiDemoMode ? 'Yes' : 'No'}
+            </div>
+            <div>
+              <span className="opacity-70">Scenario:</span> {data?.scenario || 'default'}
+            </div>
+            <div>
+              <span className="opacity-70">Seed:</span>{' '}
+              {typeof data?.seed !== 'undefined' ? String(data.seed) : '—'}
+            </div>
+            <div>
+              <span className="opacity-70">Freeze:</span>{' '}
+              {data?.freeze?.frozen ? new Date(data.freeze.date).toLocaleString() : 'No'}
+            </div>
           </div>
           <div className="mt-2 text-xs opacity-70">
-            Endpoints: <a href="/api/health" className="underline" target="_blank" rel="noreferrer">/api/health</a>
+            Endpoints:{' '}
+            <a href="/api/health" className="underline" target="_blank" rel="noreferrer">
+              /api/health
+            </a>
           </div>
         </div>
       )}

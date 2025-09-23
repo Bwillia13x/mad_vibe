@@ -48,10 +48,7 @@
           {
             "test": "valid_token_session",
             "status": 200,
-            "expected": [
-              200,
-              400
-            ],
+            "expected": [200, 400],
             "passed": true
           },
           {
@@ -62,13 +59,7 @@
           },
           {
             "test": "concurrent_sessions",
-            "statuses": [
-              200,
-              200,
-              200,
-              200,
-              200
-            ],
+            "statuses": [200, 200, 200, 200, 200],
             "passed": true
           },
           {
@@ -171,10 +162,7 @@
           {
             "endpoint": "/api/demo/seed",
             "headers": {
-              "Authorization": [
-                "Bearer fake",
-                "Bearer admin"
-              ]
+              "Authorization": ["Bearer fake", "Bearer admin"]
             },
             "status": 401,
             "shouldBeRejected": true,
@@ -310,10 +298,7 @@
           {
             "endpoint": "/api/demo/time",
             "headers": {
-              "Authorization": [
-                "Bearer fake",
-                "Bearer admin"
-              ]
+              "Authorization": ["Bearer fake", "Bearer admin"]
             },
             "status": 429,
             "shouldBeRejected": false,
@@ -449,10 +434,7 @@
           {
             "endpoint": "/api/demo/reset",
             "headers": {
-              "Authorization": [
-                "Bearer fake",
-                "Bearer admin"
-              ]
+              "Authorization": ["Bearer fake", "Bearer admin"]
             },
             "status": 429,
             "shouldBeRejected": false,
@@ -588,10 +570,7 @@
           {
             "endpoint": "/api/pos/sales",
             "headers": {
-              "Authorization": [
-                "Bearer fake",
-                "Bearer admin"
-              ]
+              "Authorization": ["Bearer fake", "Bearer admin"]
             },
             "status": 429,
             "shouldBeRejected": false,
@@ -727,10 +706,7 @@
           {
             "endpoint": "/api/marketing/campaigns",
             "headers": {
-              "Authorization": [
-                "Bearer fake",
-                "Bearer admin"
-              ]
+              "Authorization": ["Bearer fake", "Bearer admin"]
             },
             "status": 429,
             "shouldBeRejected": false,
@@ -866,10 +842,7 @@
           {
             "endpoint": "/api/loyalty/entries",
             "headers": {
-              "Authorization": [
-                "Bearer fake",
-                "Bearer admin"
-              ]
+              "Authorization": ["Bearer fake", "Bearer admin"]
             },
             "status": 429,
             "shouldBeRejected": false,
@@ -967,11 +940,7 @@
         "sessionId2": null,
         "manipulatedResponseStatus": 200,
         "concurrentRequestsSuccessful": true,
-        "concurrentStatuses": [
-          200,
-          200,
-          200
-        ]
+        "concurrentStatuses": [200, 200, 200]
       }
     },
     {

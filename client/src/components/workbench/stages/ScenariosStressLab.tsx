@@ -1,10 +1,11 @@
-import { useScenarioLab } from "@/hooks/useScenarioLab"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+import { useScenarioLab } from '@/hooks/useScenarioLab'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 export function ScenariosStressLab() {
-  const { drivers, presets, state, applyPreset, updateDriver, setIterations, simulation } = useScenarioLab()
+  const { drivers, presets, state, applyPreset, updateDriver, setIterations, simulation } =
+    useScenarioLab()
 
   return (
     <div className="space-y-6">
@@ -36,7 +37,9 @@ export function ScenariosStressLab() {
           </div>
           <div>
             <p className="text-[11px] uppercase text-slate-500">Downside probability</p>
-            <p className="text-lg font-semibold text-slate-100">{simulation.downsideProbability}%</p>
+            <p className="text-lg font-semibold text-slate-100">
+              {simulation.downsideProbability}%
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -71,8 +74,8 @@ export function ScenariosStressLab() {
               driver.impact === 'revenue'
                 ? 'border-sky-600 text-sky-200'
                 : driver.impact === 'margin'
-                ? 'border-emerald-600 text-emerald-200'
-                : 'border-amber-600 text-amber-200'
+                  ? 'border-emerald-600 text-emerald-200'
+                  : 'border-amber-600 text-amber-200'
             return (
               <div key={driver.id} className="rounded border border-slate-800 bg-slate-950/60 p-3">
                 <div className="flex items-center justify-between">
@@ -80,7 +83,10 @@ export function ScenariosStressLab() {
                     <p className="text-sm font-semibold text-slate-100">{driver.label}</p>
                     <p className="text-slate-400">{driver.description}</p>
                   </div>
-                  <Badge variant="outline" className={cn('border px-2 py-1 text-[10px] uppercase', tone)}>
+                  <Badge
+                    variant="outline"
+                    className={cn('border px-2 py-1 text-[10px] uppercase', tone)}
+                  >
                     {driver.impact}
                   </Badge>
                 </div>
@@ -100,11 +106,20 @@ export function ScenariosStressLab() {
                   </span>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-[11px] uppercase text-slate-500">
-                  <span>Range: {driver.min} – {driver.max}{driver.unit}</span>
-                  <span>Base: {driver.base}{driver.unit}</span>
+                  <span>
+                    Range: {driver.min} – {driver.max}
+                    {driver.unit}
+                  </span>
+                  <span>
+                    Base: {driver.base}
+                    {driver.unit}
+                  </span>
                 </div>
                 <div className="mt-2 h-1 w-full overflow-hidden rounded bg-slate-800">
-                  <div className="h-full bg-sky-500" style={{ width: `${Math.max(5, Math.min(progress, 100))}%` }} />
+                  <div
+                    className="h-full bg-sky-500"
+                    style={{ width: `${Math.max(5, Math.min(progress, 100))}%` }}
+                  />
                 </div>
               </div>
             )

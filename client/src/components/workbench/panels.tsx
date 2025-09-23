@@ -1,6 +1,16 @@
-import { useState } from 'react'
-import type { FormEvent, ReactNode } from 'react'
-import { Check, ChevronRight, History, Lock, PanelLeft, PanelRight, Search, Users, Zap } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import type { FormEvent, ReactNode, KeyboardEvent } from 'react'
+import {
+  Check,
+  ChevronRight,
+  History,
+  Lock,
+  PanelLeft,
+  PanelRight,
+  Search,
+  Users,
+  Zap
+} from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import type { WorkbenchTab, PromptHistoryEntry, ChecklistTask } from './WorkbenchLayout'
@@ -11,7 +21,8 @@ export type StageStatus = 'locked' | 'in-progress' | 'complete'
 
 type ConsoleTask = ChecklistTask & { onToggle: () => void }
 
-const cardClasses = 'rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-[0_0_20px_rgba(15,23,42,0.45)]'
+const cardClasses =
+  'rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-[0_0_20px_rgba(15,23,42,0.45)]'
 const labelClasses = 'text-[11px] uppercase tracking-[0.14em] text-slate-500'
 
 export interface TopBarProps {
@@ -26,6 +37,12 @@ export interface TopBarProps {
   disableNext: boolean
   onOpenExplorer: () => void
   onOpenInspector: () => void
+  onToggleExplorerCollapsed: () => void
+  onToggleInspectorCollapsed: () => void
+  explorerCollapsed: boolean
+  inspectorCollapsed: boolean
+  onToggleConsoleCollapsed?: () => void
+  consoleCollapsed?: boolean
 }
 
 export function TopBar({
@@ -39,7 +56,13 @@ export function TopBar({
   onNext,
   disableNext,
   onOpenExplorer,
-  onOpenInspector
+  onOpenInspector,
+  onToggleExplorerCollapsed,
+  onToggleInspectorCollapsed,
+  explorerCollapsed,
+  inspectorCollapsed,
+  onToggleConsoleCollapsed,
+  consoleCollapsed
 }: TopBarProps) {
   const [value, setValue] = useState('')
 
@@ -70,6 +93,35 @@ export function TopBar({
           >
             <PanelRight className="h-4 w-4" />
           </button>
+        </div>
+        <div className="hidden items-center gap-2 lg:flex">
+          <button
+            type="button"
+            onClick={onToggleExplorerCollapsed}
+            className="inline-flex h-8 items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-2 text-[11px] text-slate-300 hover:text-slate-50 transition-all duration-200 ease-in-out hover:bg-slate-800"
+            aria-label="Toggle explorer"
+          >
+            <PanelLeft className="h-3.5 w-3.5" /> {explorerCollapsed ? 'Show' : 'Hide'} Explorer
+          </button>
+          <button
+            type="button"
+            onClick={onToggleInspectorCollapsed}
+            className="inline-flex h-8 items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-2 text-[11px] text-slate-300 hover:text-slate-50 transition-all duration-200 ease-in-out hover:bg-slate-800"
+            aria-label="Toggle inspector"
+          >
+            <PanelRight className="h-3.5 w-3.5" /> {inspectorCollapsed ? 'Show' : 'Hide'} Inspector
+          </button>
+          {onToggleConsoleCollapsed && (
+            <button
+              type="button"
+              onClick={onToggleConsoleCollapsed}
+              className="inline-flex h-8 items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-2 text-[11px] text-slate-300 hover:text-slate-50 transition-all duration-200 ease-in-out hover:bg-slate-800"
+              aria-label="Toggle console"
+            >
+              {/* Using Zap icon for console indicator */}
+              <Zap className="h-3.5 w-3.5" /> {consoleCollapsed ? 'Show' : 'Hide'} Console
+            </button>
+          )}
         </div>
         <div className="hidden flex-col leading-tight text-slate-300 sm:flex">
           <span className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
@@ -125,6 +177,7 @@ export interface ExplorerProps {
   stages: WorkflowStage[]
   activeStage: string
   stageStatuses: Record<string, StageStatus>
+  stageProgress?: Record<string, { completed: number; total: number }>
   onSelectStage: (slug: string) => void
   variant?: 'sidebar' | 'drawer'
   onAfterSelect?: () => void
@@ -135,13 +188,34 @@ export function Explorer({
   stages,
   activeStage,
   stageStatuses,
+  stageProgress,
   onSelectStage,
   variant = 'sidebar',
   onAfterSelect,
   supplementalSections
 }: ExplorerProps) {
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const currentIndex = stages.findIndex((stage) => stage.slug === activeStage)
+    if (event.key === 'ArrowUp' && currentIndex > 0) {
+      event.preventDefault()
+      onSelectStage(stages[currentIndex - 1].slug)
+      onAfterSelect?.()
+    } else if (event.key === 'ArrowDown' && currentIndex < stages.length - 1) {
+      event.preventDefault()
+      onSelectStage(stages[currentIndex + 1].slug)
+      onAfterSelect?.()
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onAfterSelect?.()
+    }
+  }
+
   const content = (
-    <ScrollArea className={variant === 'sidebar' ? 'h-full w-full' : 'h-[calc(100vh-12rem)]'}>
+    <ScrollArea
+      className={variant === 'sidebar' ? 'h-full w-full' : 'h-[calc(100vh-12rem)]'}
+      onKeyDown={handleKeyDown}
+      tabIndex={-1}
+    >
       <div className="space-y-6 p-4">
         <section>
           <div className={labelClasses}>Pipeline</div>
@@ -151,6 +225,7 @@ export function Explorer({
               const isActive = stage.slug === activeStage
               const isComplete = status === 'complete'
               const isLocked = status === 'locked'
+              const progress = stageProgress?.[stage.slug]
               return (
                 <button
                   key={stage.slug}
@@ -162,11 +237,15 @@ export function Explorer({
                     onAfterSelect?.()
                   }}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition',
+                    'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-slate-950',
                     isLocked && 'cursor-not-allowed text-slate-600',
-                    isActive && 'bg-slate-900/80 text-slate-50 shadow-[0_0_18px_rgba(99,102,241,0.35)]',
-                    !isActive && !isLocked && 'text-slate-300 hover:bg-slate-900/60'
+                    isActive &&
+                      'bg-slate-900/80 text-slate-50 shadow-[0_0_18px_rgba(99,102,241,0.35)]',
+                    !isActive &&
+                      !isLocked &&
+                      'text-slate-300 hover:bg-slate-900/60 hover:text-slate-200'
                   )}
+                  aria-current={isActive ? 'page' : undefined}
                 >
                   <span
                     className={cn(
@@ -175,9 +254,17 @@ export function Explorer({
                     )}
                   />
                   <div className="flex flex-1 flex-col">
-                    <span className="font-medium leading-tight text-slate-100">{stage.shortTitle}</span>
+                    <span className="font-medium leading-tight text-slate-100">
+                      {stage.shortTitle}
+                    </span>
                     <span className="text-xs text-slate-500">{stage.goal}</span>
                   </div>
+                  {/* Checklist completion badge placeholder (computed elsewhere if needed) */}
+                  {progress && progress.total > 0 && (
+                    <span className="ml-auto inline-flex min-w-[38px] items-center justify-center rounded-full border border-slate-700/70 bg-slate-900/60 px-2 py-0.5 text-[11px] text-slate-300">
+                      {progress.completed}/{progress.total}
+                    </span>
+                  )}
                   {isComplete && <Check className="h-4 w-4 text-emerald-400" />}
                   {isLocked && <Lock className="h-4 w-4 text-slate-600" />}
                 </button>
@@ -212,7 +299,10 @@ export function Explorer({
   }
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-slate-900 bg-slate-950/70 lg:flex">
+    <aside
+      className="hidden w-64 shrink-0 border-r border-slate-900 bg-slate-950/70 lg:flex"
+      aria-label="Explorer navigation"
+    >
       {content}
     </aside>
   )
@@ -229,8 +319,24 @@ export interface WorkbenchProps {
 export function Workbench({ tabs, activeTab, onTabChange, stageTitle, stageGoal }: WorkbenchProps) {
   const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const currentIndex = tabs.findIndex((tab) => tab.id === activeTab)
+    if (event.key === 'ArrowLeft' && currentIndex > 0) {
+      event.preventDefault()
+      onTabChange(tabs[currentIndex - 1].id)
+    } else if (event.key === 'ArrowRight' && currentIndex < tabs.length - 1) {
+      event.preventDefault()
+      onTabChange(tabs[currentIndex + 1].id)
+    }
+  }
+
   return (
-    <section className="flex min-h-0 flex-1 flex-col bg-slate-950/50">
+    <section
+      className="flex min-h-0 flex-1 flex-col bg-slate-950/50"
+      aria-label="Workbench content"
+      onKeyDown={handleKeyDown}
+      tabIndex={-1}
+    >
       <header className="flex h-16 items-center justify-between border-b border-slate-800 px-4">
         <div className="leading-tight">
           <div className={labelClasses}>Workbench</div>
@@ -238,17 +344,25 @@ export function Workbench({ tabs, activeTab, onTabChange, stageTitle, stageGoal 
           <div className="text-xs text-slate-500">{stageGoal}</div>
         </div>
       </header>
-      <div className="flex h-11 items-center gap-1 overflow-x-auto border-b border-slate-800 px-3 text-sm">
-        {tabs.map((tab) => (
+      <div
+        className="flex h-11 items-center gap-1 overflow-x-auto border-b border-slate-800 px-3 text-sm"
+        role="tablist"
+        aria-label="Workbench tabs"
+      >
+        {tabs.map((tab, index) => (
           <button
             key={tab.id}
             type="button"
             onClick={() => onTabChange(tab.id)}
+            role="tab"
+            aria-selected={tab.id === active?.id}
+            aria-controls={`tabpanel-${tab.id}`}
+            tabIndex={tab.id === active?.id ? 0 : -1}
             className={cn(
-              'rounded-t-lg px-3 py-1.5 shadow-[inset_0_-1px_0_rgba(148,163,184,0.12)]',
+              'rounded-t-lg px-3 py-1.5 shadow-[inset_0_-1px_0_rgba(148,163,184,0.12)] transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-slate-950',
               tab.id === active?.id
                 ? 'bg-slate-900/80 text-slate-100'
-                : 'text-slate-400 hover:bg-slate-900/60'
+                : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
             )}
           >
             {tab.label}
@@ -258,12 +372,20 @@ export function Workbench({ tabs, activeTab, onTabChange, stageTitle, stageGoal 
       <div className="flex-1 overflow-hidden">
         {active ? (
           <ScrollArea className="h-full">
-            <div className="space-y-6 bg-slate-950/40 p-6 text-sm text-slate-100">
+            <div
+              className="space-y-6 bg-slate-950/40 p-6 text-sm text-slate-100 transition-all duration-200 ease-in-out"
+              role="tabpanel"
+              id={`tabpanel-${active.id}`}
+              aria-labelledby={`tab-${active.id}`}
+            >
               {active.content}
             </div>
           </ScrollArea>
         ) : (
-          <div className="flex h-full items-center justify-center text-slate-500">
+          <div
+            className="flex h-full items-center justify-center text-slate-500 transition-all duration-200 ease-in-out"
+            role="tabpanel"
+          >
             No workbench tabs available for this stage.
           </div>
         )}
@@ -300,7 +422,10 @@ export function Inspector({
   onPromptShortcut
 }: InspectorProps) {
   const content = (
-    <ScrollArea className={variant === 'sidebar' ? 'h-full w-full' : 'h-[calc(100vh-12rem)]'}>
+    <ScrollArea
+      className={variant === 'sidebar' ? 'h-full w-full' : 'h-[calc(100vh-12rem)]'}
+      aria-label="Inspector"
+    >
       <div className="space-y-6 p-4">
         <section className="space-y-3">
           <div className={labelClasses}>Stage Overview</div>
@@ -333,6 +458,20 @@ export function Inspector({
             <div className="text-xs text-slate-400">Last prompt</div>
             <div className="min-h-[48px] rounded-xl bg-slate-950/60 px-3 py-2 text-sm text-slate-200">
               {lastPrompt || 'No prompt submitted yet.'}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="rounded-lg border border-slate-800 px-2 py-1 text-[11px] text-slate-300 hover:bg-slate-900"
+                onClick={() => {
+                  if (!lastPrompt) return
+                  try {
+                    navigator.clipboard?.writeText(lastPrompt).catch(() => {})
+                  } catch {}
+                }}
+              >
+                Copy last prompt
+              </button>
             </div>
             <div className="text-xs text-slate-400">Suggested quick actions</div>
             <div className="grid gap-2 text-sm text-slate-200">
@@ -391,7 +530,10 @@ export function Inspector({
               </div>
             )}
             {stageLog.map((item) => (
-              <div key={item.id} className="flex items-start gap-3 rounded-xl bg-slate-950/50 px-3 py-2">
+              <div
+                key={item.id}
+                className="flex items-start gap-3 rounded-xl bg-slate-950/50 px-3 py-2"
+              >
                 <History className="mt-0.5 h-4 w-4 text-slate-500" />
                 <div>
                   <div className="text-[11px] uppercase tracking-widest text-slate-500">
@@ -415,7 +557,10 @@ export function Inspector({
   }
 
   return (
-    <aside className="hidden w-80 shrink-0 border-l border-slate-900 bg-slate-950/70 lg:flex">
+    <aside
+      className="hidden w-80 shrink-0 border-l border-slate-900 bg-slate-950/70 lg:flex"
+      aria-label="Inspector sidebar"
+    >
       {content}
     </aside>
   )
@@ -424,21 +569,129 @@ export function Inspector({
 export interface ConsoleProps {
   history: PromptHistoryEntry[]
   tasks: ConsoleTask[]
+  onClearHistory?: () => void
+  onTogglePin?: (id: string) => void
 }
 
-export function Console({ history, tasks }: ConsoleProps) {
+export function Console({ history, tasks, onClearHistory, onTogglePin }: ConsoleProps) {
+  const [filterQuery, setFilterQuery] = useState('')
+  const [focusedIndex, setFocusedIndex] = useState(-1)
+  const visibleHistory = useMemo(() => {
+    const q = filterQuery.trim().toLowerCase()
+    const base = q
+      ? history.filter(
+          (h) =>
+            (h.question?.toLowerCase() || '').includes(q) ||
+            (h.stageTitle?.toLowerCase() || '').includes(q)
+        )
+      : history
+    return base.slice().sort((a, b) => (a.pinned === b.pinned ? 0 : a.pinned ? -1 : 1))
+  }, [filterQuery, history])
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (visibleHistory.length === 0) return
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setFocusedIndex((prev) => Math.max(0, prev - 1))
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setFocusedIndex((prev) => Math.min(visibleHistory.length - 1, prev + 1))
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      if (focusedIndex >= 0 && focusedIndex < visibleHistory.length && onTogglePin) {
+        onTogglePin(visibleHistory[focusedIndex].id)
+      }
+    }
+  }
+
+  useEffect(() => {
+    setFocusedIndex(-1)
+  }, [filterQuery])
+
+  const handleExportCsv = () => {
+    try {
+      const rows = visibleHistory
+      const header = ['id', 'question', 'stageTitle', 'timestamp', 'pinned']
+      const esc = (v: unknown) => {
+        const s = String(v ?? '')
+        const needsQuote = s.includes(',') || s.includes('"') || s.includes('\n')
+        const escaped = s.replace(/"/g, '""')
+        return needsQuote ? `"${escaped}"` : escaped
+      }
+      const lines = [header.join(',')]
+      for (const r of rows) {
+        lines.push(
+          [r.id, r.question, r.stageTitle, r.timestamp, r.pinned ? '1' : '0'].map(esc).join(',')
+        )
+      }
+      const csv = lines.join('\n')
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'prompt-history.csv'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {}
+  }
+
   return (
-    <div className="flex h-36 gap-3 border-t border-slate-800 bg-slate-950/80 px-3 py-2 backdrop-blur">
+    <div
+      className="flex h-36 gap-3 border-t border-slate-800 bg-slate-950/80 px-3 py-2 backdrop-blur"
+      aria-label="Console"
+      onKeyDown={handleKeyDown}
+      tabIndex={-1}
+    >
       <div className="flex flex-1 flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-[0_0_18px_rgba(15,23,42,0.45)]">
-        <div className={labelClasses}>Prompt History</div>
-        <div className="mt-2 flex-1 space-y-2 overflow-y-auto text-sm">
+        <div className="flex items-center justify-between gap-2">
+          <div className={labelClasses}>Prompt History</div>
+          <div className="ml-auto flex items-center gap-2">
+            <input
+              aria-label="Filter prompt history"
+              placeholder="Filter prompts…"
+              value={filterQuery}
+              onChange={(e) => setFilterQuery(e.target.value)}
+              className="h-7 rounded-lg border border-slate-800 bg-slate-950/60 px-2 text-[11px] text-slate-200 placeholder:text-slate-500 focus:outline-none"
+            />
+            <button
+              type="button"
+              className="text-[11px] text-slate-400 hover:text-slate-200 transition-all duration-200 ease-in-out hover:bg-slate-800/60 px-2 py-1 rounded"
+              onClick={handleExportCsv}
+              aria-label="Export prompt history as CSV"
+            >
+              Export
+            </button>
+            {onClearHistory && (
+              <button
+                type="button"
+                className="text-[11px] text-slate-400 hover:text-slate-200 transition-all duration-200 ease-in-out hover:bg-slate-800/60 px-2 py-1 rounded"
+                onClick={() => onClearHistory?.()}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="mt-2 flex-1 space-y-2 overflow-y-auto text-sm" aria-live="polite">
           {history.length === 0 && (
             <div className="rounded-xl border border-dashed border-slate-700/80 px-3 py-4 text-xs text-slate-500">
               Submit prompts to populate the console.
             </div>
           )}
-          {history.map((entry) => (
-            <div key={entry.id} className="flex items-start gap-2 rounded-xl bg-slate-950/50 px-3 py-2">
+          {visibleHistory.map((entry, index) => (
+            <div
+              key={entry.id}
+              className={cn(
+                'flex items-start justify-between gap-2 rounded-xl px-3 py-2 transition-all duration-200 ease-in-out',
+                focusedIndex === index
+                  ? 'bg-slate-800 ring-2 ring-violet-500 ring-offset-2 ring-offset-slate-950'
+                  : 'bg-slate-950/50 hover:bg-slate-950/80',
+                index === 0 && 'animate-in slide-in-from-right-2 duration-300'
+              )}
+            >
               <Zap className="mt-0.5 h-4 w-4 text-violet-300" />
               <div className="flex-1">
                 <div className="text-slate-100">{entry.question}</div>
@@ -446,6 +699,16 @@ export function Console({ history, tasks }: ConsoleProps) {
                   Mock response • {entry.stageTitle} • {entry.timestamp}
                 </div>
               </div>
+              {onTogglePin && (
+                <button
+                  type="button"
+                  aria-label={entry.pinned ? 'Unpin prompt' : 'Pin prompt'}
+                  className="text-[11px] text-slate-400 hover:text-slate-200"
+                  onClick={() => onTogglePin?.(entry.id)}
+                >
+                  {entry.pinned ? 'Unpin' : 'Pin'}
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -474,7 +737,9 @@ export function Console({ history, tasks }: ConsoleProps) {
                   <span
                     className={cn(
                       'text-sm',
-                      task.completed ? 'text-slate-500 line-through decoration-slate-600' : 'text-slate-100'
+                      task.completed
+                        ? 'text-slate-500 line-through decoration-slate-600'
+                        : 'text-slate-100'
                     )}
                   >
                     {task.label}
@@ -520,7 +785,11 @@ export function MemoSyncStatusCard({ status }: { status: MemoSyncState }) {
     <section className={cn(cardClasses, 'space-y-2 text-sm text-slate-200')}>
       <div className="flex items-center justify-between">
         <div className={labelClasses}>Memo Sync</div>
-        <Chip tone={resolveStatusTone(status.error ? 'Locked' : status.isSyncing ? 'In Progress' : 'Complete')}>
+        <Chip
+          tone={resolveStatusTone(
+            status.error ? 'Locked' : status.isSyncing ? 'In Progress' : 'Complete'
+          )}
+        >
           {stateLabel}
         </Chip>
       </div>
@@ -539,7 +808,8 @@ export function formatTimestamp(value: string | null) {
 export function resolveStatusTone(label: string): 'slate' | 'violet' | 'emerald' | 'amber' {
   if (label.toLowerCase().includes('lock')) return 'amber'
   if (label.toLowerCase().includes('progress')) return 'violet'
-  if (label.toLowerCase().includes('complete') || label.toLowerCase().includes('sync')) return 'emerald'
+  if (label.toLowerCase().includes('complete') || label.toLowerCase().includes('sync'))
+    return 'emerald'
   return 'slate'
 }
 
@@ -551,14 +821,23 @@ export function Chip({
   tone?: 'slate' | 'violet' | 'emerald' | 'amber'
 }) {
   const toneStyles: Record<'slate' | 'violet' | 'emerald' | 'amber', string> = {
-    slate: 'bg-slate-800/60 text-slate-200 ring-1 ring-slate-700/70 shadow-[0_0_12px_rgba(15,23,42,0.35)]',
-    violet: 'bg-violet-700/30 text-violet-200 ring-1 ring-violet-600/50 shadow-[0_0_12px_rgba(99,102,241,0.35)]',
-    emerald: 'bg-emerald-700/30 text-emerald-200 ring-1 ring-emerald-600/50 shadow-[0_0_12px_rgba(16,185,129,0.25)]',
-    amber: 'bg-amber-700/30 text-amber-200 ring-1 ring-amber-600/50 shadow-[0_0_12px_rgba(251,191,36,0.2)]'
+    slate:
+      'bg-slate-800/60 text-slate-200 ring-1 ring-slate-700/70 shadow-[0_0_12px_rgba(15,23,42,0.35)]',
+    violet:
+      'bg-violet-700/30 text-violet-200 ring-1 ring-violet-600/50 shadow-[0_0_12px_rgba(99,102,241,0.35)]',
+    emerald:
+      'bg-emerald-700/30 text-emerald-200 ring-1 ring-emerald-600/50 shadow-[0_0_12px_rgba(16,185,129,0.25)]',
+    amber:
+      'bg-amber-700/30 text-amber-200 ring-1 ring-amber-600/50 shadow-[0_0_12px_rgba(251,191,36,0.2)]'
   }
 
   return (
-    <span className={cn('rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide', toneStyles[tone])}>
+    <span
+      className={cn(
+        'rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide',
+        toneStyles[tone]
+      )}
+    >
       {children}
     </span>
   )

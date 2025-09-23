@@ -1,100 +1,101 @@
 #!/usr/bin/env tsx
 
-import { startTestServer, TestHttpClient, TestDataManager } from '../test/utils/test-environment';
-import { TestReporter } from '../test/reporting/test-reporter';
-import { SecurityTestSuite } from '../test/security/security-test-suite';
-import { loadTestConfig } from '../test/config/test-config';
-import fs from 'fs';
-import path from 'path';
+import { startTestServer, TestHttpClient, TestDataManager } from '../test/utils/test-environment'
+import { TestReporter } from '../test/reporting/test-reporter'
+import { SecurityTestSuite } from '../test/security/security-test-suite'
+import { loadTestConfig } from '../test/config/test-config'
+import fs from 'fs'
+import path from 'path'
 
 async function runSecurityTests() {
-  console.log('🔒 Starting Security Test Suite...\n');
+  console.log('🔒 Starting Security Test Suite...\n')
 
-  const config = loadTestConfig();
-  const reporter = new TestReporter(config);
-  
-  let testEnv: any = null;
+  const config = loadTestConfig()
+  const reporter = new TestReporter(config)
+
+  let testEnv: any = null
 
   try {
     // Initialize test environment
-    testEnv = await startTestServer(config);
-    console.log('✅ Test environment initialized');
-    
+    testEnv = await startTestServer(config)
+    console.log('✅ Test environment initialized')
+
     // Create test environment wrapper
     const testEnvWrapper = {
       baseUrl: testEnv.baseUrl,
       httpClient: new TestHttpClient(testEnv.baseUrl),
       dataManager: new TestDataManager(new TestHttpClient(testEnv.baseUrl)),
       makeRequest: (path: string, options?: RequestInit) => {
-        return fetch(`${testEnv.baseUrl}${path}`, options);
+        return fetch(`${testEnv.baseUrl}${path}`, options)
       }
-    };
-    
-    const securitySuite = new SecurityTestSuite(testEnvWrapper, reporter);
+    }
+
+    const securitySuite = new SecurityTestSuite(testEnvWrapper, reporter)
 
     // Run security tests
-    const results = await securitySuite.runAllSecurityTests();
+    const results = await securitySuite.runAllSecurityTests()
 
     // Generate and save report
-    const report = await securitySuite.generateSecurityReport();
-    
+    const report = await securitySuite.generateSecurityReport()
+
     // Ensure test-results directory exists
-    const resultsDir = path.join(process.cwd(), 'test-results');
+    const resultsDir = path.join(process.cwd(), 'test-results')
     if (!fs.existsSync(resultsDir)) {
-      fs.mkdirSync(resultsDir, { recursive: true });
+      fs.mkdirSync(resultsDir, { recursive: true })
     }
 
     // Save report
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const reportPath = path.join(resultsDir, `security-report-${timestamp}.md`);
-    fs.writeFileSync(reportPath, report);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const reportPath = path.join(resultsDir, `security-report-${timestamp}.md`)
+    fs.writeFileSync(reportPath, report)
 
     // Save JSON results
-    const jsonPath = path.join(resultsDir, `security-results-${timestamp}.json`);
-    fs.writeFileSync(jsonPath, JSON.stringify(results, null, 2));
+    const jsonPath = path.join(resultsDir, `security-results-${timestamp}.json`)
+    fs.writeFileSync(jsonPath, JSON.stringify(results, null, 2))
 
-    console.log(`\n📊 Security report saved to: ${reportPath}`);
-    console.log(`📊 JSON results saved to: ${jsonPath}`);
+    console.log(`\n📊 Security report saved to: ${reportPath}`)
+    console.log(`📊 JSON results saved to: ${jsonPath}`)
 
     // Print summary
-    console.log('\n🔒 Security Test Summary:');
-    console.log(`   Total Tests: ${results.totalTests}`);
-    console.log(`   Passed: ${results.passed}`);
-    console.log(`   Failed: ${results.failed}`);
-    console.log(`   Skipped: ${results.skipped}`);
-    console.log(`   Critical Issues: ${results.summary.criticalIssues}`);
-    console.log(`   Warnings: ${results.summary.warnings}`);
+    console.log('\n🔒 Security Test Summary:')
+    console.log(`   Total Tests: ${results.totalTests}`)
+    console.log(`   Passed: ${results.passed}`)
+    console.log(`   Failed: ${results.failed}`)
+    console.log(`   Skipped: ${results.skipped}`)
+    console.log(`   Critical Issues: ${results.summary.criticalIssues}`)
+    console.log(`   Warnings: ${results.summary.warnings}`)
 
     if (results.summary.criticalIssues > 0) {
-      console.log('\n🚨 Critical security issues detected!');
-      console.log('   Review the security report for details.');
-      process.exit(1);
+      console.log('\n🚨 Critical security issues detected!')
+      console.log('   Review the security report for details.')
+      process.exit(1)
     } else if (results.failed > 0) {
-      console.log('\n⚠️  Some security tests failed.');
-      console.log('   Review the security report for details.');
-      process.exit(1);
+      console.log('\n⚠️  Some security tests failed.')
+      console.log('   Review the security report for details.')
+      process.exit(1)
     } else {
-      console.log('\n✅ All security tests passed!');
+      console.log('\n✅ All security tests passed!')
       if (results.summary.warnings > 0) {
-        console.log(`   Note: ${results.summary.warnings} warnings found - see report for recommendations.`);
+        console.log(
+          `   Note: ${results.summary.warnings} warnings found - see report for recommendations.`
+        )
       }
     }
-
   } catch (error) {
-    console.error('❌ Security testing failed:', error);
-    process.exit(1);
+    console.error('❌ Security testing failed:', error)
+    process.exit(1)
   } finally {
     // Cleanup test environment
     if (testEnv) {
-      await testEnv.cleanup();
-      console.log('🧹 Test environment cleaned up');
+      await testEnv.cleanup()
+      console.log('🧹 Test environment cleaned up')
     }
   }
 }
 
 // Handle command line arguments
-const args = process.argv.slice(2);
-const showHelp = args.includes('--help') || args.includes('-h');
+const args = process.argv.slice(2)
+const showHelp = args.includes('--help') || args.includes('-h')
 
 if (showHelp) {
   console.log(`
@@ -119,12 +120,12 @@ The script will:
   4. Exit with code 1 if critical issues are found
 
 Reports are saved as both Markdown and JSON formats.
-`);
-  process.exit(0);
+`)
+  process.exit(0)
 }
 
 // Run the tests
-runSecurityTests().catch(error => {
-  console.error('Unhandled error:', error);
-  process.exit(1);
-});
+runSecurityTests().catch((error) => {
+  console.error('Unhandled error:', error)
+  process.exit(1)
+})

@@ -60,11 +60,7 @@
         "sessionId2": null,
         "manipulatedResponseStatus": 200,
         "concurrentRequestsSuccessful": true,
-        "concurrentStatuses": [
-          200,
-          200,
-          200
-        ]
+        "concurrentStatuses": [200, 200, 200]
       }
     }
   ],

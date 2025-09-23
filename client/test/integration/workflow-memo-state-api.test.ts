@@ -3,7 +3,8 @@ import express from 'express'
 import type { AddressInfo } from 'node:net'
 import type { MemoComposerStateInput } from '@shared/types'
 
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgres://valor_user:valorpass@localhost:5432/valor_vibe'
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL || 'postgres://valor_user:valorpass@localhost:5432/valor_vibe'
 
 vi.mock(new URL('../../../lib/db/index.ts', import.meta.url).pathname, () => ({
   db: {}
@@ -13,7 +14,9 @@ vi.mock('../../../lib/db', () => ({
   db: {}
 }))
 
-const workflowModule = await import(new URL('../../../server/routes/workflow.ts', import.meta.url).pathname)
+const workflowModule = await import(
+  new URL('../../../server/routes/workflow.ts', import.meta.url).pathname
+)
 const { createWorkflowRouter } = workflowModule
 
 type SelectChain = {
@@ -115,7 +118,9 @@ describe('Workflow memo state API', () => {
         state: {
           sections: { 'memo-thesis': 'Conviction in recurring revenue moat' },
           reviewChecklist: { 'review-redteam': true },
-          attachments: { 'exhibit-valuation': { include: true, caption: 'Valuation triangulation' } },
+          attachments: {
+            'exhibit-valuation': { include: true, caption: 'Valuation triangulation' }
+          },
           commentThreads: {
             'memo-thesis': [
               {

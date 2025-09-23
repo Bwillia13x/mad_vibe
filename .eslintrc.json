@@ -1,7 +1,9 @@
 {
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -9,18 +11,12 @@
     "sourceType": "module",
     "ecmaFeatures": { "jsx": true }
   },
-  "plugins": ["@typescript-eslint"],
+  "plugins": [
+    "@typescript-eslint",
+    "react",
+    "react-hooks"
+  ],
   "rules": {
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      {
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_",
-        "caughtErrorsIgnorePattern": "^_"
-      }
-    ],
-    "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
@@ -36,9 +32,18 @@
     "no-console": "off",
     "no-debugger": "error",
     "no-case-declarations": "off",
-    "no-constant-condition": "off"
+    "no-constant-condition": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off"
   },
-  "overrides": [],
+  "overrides": [
+    {
+      "files": ["*.tsx", "*.ts"],
+      "rules": {
+        "react/prop-types": "off"
+      }
+    }
+  ],
   "ignorePatterns": [
     "node_modules/",
     ".next/",
@@ -49,5 +54,10 @@
     "*.config.js",
     "*.config.mjs",
     "migrations/"
-  ]
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
 }

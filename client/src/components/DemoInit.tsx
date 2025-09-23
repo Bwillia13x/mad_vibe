@@ -33,4 +33,3 @@ export default function DemoInit() {
   }, [qc])
   return null
 }
-

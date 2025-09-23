@@ -11,15 +11,8 @@
     "errors": []
   },
   "securityAudit": {
-    "configuredKeys": [
-      "PORT",
-      "NODE_ENV",
-      "OPENAI_API_KEY",
-      "OPERATIONS_WS_PORT"
-    ],
-    "sensitiveKeys": [
-      "OPENAI_API_KEY"
-    ],
+    "configuredKeys": ["PORT", "NODE_ENV", "OPENAI_API_KEY", "OPERATIONS_WS_PORT"],
+    "sensitiveKeys": ["OPENAI_API_KEY"],
     "missingRecommended": [],
     "weakConfigurations": []
   },

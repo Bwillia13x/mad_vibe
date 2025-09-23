@@ -92,7 +92,6 @@ Docker
   - Open `http://localhost:5000`
 - Optional AI: pass `-e OPENAI_API_KEY=...` to enable live AI responses
 
-
 Notes
 
 - `npm run check` TypeScript checks will flag Next.js files under `app/` that are not required for this demo. You can ignore that command for the demo or remove the `app/` and top-level `components/` Next-specific files.

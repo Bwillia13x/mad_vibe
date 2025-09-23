@@ -1,0 +1,7 @@
+export { IdeaIntake } from './idea-intake'
+export { InputsSection } from './inputs-section'
+export { DisqualifiersSection } from './disqualifiers-section'
+export { WorkSection } from './work-section'
+export { OutputsSection } from './outputs-section'
+export { IdeaIntakeHeader } from './idea-intake-header'
+export { IdeaIntakeFooter } from './idea-intake-footer'

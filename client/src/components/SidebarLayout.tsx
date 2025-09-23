@@ -1,35 +1,49 @@
-import { useEffect, useRef, useState } from "react";
-import { Calendar, Package, Users, BarChart3, Menu, X, MessageSquare, CreditCard, Megaphone, Gift } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import DemoBanner from "@/components/DemoBanner";
-import NotificationSimulator from "@/components/NotificationSimulator";
-import HealthWidget from "@/components/HealthWidget";
-import DemoControlsFab from "@/components/DemoControlsFab";
-import PrintFooter from "@/components/PrintFooter";
-import { Link, useLocation } from "wouter";
-import { prefetchRoute } from "@/lib/prefetch";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { useEffect, useRef, useState } from 'react'
+import {
+  Calendar,
+  Package,
+  Users,
+  BarChart3,
+  Menu,
+  X,
+  MessageSquare,
+  CreditCard,
+  Megaphone,
+  Gift
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import DemoBanner from '@/components/DemoBanner'
+import NotificationSimulator from '@/components/NotificationSimulator'
+import HealthWidget from '@/components/HealthWidget'
+import DemoControlsFab from '@/components/DemoControlsFab'
+import PrintFooter from '@/components/PrintFooter'
+import { Link, useLocation } from 'wouter'
+import { prefetchRoute } from '@/lib/prefetch'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 
 interface SidebarLayoutProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export default function SidebarLayout({ children }: SidebarLayoutProps) {
   // Persist open/closed state across sessions
   const [isBusinessPanelOpen, setIsBusinessPanelOpen] = useState<boolean>(() => {
     try {
-      const v = typeof window !== 'undefined' ? window.localStorage.getItem('av_sidebar_open') : null
+      const v =
+        typeof window !== 'undefined' ? window.localStorage.getItem('av_sidebar_open') : null
       if (v === '0') return false
       if (v === '1') return true
       return true
     } catch {
       return true
     }
-  });
-  const [location, navigate] = useLocation();
+  })
+  const [location, navigate] = useLocation()
 
   useEffect(() => {
-    try { window.localStorage.setItem('av_sidebar_open', isBusinessPanelOpen ? '1' : '0') } catch {}
+    try {
+      window.localStorage.setItem('av_sidebar_open', isBusinessPanelOpen ? '1' : '0')
+    } catch {}
   }, [isBusinessPanelOpen])
 
   // Keyboard shortcuts: g h/s/i/f/a
@@ -44,18 +58,31 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
         if (k === 'g') {
           goMode.current = true
           if (goTimer.current) clearTimeout(goTimer.current)
-          goTimer.current = setTimeout(() => { goMode.current = false }, 800)
+          goTimer.current = setTimeout(() => {
+            goMode.current = false
+          }, 800)
         }
         return
       }
       // In go mode, second key determines destination
       switch (k) {
-        case 'h': navigate('/'); break
-        case 's': navigate('/scheduling'); break
-        case 'i': navigate('/inventory'); break
-        case 'f': navigate('/staff'); break
-        case 'a': navigate('/analytics'); break
-        default: break
+        case 'h':
+          navigate('/')
+          break
+        case 's':
+          navigate('/scheduling')
+          break
+        case 'i':
+          navigate('/inventory')
+          break
+        case 'f':
+          navigate('/staff')
+          break
+        case 'a':
+          navigate('/analytics')
+          break
+        default:
+          break
       }
       if (goTimer.current) clearTimeout(goTimer.current)
       goMode.current = false
@@ -65,21 +92,31 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
   }, [navigate])
 
   const businessTools = [
-    { name: "Chat", icon: MessageSquare, description: "AI Assistant", href: "/" },
-    { name: "POS", icon: CreditCard, description: "Checkout & payments", href: "/pos" },
-    { name: "Scheduling", icon: Calendar, description: "Manage appointments", href: "/scheduling" },
-    { name: "Inventory", icon: Package, description: "Track products", href: "/inventory" },
-    { name: "Staff", icon: Users, description: "Manage team", href: "/staff" },
-    { name: "Analytics", icon: BarChart3, description: "View insights", href: "/analytics" },
-    { name: "Marketing", icon: Megaphone, description: "Promotions & outreach", href: "/marketing" },
-    { name: "Loyalty", icon: Gift, description: "Rewards & retention", href: "/loyalty" }
-  ];
+    { name: 'Chat', icon: MessageSquare, description: 'AI Assistant', href: '/' },
+    { name: 'POS', icon: CreditCard, description: 'Checkout & payments', href: '/pos' },
+    { name: 'Scheduling', icon: Calendar, description: 'Manage appointments', href: '/scheduling' },
+    { name: 'Inventory', icon: Package, description: 'Track products', href: '/inventory' },
+    { name: 'Staff', icon: Users, description: 'Manage team', href: '/staff' },
+    { name: 'Analytics', icon: BarChart3, description: 'View insights', href: '/analytics' },
+    {
+      name: 'Marketing',
+      icon: Megaphone,
+      description: 'Promotions & outreach',
+      href: '/marketing'
+    },
+    { name: 'Loyalty', icon: Gift, description: 'Rewards & retention', href: '/loyalty' }
+  ]
 
   return (
     <div className="h-screen flex bg-gray-50 dark:bg-gray-900">
-      <a href="#main" className="skip-link">Skip to content</a>
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
       {/* Business Tools Sidebar */}
-      <div data-testid="sidebar" className={`print:hidden ${isBusinessPanelOpen ? 'w-80' : 'w-16'} transition-all duration-300 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col`}>
+      <div
+        data-testid="sidebar"
+        className={`print:hidden w-full sm:w-auto ${isBusinessPanelOpen ? 'sm:w-80' : 'sm:w-16'} transition-all duration-300 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col`}
+      >
         {/* Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
@@ -89,20 +126,24 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
               onClick={() => {
                 const next = !isBusinessPanelOpen
                 setIsBusinessPanelOpen(next)
-                try { window.localStorage.setItem('av_sidebar_open', next ? '1' : '0') } catch {}
+                try {
+                  window.localStorage.setItem('av_sidebar_open', next ? '1' : '0')
+                } catch {}
               }}
               data-testid="button-toggle-sidebar"
             >
               {isBusinessPanelOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
             {isBusinessPanelOpen && (
-              <h2 className="font-semibold text-sm text-gray-700 dark:text-gray-300">Business Tools</h2>
+              <h2 className="font-semibold text-sm text-gray-700 dark:text-gray-300">
+                Business Tools
+              </h2>
             )}
           </div>
         </div>
-
+ 
         {/* Business Tools */}
-        <div className="flex-1 p-2">
+        <div className="flex-1 p-2 overflow-x-auto sm:overflow-x-hidden">
           {businessTools.map((tool) => (
             <Link key={tool.name} href={tool.href}>
               <Tooltip>
@@ -114,7 +155,9 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                     aria-current={location === tool.href ? 'page' : undefined}
                     variant="ghost"
                     className={`w-full justify-start mb-2 ${isBusinessPanelOpen ? 'h-auto p-3' : 'h-12 p-0'} ${
-                      location === tool.href ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' : ''
+                      location === tool.href
+                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+                        : ''
                     }`}
                     data-testid={`button-tool-${tool.name.toLowerCase()}`}
                   >
@@ -127,14 +170,12 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                     )}
                   </Button>
                 </TooltipTrigger>
-                {!isBusinessPanelOpen && (
-                  <TooltipContent side="right">{tool.name}</TooltipContent>
-                )}
+                {!isBusinessPanelOpen && <TooltipContent side="right">{tool.name}</TooltipContent>}
               </Tooltip>
             </Link>
           ))}
         </div>
-
+ 
         {/* System Status */}
         {isBusinessPanelOpen && (
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
@@ -158,5 +199,5 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
         <DemoControlsFab />
       </div>
     </div>
-  );
+  )
 }

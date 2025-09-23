@@ -1,4 +1,4 @@
-import { getEnvVar } from './env-security';
+import { getEnvVar } from './env-security'
 
 interface LogContext {
   [key: string]: unknown
@@ -18,12 +18,12 @@ export function log(message: string, context?: LogContext): void {
     message,
     context
   }
-  
+
   // In development, also log to console
   if (getEnvVar('NODE_ENV') === 'development') {
     console.log(`[${entry.timestamp}] ${entry.message}`, context ? context : '')
   }
-  
+
   // In production, you might want to send to a logging service
   // For now, we'll just use console.log with structured format
   console.log(JSON.stringify(entry))
@@ -40,7 +40,7 @@ export function logError(message: string, error: Error, context?: LogContext): v
       stack: error.stack
     }
   }
-  
+
   console.error(JSON.stringify(entry))
 }
 
@@ -51,6 +51,6 @@ export function logWarn(message: string, context?: LogContext): void {
     message,
     context
   }
-  
+
   console.warn(JSON.stringify(entry))
 }

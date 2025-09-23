@@ -1,18 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { useWorkflow } from '@/hooks/useWorkflow'
 import { usePresence } from '@/hooks/usePresence'
 import { useMemoComposer } from '@/hooks/useMemoComposer'
 import { explorerObjects } from '@/lib/workflow'
-import {
-  Console,
-  Explorer,
-  Inspector,
-  MemoSyncStatusCard,
-  TopBar,
-  Workbench
-} from './panels'
+import { Console, Explorer, Inspector, MemoSyncStatusCard, TopBar, Workbench } from './panels'
 import type { StageStatus } from './panels'
 
 export type WorkbenchTab = {
@@ -34,6 +28,7 @@ export type PromptHistoryEntry = {
   question: string
   timestamp: string
   stageTitle: string
+  pinned?: boolean
 }
 
 export type ChecklistTask = {
@@ -63,12 +58,48 @@ export function WorkbenchLayout({
     logEvent
   } = useWorkflow()
   const { syncStatus: memoSyncStatus } = useMemoComposer()
+  const enableRemotePromptHistory = true
 
   const [activeTab, setActiveTab] = useState(() => tabs[0]?.id ?? 'main')
-  const [promptHistory, setPromptHistory] = useState<PromptHistoryEntry[]>([])
+  const [promptHistory, setPromptHistory] = useState<PromptHistoryEntry[]>(() => {
+    try {
+      const raw = localStorage.getItem('workbench_prompt_history')
+      return raw ? (JSON.parse(raw) as PromptHistoryEntry[]) : []
+    } catch {
+      return []
+    }
+  })
   const [lastPrompt, setLastPrompt] = useState('')
   const [explorerOpen, setExplorerOpen] = useState(false)
   const [inspectorOpen, setInspectorOpen] = useState(false)
+  const [explorerCollapsed, setExplorerCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('workbench_explorer_collapsed') === '1'
+    } catch {
+      return false
+    }
+  })
+  const [inspectorCollapsed, setInspectorCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('workbench_inspector_collapsed') === '1'
+    } catch {
+      return false
+    }
+  })
+  const [consoleCollapsed, setConsoleCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('workbench_console_collapsed') === '1'
+    } catch {
+      return false
+    }
+  })
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try {
+      return localStorage.getItem('workbench_onboarding_shown') !== 'true'
+    } catch {
+      return true
+    }
+  })
 
   const stageStatusesBySlug = stageStatuses as Record<string, StageStatus>
 
@@ -78,6 +109,53 @@ export function WorkbenchLayout({
       setActiveTab(tabs[0]?.id ?? '')
     }
   }, [activeTab, tabs])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('workbench_explorer_collapsed', explorerCollapsed ? '1' : '0')
+    } catch {}
+  }, [explorerCollapsed])
+  useEffect(() => {
+    try {
+      localStorage.setItem('workbench_inspector_collapsed', inspectorCollapsed ? '1' : '0')
+    } catch {}
+  }, [inspectorCollapsed])
+  useEffect(() => {
+    try {
+      localStorage.setItem('workbench_console_collapsed', consoleCollapsed ? '1' : '0')
+    } catch {}
+  }, [consoleCollapsed])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('workbench_prompt_history', JSON.stringify(promptHistory))
+    } catch {}
+  }, [promptHistory])
+
+  // Optional: Merge research log prompt submissions into prompt history
+  useEffect(() => {
+    if (!enableRemotePromptHistory) return
+    const merged: PromptHistoryEntry[] = [...promptHistory]
+    for (const entry of researchLog) {
+      if (entry.action !== 'Omni-prompt submitted') continue
+      const exists = merged.some((p) => p.id === entry.id)
+      if (!exists) {
+        merged.push({
+          id: entry.id,
+          question: entry.details ?? '',
+          timestamp: new Date(entry.timestamp).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          stageTitle: entry.stageTitle
+        })
+      }
+    }
+    // Keep newest first
+    merged.sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))
+    setPromptHistory(merged.slice(0, 12))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enableRemotePromptHistory, researchLog])
 
   const stageMeta = useMemo(() => {
     const index = stages.findIndex((stage) => stage.slug === activeStage.slug)
@@ -123,13 +201,18 @@ export function WorkbenchLayout({
       markStageComplete(activeStage.slug)
     }
     handleStageChange(upcomingStage.slug)
-  }, [upcomingStage, canAdvance, isStageComplete, activeStage.slug, allTasksComplete, markStageComplete, handleStageChange])
+  }, [
+    upcomingStage,
+    canAdvance,
+    isStageComplete,
+    activeStage.slug,
+    allTasksComplete,
+    markStageComplete,
+    handleStageChange
+  ])
 
   const stageLog = useMemo(
-    () =>
-      researchLog
-        .filter((entry) => entry.stageSlug === activeStage.slug)
-        .slice(0, 6),
+    () => researchLog.filter((entry) => entry.stageSlug === activeStage.slug).slice(0, 6),
     [activeStage.slug, researchLog]
   )
 
@@ -143,6 +226,18 @@ export function WorkbenchLayout({
       })),
     [checklist, checklistStateForStage]
   )
+
+  const stageProgress: Record<string, { completed: number; total: number }> = useMemo(() => {
+    const result: Record<string, { completed: number; total: number }> = {}
+    for (const stage of stages) {
+      const list = getChecklist(stage.slug)
+      const state = checklistState[stage.slug] ?? {}
+      const total = list.length
+      const completed = list.reduce((sum, item) => sum + (state[item.id] ? 1 : 0), 0)
+      result[stage.slug] = { completed, total }
+    }
+    return result
+  }, [stages, getChecklist, checklistState])
 
   const { actorId, peers } = usePresence(activeStage.slug)
   const otherPeers = useMemo(
@@ -178,6 +273,8 @@ export function WorkbenchLayout({
         timestamp: now.toISOString()
       })
       onOpenPrompt?.()
+      setShowOnboarding(false)
+      localStorage.setItem('workbench_onboarding_shown', 'true')
     },
     [activeStage.shortTitle, activeStage.slug, activeStage.title, logEvent, onOpenPrompt]
   )
@@ -197,6 +294,27 @@ export function WorkbenchLayout({
 
   return (
     <div className="flex h-screen w-full flex-col bg-slate-950 text-slate-100">
+      {showOnboarding && (
+        <div className="fixed top-4 right-4 z-50">
+          <Tooltip open={showOnboarding}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowOnboarding(false)
+                  localStorage.setItem('workbench_onboarding_shown', 'true')
+                }}
+              >
+                Dismiss Tour
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              Welcome to the Workbench! Use the sidebar to navigate stages, the top bar for prompts, and drawers for explorer/inspector. Dismiss to hide.
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
       <TopBar
         stageTitle={activeStage.title}
         stageGoal={activeStage.goal}
@@ -209,46 +327,77 @@ export function WorkbenchLayout({
         disableNext={!canAdvance}
         onOpenExplorer={() => setExplorerOpen(true)}
         onOpenInspector={() => setInspectorOpen(true)}
+        onToggleExplorerCollapsed={() => setExplorerCollapsed((v) => !v)}
+        onToggleInspectorCollapsed={() => setInspectorCollapsed((v) => !v)}
+        explorerCollapsed={explorerCollapsed}
+        inspectorCollapsed={inspectorCollapsed}
+        onToggleConsoleCollapsed={() => setConsoleCollapsed((v) => !v)}
+        consoleCollapsed={consoleCollapsed}
       />
-
-      <div className="flex min-h-0 flex-1 border-t border-slate-900">
-        <Explorer
-          stages={stages}
-          activeStage={activeStage.slug}
-          stageStatuses={stageStatusesBySlug}
-          onSelectStage={handleStageChange}
-          supplementalSections={explorerObjects}
-        />
-
-        <Workbench
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          stageTitle={activeStage.shortTitle}
-          stageGoal={activeStage.goal}
-        />
-
-        <Inspector
-          statusLabel={statusLabel}
-          checklist={checklist}
-          checklistState={checklistStateForStage}
-          onToggle={(itemId) => toggleChecklistItem(activeStage.slug, itemId)}
-          stageLog={stageLog}
-          lastPrompt={lastPrompt}
-          presenceLabel={presenceSummary}
-          inspectorExtras={combinedInspectorExtras}
-          aiModes={activeStage.aiModes ?? []}
-          onPromptShortcut={handlePromptSubmit}
-        />
+ 
+      <div className="flex flex-col lg:flex-row min-h-0 flex-1 border-t border-slate-900 transition-all duration-300 ease-in-out">
+        {!explorerCollapsed && (
+          <div className="transition-all duration-300 ease-in-out lg:w-64">
+            <Explorer
+              stages={stages}
+              activeStage={activeStage.slug}
+              stageStatuses={stageStatusesBySlug}
+              stageProgress={stageProgress}
+              onSelectStage={handleStageChange}
+              supplementalSections={explorerObjects}
+            />
+          </div>
+        )}
+ 
+        <div className="flex-1 transition-all duration-300 ease-in-out">
+          <ErrorBoundary>
+            <Workbench
+              tabs={tabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              stageTitle={activeStage.shortTitle}
+              stageGoal={activeStage.goal}
+            />
+          </ErrorBoundary>
+        </div>
+ 
+        {!inspectorCollapsed && (
+          <div className="transition-all duration-300 ease-in-out lg:w-80">
+            <Inspector
+              statusLabel={statusLabel}
+              checklist={checklist}
+              checklistState={checklistStateForStage}
+              onToggle={(itemId) => toggleChecklistItem(activeStage.slug, itemId)}
+              stageLog={stageLog}
+              lastPrompt={lastPrompt}
+              presenceLabel={presenceSummary}
+              inspectorExtras={combinedInspectorExtras}
+              aiModes={activeStage.aiModes ?? []}
+              onPromptShortcut={handlePromptSubmit}
+            />
+          </div>
+        )}
       </div>
 
-      <Console
-        history={promptHistory}
-        tasks={tasks.map((task) => ({
-          ...task,
-          onToggle: () => toggleChecklistItem(activeStage.slug, task.id)
-        }))}
-      />
+      <div
+        className={`transition-all duration-300 ease-in-out ${consoleCollapsed ? 'h-0 opacity-0 overflow-hidden' : 'h-36 opacity-100'}`}
+      >
+        {!consoleCollapsed && (
+          <Console
+            history={promptHistory}
+            tasks={tasks.map((task) => ({
+              ...task,
+              onToggle: () => toggleChecklistItem(activeStage.slug, task.id)
+            }))}
+            onClearHistory={() => setPromptHistory([])}
+            onTogglePin={(id) =>
+              setPromptHistory((prev) =>
+                prev.map((p) => (p.id === id ? { ...p, pinned: !p.pinned } : p))
+              )
+            }
+          />
+        )}
+      </div>
 
       <Drawer open={explorerOpen} onOpenChange={setExplorerOpen}>
         <DrawerContent className="h-[80vh] border-t border-slate-800 bg-slate-950 text-slate-100">

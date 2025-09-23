@@ -4,7 +4,9 @@ import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 
-async function delay(ms: number) { return new Promise(r => setTimeout(r, ms)) }
+async function delay(ms: number) {
+  return new Promise((r) => setTimeout(r, ms))
+}
 
 async function waitForPortFile(portFile: string, timeoutMs = 30000): Promise<number> {
   const start = Date.now()
@@ -42,12 +44,12 @@ function getMemoryUsage(): number {
 async function getJson(url: string) {
   const startTime = Date.now()
   const startMemory = getMemoryUsage()
-  
+
   const res = await get(url)
-  
+
   const endTime = Date.now()
   const endMemory = getMemoryUsage()
-  
+
   performanceMetrics.push({
     url,
     method: 'GET',
@@ -55,7 +57,7 @@ async function getJson(url: string) {
     status: res.status,
     memoryUsage: endMemory - startMemory
   })
-  
+
   if (!res.ok) throw new Error(`${url} -> ${res.status}`)
   return await res.json()
 }
@@ -63,16 +65,16 @@ async function getJson(url: string) {
 async function postJson(url: string, body: unknown) {
   const startTime = Date.now()
   const startMemory = getMemoryUsage()
-  
+
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   })
-  
+
   const endTime = Date.now()
   const endMemory = getMemoryUsage()
-  
+
   performanceMetrics.push({
     url,
     method: 'POST',
@@ -80,7 +82,7 @@ async function postJson(url: string, body: unknown) {
     status: res.status,
     memoryUsage: endMemory - startMemory
   })
-  
+
   if (!res.ok) throw new Error(`${url} -> ${res.status}`)
   return await res.json()
 }
@@ -123,25 +125,37 @@ async function streamSSE(url: string, body: unknown, timeoutMs = 15000): Promise
     return acc
   } finally {
     clearTimeout(t)
-    try { ctrl.abort() } catch {}
+    try {
+      ctrl.abort()
+    } catch {}
   }
 }
 
 async function main() {
   const portFile = path.resolve('.local', 'dev_port')
-  try { fs.mkdirSync(path.dirname(portFile), { recursive: true }) } catch {}
-  try { if (fs.existsSync(portFile)) fs.unlinkSync(portFile) } catch {}
+  try {
+    fs.mkdirSync(path.dirname(portFile), { recursive: true })
+  } catch {}
+  try {
+    if (fs.existsSync(portFile)) fs.unlinkSync(portFile)
+  } catch {}
 
-  const tsxBin = path.resolve('node_modules', '.bin', process.platform === 'win32' ? 'tsx.cmd' : 'tsx')
+  const tsxBin = path.resolve(
+    'node_modules',
+    '.bin',
+    process.platform === 'win32' ? 'tsx.cmd' : 'tsx'
+  )
   const child = spawn(tsxBin, [path.resolve('server', 'index.ts')], {
     env: { ...process.env, NODE_ENV: 'development', PORT: '0', PORT_FILE: portFile },
     stdio: ['ignore', 'pipe', 'pipe']
   })
-  child.stdout.on('data', d => process.stdout.write(d))
-  child.stderr.on('data', d => process.stderr.write(d))
+  child.stdout.on('data', (d) => process.stdout.write(d))
+  child.stderr.on('data', (d) => process.stderr.write(d))
 
   let exitCode: number | null = null
-  child.on('exit', code => { exitCode = code ?? 0 })
+  child.on('exit', (code) => {
+    exitCode = code ?? 0
+  })
 
   try {
     const port = await waitForPortFile(portFile)
@@ -174,7 +188,7 @@ async function main() {
     if (!Array.isArray(analytics)) throw new Error('Analytics not array')
 
     // Test comprehensive API endpoint coverage
-    
+
     // Business Profile endpoint
     const profile = await getJson(`${base}/api/profile`)
     if (!profile || typeof profile !== 'object') throw new Error('Profile endpoint failed')
@@ -182,13 +196,15 @@ async function main() {
     // Individual service endpoint
     if (services.length > 0) {
       const firstService = await getJson(`${base}/api/services/${services[0].id}`)
-      if (!firstService || firstService.id !== services[0].id) throw new Error('Individual service endpoint failed')
+      if (!firstService || firstService.id !== services[0].id)
+        throw new Error('Individual service endpoint failed')
     }
 
     // Individual staff endpoint
     if (staff.length > 0) {
       const firstStaff = await getJson(`${base}/api/staff/${staff[0].id}`)
-      if (!firstStaff || firstStaff.id !== staff[0].id) throw new Error('Individual staff endpoint failed')
+      if (!firstStaff || firstStaff.id !== staff[0].id)
+        throw new Error('Individual staff endpoint failed')
     }
 
     // Customers endpoint
@@ -198,16 +214,18 @@ async function main() {
     // Individual appointment endpoint (if appointments exist)
     if (appts.length > 0) {
       const firstAppt = await getJson(`${base}/api/appointments/${appts[0].id}`)
-      if (!firstAppt || firstAppt.id !== appts[0].id) throw new Error('Individual appointment endpoint failed')
+      if (!firstAppt || firstAppt.id !== appts[0].id)
+        throw new Error('Individual appointment endpoint failed')
     }
 
     // Inventory endpoints
     const inventory = await getJson(`${base}/api/inventory`)
     if (!Array.isArray(inventory)) throw new Error('Inventory not array')
-    
+
     if (inventory.length > 0) {
       const firstItem = await getJson(`${base}/api/inventory/${inventory[0].id}`)
-      if (!firstItem || firstItem.id !== inventory[0].id) throw new Error('Individual inventory item endpoint failed')
+      if (!firstItem || firstItem.id !== inventory[0].id)
+        throw new Error('Individual inventory item endpoint failed')
     }
 
     // POS endpoints
@@ -263,27 +281,28 @@ async function main() {
     // Generate performance report
     console.log('\n=== Performance Metrics ===')
     const totalRequests = performanceMetrics.length
-    const avgResponseTime = performanceMetrics.reduce((sum, m) => sum + m.responseTime, 0) / totalRequests
-    const maxResponseTime = Math.max(...performanceMetrics.map(m => m.responseTime))
-    const minResponseTime = Math.min(...performanceMetrics.map(m => m.responseTime))
-    const slowRequests = performanceMetrics.filter(m => m.responseTime > 200)
-    
+    const avgResponseTime =
+      performanceMetrics.reduce((sum, m) => sum + m.responseTime, 0) / totalRequests
+    const maxResponseTime = Math.max(...performanceMetrics.map((m) => m.responseTime))
+    const minResponseTime = Math.min(...performanceMetrics.map((m) => m.responseTime))
+    const slowRequests = performanceMetrics.filter((m) => m.responseTime > 200)
+
     console.log(`Total API requests: ${totalRequests}`)
     console.log(`Average response time: ${avgResponseTime.toFixed(2)}ms`)
     console.log(`Min response time: ${minResponseTime}ms`)
     console.log(`Max response time: ${maxResponseTime}ms`)
     console.log(`Requests > 200ms: ${slowRequests.length}`)
-    
+
     if (slowRequests.length > 0) {
       console.log('\nSlow requests (>200ms):')
-      slowRequests.forEach(req => {
+      slowRequests.forEach((req) => {
         console.log(`  ${req.method} ${req.url}: ${req.responseTime}ms`)
       })
     }
 
     // Security validation (basic checks for dev environment)
     console.log('\n=== Security Validation ===')
-    
+
     // Test input validation
     try {
       const xssPayload = '<script>alert("xss")</script>'
@@ -302,9 +321,13 @@ async function main() {
 
     console.log('\nDev smoke tests passed.')
   } finally {
-    try { if (child && exitCode === null) child.kill('SIGINT') } catch {}
+    try {
+      if (child && exitCode === null) child.kill('SIGINT')
+    } catch {}
   }
 }
 
-main().catch((err) => { console.error('Dev smoke failed:', err); process.exit(1) })
-
+main().catch((err) => {
+  console.error('Dev smoke failed:', err)
+  process.exit(1)
+})

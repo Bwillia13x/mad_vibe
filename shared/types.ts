@@ -72,3 +72,57 @@ export interface MonitoringStatePayload {
 }
 
 export type MonitoringStateInput = Omit<MonitoringStatePayload, 'updatedAt'>
+
+export interface Row {
+  t: string
+  side: 'Buy' | 'Sell'
+  px: number
+  adv: number
+  curW: number
+  tgtW: number
+  deltaW?: number
+  notional?: number
+  shares?: number
+  days?: number
+  participation?: number
+  bps?: number
+  cost?: number
+  limitPx?: number | null
+}
+
+export interface ScenarioLabStatePayload {
+  driverValues: Record<string, number>
+  iterations: number
+  updatedAt: string
+  version: number
+}
+
+export type ScenarioLabStateInput = Omit<ScenarioLabStatePayload, 'updatedAt'>
+
+export interface ExecutionPlannerStatePayload {
+  rows: Row[]
+  portfolioNotional: number
+  maxPart: number
+  algo: string
+  limitBps: number
+  tif: string
+  daysHorizon: number
+  updatedAt: string
+  version: number
+}
+
+export type ExecutionPlannerStateInput = Omit<ExecutionPlannerStatePayload, 'updatedAt'>
+
+export interface RedTeamStatePayload {
+  artifact: string
+  scope: string[]
+  activePlaybooks: string[]
+  critiques: Critique[]
+  scanQuery: string
+  scanHits: ScanHit[]
+  vulnerabilityChecklist: VulnerabilityItem[]
+  updatedAt: string
+  version: number
+}
+
+export type RedTeamStateInput = Omit<RedTeamStatePayload, 'updatedAt'>

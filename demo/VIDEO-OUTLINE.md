@@ -1,6 +1,7 @@
 # Video Walkthrough Outline
 
 ## 3-minute version
+
 - 0:00 — Title card: “Andreas Vibe — Business Tools for Andras & Co”
 - 0:05 — Sidebar flythrough, mention Chat/POS/Scheduling/Inventory/Staff/Analytics/Marketing/Loyalty
 - 0:15 — Chat quick prompt; mention demo mode fallback
@@ -12,6 +13,7 @@
 - 2:40 — Reset demo via banner, end card
 
 ## 5-minute version (adds depth)
+
 - 0:00 — Title + context; keyboard shortcuts (g+h/s/i/f/a)
 - 0:20 — Chat with a business prompt; reference demo data
 - 0:50 — POS walkthrough with discount/tax, receipt print + void

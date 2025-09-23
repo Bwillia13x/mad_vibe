@@ -4,7 +4,13 @@ import { Megaphone, TrendingUp, Mail, Share2, Sparkles } from 'lucide-react'
 import type { AnalyticsSnapshot } from '@shared/schema'
 import { Button } from '@/components/ui/button'
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from '@/components/ui/select'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { BarChart, XAxis, YAxis, Bar } from 'recharts'
 import { useToast } from '@/hooks/use-toast'
@@ -39,12 +45,16 @@ export default function MarketingPage() {
   const { toast } = useToast()
 
   const { data: analytics = [] } = useQuery<AnalyticsSnapshot[]>({ queryKey: ['/api/analytics'] })
-  const { data: marketingPerf } = useQuery<MarketingPerformance>({ queryKey: ['/api/marketing/performance'] })
+  const { data: marketingPerf } = useQuery<MarketingPerformance>({
+    queryKey: ['/api/marketing/performance']
+  })
   const { data: campaigns = [] } = useQuery<Campaign[]>({ queryKey: ['/api/marketing/campaigns'] })
 
   const [status, setStatus] = useState<'all' | string>('all')
   const [channel, setChannel] = useState<'all' | string>('all')
-  const [sortedBy, setSortedBy] = useState<'conversions' | 'impressions' | 'clicks' | 'ctr'>('conversions')
+  const [sortedBy, setSortedBy] = useState<'conversions' | 'impressions' | 'clicks' | 'ctr'>(
+    'conversions'
+  )
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
   const latest = analytics[0]
@@ -84,7 +94,10 @@ export default function MarketingPage() {
       toast({ description: `Campaign created: ${name}` })
       queryClient.invalidateQueries({ queryKey: ['/api/marketing/campaigns'] })
     } catch (error) {
-      toast({ description: error instanceof Error ? error.message : 'Failed to create campaign', variant: 'destructive' })
+      toast({
+        description: error instanceof Error ? error.message : 'Failed to create campaign',
+        variant: 'destructive'
+      })
     }
   }
 
@@ -95,6 +108,7 @@ export default function MarketingPage() {
       <PageHeader
         title="Marketing Campaigns"
         subtitle="Coordinate omni-channel touchpoints and measure conversion lift in real-time."
+        testId="heading-marketing"
         badge={
           <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-600/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-violet-200">
             <Sparkles className="h-3 w-3" /> Growth Studio
@@ -106,7 +120,9 @@ export default function MarketingPage() {
               variant="outline"
               size="sm"
               className="inline-flex items-center gap-2 rounded-xl border-violet-500/40 bg-violet-600/10 text-violet-200 hover:bg-violet-600/20"
-              onClick={() => createCampaign('Bring Back Regulars', '10% loyalty boost to lapsed customers')}
+              onClick={() =>
+                createCampaign('Bring Back Regulars', '10% loyalty boost to lapsed customers')
+              }
             >
               <Megaphone className="h-4 w-4" /> Quick launch
             </Button>
@@ -139,7 +155,10 @@ export default function MarketingPage() {
                 description: 'Promote Executive Cut add-ons during peak hours to lift AOV.'
               }
             ].map((suggestion) => (
-              <div key={suggestion.name} className="rounded-xl border border-slate-800/60 bg-slate-950/60 p-4">
+              <div
+                key={suggestion.name}
+                className="rounded-xl border border-slate-800/60 bg-slate-950/60 p-4"
+              >
                 <div className="font-medium text-slate-100">{suggestion.name}</div>
                 <p className="mt-1 text-xs text-slate-400">{suggestion.description}</p>
                 <Button
@@ -159,14 +178,21 @@ export default function MarketingPage() {
             <CardTitle className="text-sm text-slate-200">Quick actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-slate-200">
-            <Button variant="outline" className="w-full justify-start rounded-xl border-slate-700/60 bg-slate-900/60 text-slate-200 hover:bg-slate-900">
+            <Button
+              variant="outline"
+              className="w-full justify-start rounded-xl border-slate-700/60 bg-slate-900/60 text-slate-200 hover:bg-slate-900"
+            >
               <Mail className="mr-2 h-4 w-4" /> Send email blast
             </Button>
-            <Button variant="outline" className="w-full justify-start rounded-xl border-slate-700/60 bg-slate-900/60 text-slate-200 hover:bg-slate-900">
+            <Button
+              variant="outline"
+              className="w-full justify-start rounded-xl border-slate-700/60 bg-slate-900/60 text-slate-200 hover:bg-slate-900"
+            >
               <Share2 className="mr-2 h-4 w-4" /> Share promo link
             </Button>
             <div className="mt-3 text-xs text-slate-400">
-              Latest revenue snapshot: {latest ? `$${parseFloat(latest.totalRevenue).toFixed(0)}` : '—'}
+              Latest revenue snapshot:{' '}
+              {latest ? `$${parseFloat(latest.totalRevenue).toFixed(0)}` : '—'}
             </div>
           </CardContent>
         </GlassCard>
@@ -200,7 +226,10 @@ export default function MarketingPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={sortedBy} onValueChange={(value) => setSortedBy(value as typeof sortedBy)}>
+            <Select
+              value={sortedBy}
+              onValueChange={(value) => setSortedBy(value as typeof sortedBy)}
+            >
               <SelectTrigger className="w-32 rounded-xl border-slate-700/60 bg-slate-950/60 text-xs text-slate-200">
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
@@ -224,13 +253,20 @@ export default function MarketingPage() {
         </CardHeader>
         <CardContent className="divide-y divide-slate-800/60">
           {paginatedCampaigns.length === 0 && (
-            <div className="py-6 text-center text-sm text-slate-400">No campaigns match the current filters.</div>
+            <div className="py-6 text-center text-sm text-slate-400">
+              No campaigns match the current filters.
+            </div>
           )}
           {paginatedCampaigns.map((campaign) => (
-            <div key={campaign.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+              key={campaign.id}
+              className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
+            >
               <div className="space-y-1">
                 <div className="text-sm font-medium text-slate-100">{campaign.name}</div>
-                <p className="text-xs text-slate-500">{campaign.description ?? 'No description provided'}</p>
+                <p className="text-xs text-slate-500">
+                  {campaign.description ?? 'No description provided'}
+                </p>
                 <div className="flex flex-wrap gap-2 text-xs text-slate-400">
                   <span className="rounded-full border border-slate-700/60 px-2 py-1 uppercase tracking-[0.18em]">
                     {campaign.channel ?? 'channel'}
@@ -257,7 +293,9 @@ export default function MarketingPage() {
                       })
                       if (response.ok) {
                         queryClient.invalidateQueries({ queryKey: ['/api/marketing/campaigns'] })
-                        toast({ description: `Campaign ${nextStatus === 'active' ? 'activated' : 'paused'}` })
+                        toast({
+                          description: `Campaign ${nextStatus === 'active' ? 'activated' : 'paused'}`
+                        })
                       }
                     } catch (err) {
                       console.error(err)
@@ -279,7 +317,9 @@ export default function MarketingPage() {
           </CardHeader>
           <CardContent>
             <div className="h-64">
-              <ChartContainer config={{ conversions: { label: 'Conversions', color: 'hsl(var(--chart-3))' } }}>
+              <ChartContainer
+                config={{ conversions: { label: 'Conversions', color: 'hsl(var(--chart-3))' } }}
+              >
                 <BarChart
                   data={marketingPerf.campaigns.map((campaign) => ({
                     name: campaign.name,
@@ -291,13 +331,19 @@ export default function MarketingPage() {
                     dataKey="name"
                     stroke="#94a3b8"
                     tick={{ fill: '#94a3b8' }}
-                    tickFormatter={(value: string) => (value.length > 12 ? `${value.slice(0, 12)}…` : value)}
+                    tickFormatter={(value: string) =>
+                      value.length > 12 ? `${value.slice(0, 12)}…` : value
+                    }
                   />
                   <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
                   <ChartTooltip
                     content={({ active, payload }) => {
                       if (!active || !payload?.length) return null
-                      const datum = payload[0]?.payload as { name: string; conversions: number; ctr: number }
+                      const datum = payload[0]?.payload as {
+                        name: string
+                        conversions: number
+                        ctr: number
+                      }
                       if (!datum) return null
                       return (
                         <div className="rounded-md border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm text-slate-200 shadow-lg">
@@ -308,7 +354,11 @@ export default function MarketingPage() {
                       )
                     }}
                   />
-                  <Bar dataKey="conversions" fill="var(--color-conversions)" radius={[6, 6, 0, 0]} />
+                  <Bar
+                    dataKey="conversions"
+                    fill="var(--color-conversions)"
+                    radius={[6, 6, 0, 0]}
+                  />
                 </BarChart>
               </ChartContainer>
             </div>

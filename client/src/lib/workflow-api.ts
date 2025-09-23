@@ -32,9 +32,7 @@ export async function fetchResearchLog(): Promise<ResearchLogEntry[]> {
   return await handleResponse<ResearchLogEntry[]>(res)
 }
 
-export async function createResearchLogEntry(
-  entry: ResearchLogInput
-): Promise<ResearchLogEntry> {
+export async function createResearchLogEntry(entry: ResearchLogInput): Promise<ResearchLogEntry> {
   const res = await fetch(`${BASE_URL}/research-log`, {
     method: 'POST',
     credentials: 'include',
@@ -128,6 +126,69 @@ export async function persistMonitoringState(
     body: JSON.stringify(state)
   })
   return await handleResponse<MonitoringStatePayload>(res)
+}
+
+export async function fetchScenarioLabState(): Promise<ScenarioLabStatePayload | null> {
+  const res = await fetch(`${BASE_URL}/scenario-lab-state`, {
+    credentials: 'include'
+  })
+  return await handleResponse<ScenarioLabStatePayload | null>(res)
+}
+
+export async function persistScenarioLabState(
+  state: ScenarioLabStateInput
+): Promise<ScenarioLabStatePayload> {
+  const res = await fetch(`${BASE_URL}/scenario-lab-state`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(state)
+  })
+  return await handleResponse<ScenarioLabStatePayload>(res)
+}
+
+export async function fetchExecutionPlannerState(): Promise<ExecutionPlannerStatePayload | null> {
+  const res = await fetch(`${BASE_URL}/execution-planner-state`, {
+    credentials: 'include'
+  })
+  return await handleResponse<ExecutionPlannerStatePayload | null>(res)
+}
+
+export async function persistExecutionPlannerState(
+  state: ExecutionPlannerStateInput
+): Promise<ExecutionPlannerStatePayload> {
+  const res = await fetch(`${BASE_URL}/execution-planner-state`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(state)
+  })
+  return await handleResponse<ExecutionPlannerStatePayload>(res)
+}
+
+export async function fetchRedTeamState(): Promise<RedTeamStatePayload | null> {
+  const res = await fetch(`${BASE_URL}/red-team-state`, {
+    credentials: 'include'
+  })
+  return await handleResponse<RedTeamStatePayload | null>(res)
+}
+
+export async function persistRedTeamState(
+  state: RedTeamStateInput
+): Promise<RedTeamStatePayload> {
+  const res = await fetch(`${BASE_URL}/red-team-state`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(state)
+  })
+  return await handleResponse<RedTeamStatePayload>(res)
 }
 
 export type WorkflowHistoryContext = 'memo' | 'normalization' | 'valuation' | 'monitoring'

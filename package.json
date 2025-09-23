@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_ENV=development tsx server/index.ts",
+    "dev": "NODE_ENV=development NODE_OPTIONS='--max-old-space-size=4096' tsx server/index.ts",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "dev:dynamic": "PORT=0 NODE_ENV=development tsx server/index.ts",
@@ -35,7 +35,9 @@
     "run:smoke:timeout": "node scripts/run-with-timeout.mjs 300 'npm run smoke'",
     "validate:performance": "tsx scripts/performance-validation-report.ts",
     "db:push": "drizzle-kit push",
-    "test:workflow": "vitest run client/test/integration/workflow-research-log-api.test.ts client/test/integration/storage-research-log-seed.test.ts client/test/integration/workflow-memo-state-api.test.ts client/test/integration/workflow-normalization-state-api.test.ts client/test/integration/workflow-valuation-state-api.test.ts client/test/integration/workflow-monitoring-state-api.test.ts client/test/integration/workflow-presence-api.test.ts"
+    "test:workflow": "vitest run client/test/integration/workflow-research-log-api.test.ts client/test/integration/storage-research-log-seed.test.ts client/test/integration/workflow-memo-state-api.test.ts client/test/integration/workflow-normalization-state-api.test.ts client/test/integration/workflow-valuation-state-api.test.ts client/test/integration/workflow-monitoring-state-api.test.ts client/test/integration/workflow-presence-api.test.ts",
+    "test:snapshots": "vitest run client/test/unit/snapshots.test.tsx client/test/unit/stage-snapshots.test.tsx",
+    "test:snapshots:generate": "tsx scripts/generate-snapshots.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -82,8 +84,6 @@
     "drizzle-orm": "^0.39.3",
     "drizzle-zod": "^0.7.0",
     "embla-carousel-react": "^8.6.0",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "framer-motion": "^11.13.1",
@@ -118,10 +118,13 @@
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.15",
     "@tailwindcss/vite": "^4.1.3",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
     "@types/connect-pg-simple": "^7.0.3",
     "@types/express": "4.17.21",
     "@types/express-session": "^1.18.0",
-    "@types/node": "20.16.11",
+    "@types/node": "^20.19.0",
     "@types/passport": "^1.0.16",
     "@types/passport-local": "^1.0.38",
     "@types/react": "^18.3.11",
@@ -132,6 +135,9 @@
     "drizzle-kit": "^0.31.4",
     "esbuild": "^0.25.0",
     "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "jsdom": "^27.0.0",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
     "puppeteer": "^23.6.0",
@@ -139,7 +145,8 @@
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
     "vite": "^7.1.5",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "vitest-axe": "^0.1.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

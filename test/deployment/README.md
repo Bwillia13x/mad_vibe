@@ -142,6 +142,7 @@ The following environment variables affect deployment testing:
 ### Console Output
 
 Tests provide real-time console output with:
+
 - Test progress indicators
 - Individual test results (✅/❌)
 - Performance metrics
@@ -159,6 +160,7 @@ npm run test:deployment -- --format json --output results.json
 ### HTML Reports
 
 Generate detailed HTML reports with:
+
 - Test execution timeline
 - Performance charts
 - Error details and stack traces
@@ -204,15 +206,15 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '20'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run deployment tests
         env:
           DATABASE_URL: postgres://postgres:test@localhost:5432/test
         run: npm run test:deployment -- --format json --output deployment-results.json
-      
+
       - name: Upload test results
         uses: actions/upload-artifact@v3
         if: always()

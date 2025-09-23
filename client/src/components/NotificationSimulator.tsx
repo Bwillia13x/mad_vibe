@@ -24,8 +24,10 @@ export default function NotificationSimulator() {
       }, delay)
     }
     schedule()
-    return () => { cancelled = true; clearTimeout(timer) }
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
   }, [toast])
   return null
 }
-

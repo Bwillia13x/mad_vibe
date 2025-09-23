@@ -37,7 +37,12 @@ interface ChartData {
 }
 
 export default function AnalyticsPage() {
-  const { data: analyticsSnapshots, isLoading, error, refetch } = useQuery<AnalyticsSnapshot[]>({
+  const {
+    data: analyticsSnapshots,
+    isLoading,
+    error,
+    refetch
+  } = useQuery<AnalyticsSnapshot[]>({
     queryKey: ['/api/analytics']
   })
   const { data: campaigns = [] } = useQuery<any[]>({ queryKey: ['/api/marketing/campaigns'] })
@@ -60,42 +65,62 @@ export default function AnalyticsPage() {
     return ((currentNum - previousNum) / previousNum) * 100
   }
 
-  const analytics: AnalyticsData | null = currentMonthData && previousMonthData
-    ? {
-        revenue: {
-          value: parseFloat(currentMonthData.totalRevenue),
-          change: calculateChange(currentMonthData.totalRevenue, previousMonthData.totalRevenue)
-        },
-        appointments: {
-          value: currentMonthData.totalAppointments,
-          change: calculateChange(currentMonthData.totalAppointments, previousMonthData.totalAppointments)
-        },
-        customerSatisfaction: {
-          value: parseFloat(currentMonthData.customerSatisfaction) * 5,
-          change: calculateChange(
-            parseFloat(currentMonthData.customerSatisfaction) * 5,
-            parseFloat(previousMonthData.customerSatisfaction) * 5
-          )
-        },
-        staffUtilization: {
-          value: parseFloat(currentMonthData.utilizationRate) * 100,
-          change: calculateChange(
-            parseFloat(currentMonthData.utilizationRate) * 100,
-            parseFloat(previousMonthData.utilizationRate) * 100
-          )
+  const analytics: AnalyticsData | null =
+    currentMonthData && previousMonthData
+      ? {
+          revenue: {
+            value: parseFloat(currentMonthData.totalRevenue),
+            change: calculateChange(currentMonthData.totalRevenue, previousMonthData.totalRevenue)
+          },
+          appointments: {
+            value: currentMonthData.totalAppointments,
+            change: calculateChange(
+              currentMonthData.totalAppointments,
+              previousMonthData.totalAppointments
+            )
+          },
+          customerSatisfaction: {
+            value: parseFloat(currentMonthData.customerSatisfaction) * 5,
+            change: calculateChange(
+              parseFloat(currentMonthData.customerSatisfaction) * 5,
+              parseFloat(previousMonthData.customerSatisfaction) * 5
+            )
+          },
+          staffUtilization: {
+            value: parseFloat(currentMonthData.utilizationRate) * 100,
+            change: calculateChange(
+              parseFloat(currentMonthData.utilizationRate) * 100,
+              parseFloat(previousMonthData.utilizationRate) * 100
+            )
+          }
         }
-      }
-    : null
+      : null
 
-  const chartData: ChartData[] = snapshots.slice(0, 3).reverse().map((snapshot) => {
-    const date = new Date(snapshot.date)
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    return {
-      month: monthNames[date.getMonth()],
-      revenue: parseFloat(snapshot.totalRevenue),
-      appointments: snapshot.totalAppointments
-    }
-  })
+  const chartData: ChartData[] = snapshots
+    .slice(0, 3)
+    .reverse()
+    .map((snapshot) => {
+      const date = new Date(snapshot.date)
+      const monthNames = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ]
+      return {
+        month: monthNames[date.getMonth()],
+        revenue: parseFloat(snapshot.totalRevenue),
+        appointments: snapshot.totalAppointments
+      }
+    })
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['/api/analytics'] })
@@ -127,7 +152,11 @@ export default function AnalyticsPage() {
   if (error) {
     return (
       <PageContainer>
-        <PageHeader title="Performance Analytics" subtitle="AI-powered business insights and metrics" />
+        <PageHeader
+          title="Performance Analytics"
+          subtitle="AI-powered business insights and metrics"
+          testId="heading-analytics"
+        />
         <Alert className="border-slate-800 bg-slate-900/60" data-testid="error-analytics">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="ml-2 flex items-center gap-2 text-slate-200">
@@ -149,7 +178,11 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return (
       <PageContainer>
-        <PageHeader title="Performance Analytics" subtitle="AI-powered business insights and metrics" />
+        <PageHeader
+          title="Performance Analytics"
+          subtitle="AI-powered business insights and metrics"
+          testId="heading-analytics"
+        />
         <GlassCard className="animate-pulse p-6">
           <div className="h-4 w-32 rounded bg-slate-800" />
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -165,11 +198,16 @@ export default function AnalyticsPage() {
   if (snapshots.length < 2) {
     return (
       <PageContainer>
-        <PageHeader title="Performance Analytics" subtitle="AI-powered business insights and metrics" />
+        <PageHeader
+          title="Performance Analytics"
+          subtitle="AI-powered business insights and metrics"
+          testId="heading-analytics"
+        />
         <Alert className="border-slate-800 bg-slate-900/60">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="ml-2 text-slate-200">
-            Insufficient data for analytics. At least two months of data are required for trend analysis.
+            Insufficient data for analytics. At least two months of data are required for trend
+            analysis.
           </AlertDescription>
         </Alert>
       </PageContainer>
@@ -181,6 +219,7 @@ export default function AnalyticsPage() {
       <PageHeader
         title="Performance Analytics"
         subtitle="AI-powered operating metrics surfaced for the investment workflow."
+        testId="heading-analytics"
         badge={
           <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-600/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-violet-200">
             <Sparkles className="h-3 w-3" /> Value Venture Lab
@@ -275,7 +314,9 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-semibold text-slate-50">{metric.value}</div>
-                  <div className={`mt-1 flex items-center gap-1 text-xs font-medium ${getChangeColor(metric.change)}`}>
+                  <div
+                    className={`mt-1 flex items-center gap-1 text-xs font-medium ${getChangeColor(metric.change)}`}
+                  >
                     {getChangeIcon(metric.change)}
                     {metric.change > 0 ? '+' : ''}
                     {Math.abs(metric.change).toFixed(1)}%
@@ -292,7 +333,9 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-semibold text-slate-50">
-                  {Array.isArray(campaigns) ? campaigns.filter((campaign: any) => campaign.status === 'active').length : 0}
+                  {Array.isArray(campaigns)
+                    ? campaigns.filter((campaign: any) => campaign.status === 'active').length
+                    : 0}
                 </div>
               </CardContent>
             </GlassCard>
@@ -312,7 +355,10 @@ export default function AnalyticsPage() {
                 <div className="text-2xl font-semibold text-slate-50">
                   {Array.isArray(posSales)
                     ? formatCurrency(
-                        posSales.reduce((total: number, sale: any) => total + parseFloat(sale.total ?? '0'), 0)
+                        posSales.reduce(
+                          (total: number, sale: any) => total + parseFloat(sale.total ?? '0'),
+                          0
+                        )
                       )
                     : '$0'}
                 </div>
@@ -361,7 +407,10 @@ export default function AnalyticsPage() {
                     <BarChart data={chartData}>
                       <XAxis dataKey="month" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
                       <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
-                      <ChartTooltip content={<ChartTooltipContent />} formatter={(value: number) => [formatCurrency(value), 'Revenue']} />
+                      <ChartTooltip
+                        content={<ChartTooltipContent />}
+                        formatter={(value: number) => [formatCurrency(value), 'Revenue']}
+                      />
                       <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ChartContainer>
@@ -382,7 +431,10 @@ export default function AnalyticsPage() {
                     <LineChart data={chartData}>
                       <XAxis dataKey="month" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
                       <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
-                      <ChartTooltip content={<ChartTooltipContent />} formatter={(value: number) => [value, 'Appointments']} />
+                      <ChartTooltip
+                        content={<ChartTooltipContent />}
+                        formatter={(value: number) => [value, 'Appointments']}
+                      />
                       <Line
                         type="monotone"
                         dataKey="appointments"
@@ -415,7 +467,14 @@ export default function AnalyticsPage() {
                         ctr: campaign.ctr
                       }))}
                     >
-                      <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} tickFormatter={(name: string) => (name.length > 12 ? `${name.slice(0, 12)}…` : name)} />
+                      <XAxis
+                        dataKey="name"
+                        stroke="#94a3b8"
+                        tick={{ fill: '#94a3b8' }}
+                        tickFormatter={(name: string) =>
+                          name.length > 12 ? `${name.slice(0, 12)}…` : name
+                        }
+                      />
                       <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
                       <ChartTooltip
                         content={({ active, payload }) => {
@@ -431,7 +490,11 @@ export default function AnalyticsPage() {
                           )
                         }}
                       />
-                      <Bar dataKey="conversions" fill="var(--color-conversions)" radius={[6, 6, 0, 0]} />
+                      <Bar
+                        dataKey="conversions"
+                        fill="var(--color-conversions)"
+                        radius={[6, 6, 0, 0]}
+                      />
                     </BarChart>
                   </ChartContainer>
                 </div>
@@ -445,26 +508,51 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <div className="space-y-3 text-sm text-slate-200">
-                <h4 className="text-xs uppercase tracking-[0.18em] text-slate-500">Performance highlights</h4>
-                <div className="rounded-xl border border-emerald-600/40 bg-emerald-900/20 p-3" data-testid="insight-revenue">
-                  Revenue up {analytics.revenue.change.toFixed(1)}% month-over-month, led by premium services.
+                <h4 className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                  Performance highlights
+                </h4>
+                <div
+                  className="rounded-xl border border-emerald-600/40 bg-emerald-900/20 p-3"
+                  data-testid="insight-revenue"
+                >
+                  Revenue up {analytics.revenue.change.toFixed(1)}% month-over-month, led by premium
+                  services.
                 </div>
-                <div className="rounded-xl border border-sky-600/40 bg-sky-900/20 p-3" data-testid="insight-efficiency">
-                  Staff utilization at {analytics.staffUtilization.value.toFixed(0)}% with optimal scheduling cadence.
+                <div
+                  className="rounded-xl border border-sky-600/40 bg-sky-900/20 p-3"
+                  data-testid="insight-efficiency"
+                >
+                  Staff utilization at {analytics.staffUtilization.value.toFixed(0)}% with optimal
+                  scheduling cadence.
                 </div>
-                <div className="rounded-xl border border-violet-600/40 bg-violet-900/20 p-3" data-testid="insight-satisfaction">
-                  Customer satisfaction at {analytics.customerSatisfaction.value.toFixed(1)}/5.0 with strong retention signals.
+                <div
+                  className="rounded-xl border border-violet-600/40 bg-violet-900/20 p-3"
+                  data-testid="insight-satisfaction"
+                >
+                  Customer satisfaction at {analytics.customerSatisfaction.value.toFixed(1)}/5.0
+                  with strong retention signals.
                 </div>
               </div>
               <div className="space-y-3 text-sm text-slate-200">
-                <h4 className="text-xs uppercase tracking-[0.18em] text-slate-500">Recommended next moves</h4>
-                <div className="rounded-xl border border-amber-600/40 bg-amber-900/10 p-3" data-testid="recommendation-inventory">
+                <h4 className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                  Recommended next moves
+                </h4>
+                <div
+                  className="rounded-xl border border-amber-600/40 bg-amber-900/10 p-3"
+                  data-testid="recommendation-inventory"
+                >
                   Increase Executive Cut availability—the highest revenue per appointment.
                 </div>
-                <div className="rounded-xl border border-amber-600/40 bg-amber-900/10 p-3" data-testid="recommendation-peak">
+                <div
+                  className="rounded-xl border border-amber-600/40 bg-amber-900/10 p-3"
+                  data-testid="recommendation-peak"
+                >
                   Promote deluxe packages midweek to shore up softer dayparts.
                 </div>
-                <div className="rounded-xl border border-amber-600/40 bg-amber-900/10 p-3" data-testid="recommendation-marketing">
+                <div
+                  className="rounded-xl border border-amber-600/40 bg-amber-900/10 p-3"
+                  data-testid="recommendation-marketing"
+                >
                   Target beard services in paid campaigns—fastest-growing category QoQ.
                 </div>
               </div>
