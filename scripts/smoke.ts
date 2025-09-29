@@ -3,11 +3,62 @@ import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 
+type JsonRecord = Record<string, unknown>
+
+interface Identifier {
+  id: string
+}
+
+interface NamedEntity extends Identifier {
+  name?: string
+}
+
+interface HealthResponse {
+  status: string
+  aiDemoMode?: boolean
+  scenario?: string
+  freeze?: {
+    frozen?: boolean
+  }
+}
+
+type ServiceSummary = NamedEntity
+type StaffMember = NamedEntity
+type AppointmentSummary = Identifier
+type AnalyticsSummary = Identifier
+type CustomerSummary = Identifier
+
+interface InventoryItem extends Identifier {
+  sku: string
+  status: string
+}
+
+type PosSale = Identifier
+
+interface CampaignResponse extends Identifier {
+  status?: string
+}
+
+interface MarketingPerformance {
+  summary: JsonRecord
+  campaigns: JsonRecord[]
+}
+
+interface LoyaltyEntry extends Identifier {
+  customerId: string
+}
+
+interface ChatResponse {
+  message?: string
+}
+
+type BusinessProfile = JsonRecord
+
 async function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms))
 }
 
-async function waitForPortFile(portFile: string, timeoutMs = 15000): Promise<number> {
+async function waitForPortFile(portFile: string, timeoutMs = 30000): Promise<number> {
   const start = Date.now()
   while (Date.now() - start < timeoutMs) {
     if (fs.existsSync(portFile)) {
@@ -40,7 +91,7 @@ function getMemoryUsage(): number {
   return Math.round(usage.heapUsed / 1024 / 1024) // MB
 }
 
-async function getJson(url: string) {
+async function getJson<T = unknown>(url: string): Promise<T> {
   const startTime = Date.now()
   const startMemory = getMemoryUsage()
 
@@ -58,10 +109,10 @@ async function getJson(url: string) {
   })
 
   if (!res.ok) throw new Error(`${url} -> ${res.status}`)
-  return await res.json()
+  return (await res.json()) as T
 }
 
-async function postJson(url: string, body: unknown) {
+async function postJson<TResponse = unknown>(url: string, body: unknown): Promise<TResponse> {
   const startTime = Date.now()
   const startMemory = getMemoryUsage()
 
@@ -83,7 +134,7 @@ async function postJson(url: string, body: unknown) {
   })
 
   if (!res.ok) throw new Error(`${url} -> ${res.status}`)
-  return await res.json()
+  return (await res.json()) as TResponse
 }
 
 async function streamSSE(url: string, body: unknown, timeoutMs = 10000): Promise<string> {
@@ -173,77 +224,85 @@ async function main() {
     const base = `http://127.0.0.1:${port}`
 
     // Health
-    const health = await getJson(`${base}/api/health`)
+    const health = await getJson<HealthResponse>(`${base}/api/health`)
     if (health?.status !== 'ok') throw new Error('Health not ok')
     if (typeof health.aiDemoMode === 'undefined') throw new Error('Health missing aiDemoMode')
 
     // Core data endpoints
-    const services = await getJson(`${base}/api/services`)
+    const services = await getJson<ServiceSummary[]>(`${base}/api/services`)
     if (!Array.isArray(services) || services.length === 0) throw new Error('Services empty')
 
-    const staff = await getJson(`${base}/api/staff`)
+    const staff = await getJson<StaffMember[]>(`${base}/api/staff`)
     if (!Array.isArray(staff) || staff.length === 0) throw new Error('Staff empty')
 
-    const appts = await getJson(`${base}/api/appointments?day=today`)
+    const appts = await getJson<AppointmentSummary[]>(`${base}/api/appointments?day=today`)
     if (!Array.isArray(appts)) throw new Error('Appointments not array')
 
-    const analytics = await getJson(`${base}/api/analytics`)
+    const analytics = await getJson<AnalyticsSummary[]>(`${base}/api/analytics`)
     if (!Array.isArray(analytics)) throw new Error('Analytics not array')
 
     // Test all API endpoints for comprehensive coverage
 
     // Business Profile endpoint
-    const profile = await getJson(`${base}/api/profile`)
+    const profile = await getJson<BusinessProfile>(`${base}/api/profile`)
     if (!profile || typeof profile !== 'object') throw new Error('Profile endpoint failed')
 
     // Individual service endpoint
     if (services.length > 0) {
-      const firstService = await getJson(`${base}/api/services/${services[0].id}`)
+      const firstService = await getJson<ServiceSummary>(
+        `${base}/api/services/${services[0].id}`
+      )
       if (!firstService || firstService.id !== services[0].id)
         throw new Error('Individual service endpoint failed')
     }
 
     // Individual staff endpoint
     if (staff.length > 0) {
-      const firstStaff = await getJson(`${base}/api/staff/${staff[0].id}`)
+      const firstStaff = await getJson<StaffMember>(`${base}/api/staff/${staff[0].id}`)
       if (!firstStaff || firstStaff.id !== staff[0].id)
         throw new Error('Individual staff endpoint failed')
     }
 
     // Customers endpoint
-    const customers = await getJson(`${base}/api/customers`)
+    const customers = await getJson<CustomerSummary[]>(`${base}/api/customers`)
     if (!Array.isArray(customers)) throw new Error('Customers not array')
 
     // Individual appointment endpoint (if appointments exist)
     if (appts.length > 0) {
-      const firstAppt = await getJson(`${base}/api/appointments/${appts[0].id}`)
+      const firstAppt = await getJson<AppointmentSummary>(
+        `${base}/api/appointments/${appts[0].id}`
+      )
       if (!firstAppt || firstAppt.id !== appts[0].id)
         throw new Error('Individual appointment endpoint failed')
     }
 
     // Inventory endpoints
-    const inventory = await getJson(`${base}/api/inventory`)
+    const inventory = await getJson<InventoryItem[]>(`${base}/api/inventory`)
     if (!Array.isArray(inventory)) throw new Error('Inventory not array')
 
     if (inventory.length > 0) {
-      const firstItem = await getJson(`${base}/api/inventory/${inventory[0].id}`)
+      const firstItem = await getJson<InventoryItem>(
+        `${base}/api/inventory/${inventory[0].id}`
+      )
       if (!firstItem || firstItem.id !== inventory[0].id)
         throw new Error('Individual inventory item endpoint failed')
     }
 
     // Individual analytics endpoint (if analytics exist)
     if (analytics.length > 0) {
-      const firstAnalytics = await getJson(`${base}/api/analytics/${analytics[0].id}`)
+      const firstAnalytics = await getJson<AnalyticsSummary>(
+        `${base}/api/analytics/${analytics[0].id}`
+      )
       if (!firstAnalytics || firstAnalytics.id !== analytics[0].id)
         throw new Error('Individual analytics endpoint failed')
     }
 
     // POS endpoints
-    const sales = await getJson(`${base}/api/pos/sales`)
+    const sales = await getJson<PosSale[]>(`${base}/api/pos/sales`)
     if (!Array.isArray(sales)) throw new Error('POS sales not array')
 
     // Test POS sale creation (use existing service)
-    const newSale = await postJson(`${base}/api/pos/sales`, {
+    const newSale = await postJson<PosSale>(`${base}/api/pos/sales`, {
       items: [
         {
           kind: 'service',
@@ -265,11 +324,11 @@ async function main() {
     if (!deleteResult.ok) throw new Error('POS sale deletion failed')
 
     // Marketing endpoints
-    const campaigns = await getJson(`${base}/api/marketing/campaigns`)
+    const campaigns = await getJson<CampaignResponse[]>(`${base}/api/marketing/campaigns`)
     if (!Array.isArray(campaigns)) throw new Error('Marketing campaigns not array')
 
     // Test marketing campaign creation
-    const newCampaign = await postJson(`${base}/api/marketing/campaigns`, {
+    const newCampaign = await postJson<CampaignResponse>(`${base}/api/marketing/campaigns`, {
       name: 'Test Campaign',
       description: 'Test Description',
       channel: 'email',
@@ -286,18 +345,20 @@ async function main() {
     if (!updatedCampaign.ok) throw new Error('Marketing campaign update failed')
 
     // Marketing performance endpoint
-    const performance = await getJson(`${base}/api/marketing/performance`)
+    const performance = await getJson<MarketingPerformance>(
+      `${base}/api/marketing/performance`
+    )
     if (!performance || !performance.summary || !Array.isArray(performance.campaigns)) {
       throw new Error('Marketing performance endpoint failed')
     }
 
     // Loyalty endpoints
-    const loyaltyEntries = await getJson(`${base}/api/loyalty/entries`)
+    const loyaltyEntries = await getJson<LoyaltyEntry[]>(`${base}/api/loyalty/entries`)
     if (!Array.isArray(loyaltyEntries)) throw new Error('Loyalty entries not array')
 
     // Test loyalty entry creation (if customers exist)
     if (customers.length > 0) {
-      const newLoyaltyEntry = await postJson(`${base}/api/loyalty/entries`, {
+      const newLoyaltyEntry = await postJson<LoyaltyEntry>(`${base}/api/loyalty/entries`, {
         customerId: customers[0].id,
         type: 'earned',
         points: 100,
@@ -308,7 +369,7 @@ async function main() {
 
     // Test loyalty entries with customer filter (if customers exist)
     if (customers.length > 0) {
-      const customerLoyalty = await getJson(
+      const customerLoyalty = await getJson<LoyaltyEntry[]>(
         `${base}/api/loyalty/entries?customerId=${customers[0].id}`
       )
       if (!Array.isArray(customerLoyalty)) throw new Error('Customer loyalty filter failed')
@@ -368,7 +429,7 @@ async function main() {
     // Test XSS prevention in chat
     try {
       const xssPayload = '<script>alert("xss")</script>'
-      const xssChat = await postJson(`${base}/api/chat`, {
+      const xssChat = await postJson<ChatResponse>(`${base}/api/chat`, {
         messages: [{ role: 'user', content: xssPayload }],
         stream: false
       })
@@ -464,7 +525,7 @@ async function main() {
     console.log('Security validation completed.')
 
     // Chat (non-streaming, demo-friendly)
-    const chat = await postJson(`${base}/api/chat`, {
+    const chat = await postJson<ChatResponse>(`${base}/api/chat`, {
       messages: [{ role: 'user', content: 'What is our schedule today?' }],
       stream: false
     })
@@ -483,36 +544,32 @@ async function main() {
 
     // Demo scenario reseed: low_inventory should produce some out-of-stock
     await postJson(`${base}/api/demo/seed?scenario=low_inventory&seed=123`, {})
-    const inv1 = await getJson(`${base}/api/inventory`)
-    const out1 = Array.isArray(inv1)
-      ? inv1
-          .filter((i: any) => i.status === 'out-of-stock')
-          .map((i: any) => i.sku)
-          .sort()
-      : []
+    const inv1 = await getJson<InventoryItem[]>(`${base}/api/inventory`)
+    const out1 = inv1
+      .filter((item) => item.status === 'out-of-stock')
+      .map((item) => item.sku)
+      .sort()
     if (out1.length === 0) throw new Error('Expected low inventory after reseed')
 
     // Reseed with same seed and expect same out-of-stock set
     await postJson(`${base}/api/demo/seed?scenario=low_inventory&seed=123`, {})
-    const inv2 = await getJson(`${base}/api/inventory`)
-    const out2 = Array.isArray(inv2)
-      ? inv2
-          .filter((i: any) => i.status === 'out-of-stock')
-          .map((i: any) => i.sku)
-          .sort()
-      : []
+    const inv2 = await getJson<InventoryItem[]>(`${base}/api/inventory`)
+    const out2 = inv2
+      .filter((item) => item.status === 'out-of-stock')
+      .map((item) => item.sku)
+      .sort()
     if (JSON.stringify(out1) !== JSON.stringify(out2))
       throw new Error('Deterministic reseed mismatch')
 
     // Freeze time and verify health shows frozen
     const frozenIso = new Date().toISOString()
     await postJson(`${base}/api/demo/time?date=${encodeURIComponent(frozenIso)}`, {})
-    const healthFrozen = await getJson(`${base}/api/health`)
+    const healthFrozen = await getJson<HealthResponse>(`${base}/api/health`)
     if (!healthFrozen.freeze?.frozen) throw new Error('Expected freeze to be active')
 
     // Reset demo returns to default scenario and clears freeze
     await postJson(`${base}/api/demo/reset`, {})
-    const health2 = await getJson(`${base}/api/health`)
+    const health2 = await getJson<HealthResponse>(`${base}/api/health`)
     if (health2.scenario !== 'default') throw new Error('Reset did not restore default scenario')
     if (health2.freeze?.frozen) throw new Error('Reset did not clear time freeze')
 

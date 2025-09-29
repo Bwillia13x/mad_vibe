@@ -1,14 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import {
-  epvAssumptions,
-  epvOutputs,
-  dcfScenarioOutputs,
-  relativesOutputs,
-  BASE_VALUATION,
-  type ValuationAssumption,
-  type ScenarioBand
-} from '@/lib/workflow-data'
+import { epvAssumptions, dcfScenarioOutputs, BASE_VALUATION, type ValuationAssumption, type ScenarioBand } from '@/lib/workflow-data'
 import { fetchValuationState, persistValuationState } from '@/lib/workflow-api'
+import { useSessionKey } from './useSessionKey'
 
 interface ValuationState {
   selectedScenario: ScenarioBand
@@ -102,6 +95,7 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
   const [isSyncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState<string | null>(null)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
+  const sessionKey = useSessionKey()
 
   const applyRemoteState = useCallback(
     (remote: Awaited<ReturnType<typeof fetchValuationState>>) => {
@@ -131,8 +125,9 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      if (!sessionKey) return
       try {
-        const remote = await fetchValuationState()
+        const remote = await fetchValuationState(sessionKey)
         if (cancelled) return
         applyRemoteState(remote)
         setSyncError(null)
@@ -148,17 +143,17 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [applyRemoteState])
+  }, [applyRemoteState, sessionKey])
 
   useEffect(() => {
-    if (!hydrated) return
+    if (!hydrated || !sessionKey) return
 
     let cancelled = false
     const timeout = setTimeout(() => {
       void (async () => {
         setSyncing(true)
         try {
-          const saved = await persistValuationState({
+          const saved = await persistValuationState(sessionKey, {
             selectedScenario: state.selectedScenario,
             assumptionOverrides: Object.fromEntries(
               Object.entries(state.assumptionOverrides)
@@ -174,10 +169,11 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
           }
         } catch (error) {
           if (!cancelled) {
-            const status = (error as any)?.status as number | undefined
+            const maybe = error as Record<string, unknown>
+            const status = typeof maybe?.status === 'number' ? (maybe.status as number) : undefined
             if (status === 409) {
               try {
-                const remote = await fetchValuationState()
+                const remote = await fetchValuationState(sessionKey)
                 if (!cancelled) {
                   applyRemoteState(remote)
                   setSyncError('Valuation refreshed due to concurrent edits.')
@@ -202,7 +198,7 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       cancelled = true
       clearTimeout(timeout)
     }
-  }, [state, version, hydrated, applyRemoteState])
+  }, [state, version, hydrated, applyRemoteState, sessionKey])
 
   const setScenario = useCallback((band: ScenarioBand) => {
     setState((prev) => ({
@@ -303,11 +299,12 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       g2: adj.g2,
       gT: termG,
       ownerEarnings,
+      termG,
       netDebt,
       shares,
       price
     }
-  }, [getOverriddenValue, adj, BASE_VALUATION])
+  }, [getOverriddenValue, adj])
 
   const rel = useMemo((): RelCalc => {
     const price = getOverriddenValue('price', BASE_VALUATION.price)
@@ -348,7 +345,7 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       shares,
       price
     }
-  }, [getOverriddenValue, BASE_VALUATION])
+  }, [getOverriddenValue])
 
   const agg = useMemo((): AggCalc => {
     const price = getOverriddenValue('price', BASE_VALUATION.price)
@@ -359,7 +356,7 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
     const mos = (1 - price / mid) * 100
     console.log('Agg calc:', { low, mid, high, mos, price }) // temp log
     return { low, mid, high, mos, price }
-  }, [epv.ps, dcf.ps, rel.ps, getOverriddenValue, BASE_VALUATION])
+  }, [epv.ps, dcf.ps, rel.ps, getOverriddenValue])
 
   const currentScenario = useMemo(
     () =>

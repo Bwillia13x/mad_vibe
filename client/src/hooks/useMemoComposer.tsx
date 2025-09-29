@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { memoSections, memoReviewPrompts, memoExhibits } from '@/lib/workflow-data'
 import { fetchMemoComposerState, persistMemoComposerState } from '@/lib/workflow-api'
+import { useSessionKey } from './useSessionKey'
 import type {
   MemoAttachmentState,
   MemoComment,
@@ -142,12 +143,14 @@ export function MemoComposerProvider({ children }: { children: React.ReactNode }
   const [isSyncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState<string | null>(null)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
+  const sessionKey = useSessionKey()
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      if (!sessionKey) return
       try {
-        const remote = await fetchMemoComposerState()
+        const remote = await fetchMemoComposerState(sessionKey)
         if (!remote || cancelled) return
         const defaults = buildDefaultState()
         setState({
@@ -168,10 +171,10 @@ export function MemoComposerProvider({ children }: { children: React.ReactNode }
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [sessionKey])
 
   useEffect(() => {
-    if (!hydrated) return
+    if (!hydrated || !sessionKey) return
 
     let cancelled = false
     const timeout = setTimeout(() => {
@@ -185,7 +188,7 @@ export function MemoComposerProvider({ children }: { children: React.ReactNode }
             commentThreads: state.commentThreads,
             version
           }
-          const saved = await persistMemoComposerState(payload)
+          const saved = await persistMemoComposerState(sessionKey, payload)
           if (!cancelled) {
             setVersion(saved.version ?? version)
             setLastSavedAt(saved.updatedAt ?? new Date().toISOString())
@@ -193,10 +196,11 @@ export function MemoComposerProvider({ children }: { children: React.ReactNode }
           }
         } catch (error) {
           if (!cancelled) {
-            const status = (error as any)?.status as number | undefined
+            const maybe = error as Record<string, unknown>
+            const status = typeof maybe?.status === 'number' ? (maybe.status as number) : undefined
             if (status === 409) {
               try {
-                const remote = await fetchMemoComposerState()
+                const remote = await fetchMemoComposerState(sessionKey)
                 if (!cancelled && remote) {
                   const defaults = buildDefaultState()
                   setState({
@@ -229,7 +233,7 @@ export function MemoComposerProvider({ children }: { children: React.ReactNode }
       cancelled = true
       clearTimeout(timeout)
     }
-  }, [state, version, hydrated])
+  }, [state, version, hydrated, sessionKey])
 
   const updateSection = useCallback((id: string, value: string) => {
     setState((prev) => ({

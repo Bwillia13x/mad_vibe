@@ -9,18 +9,18 @@ import { createServer } from 'http'
 import express from 'express'
 import { securityHeaders, strictSecurityHeaders } from '../../server/middleware/security-headers'
 
-interface TestResult {
+export interface SecurityHeaderTestResult {
   name: string
   passed: boolean
   error?: string
-  details?: any
+  details?: Record<string, unknown>
 }
 
 /**
  * Test the security headers middleware
  */
-export async function testSecurityHeaders(): Promise<TestResult[]> {
-  const results: TestResult[] = []
+export async function testSecurityHeaders(): Promise<SecurityHeaderTestResult[]> {
+  const results: SecurityHeaderTestResult[] = []
 
   try {
     // Create test app with security headers
@@ -134,8 +134,8 @@ export async function testSecurityHeaders(): Promise<TestResult[]> {
 /**
  * Test strict security headers middleware
  */
-export async function testStrictSecurityHeaders(): Promise<TestResult[]> {
-  const results: TestResult[] = []
+export async function testStrictSecurityHeaders(): Promise<SecurityHeaderTestResult[]> {
+  const results: SecurityHeaderTestResult[] = []
 
   try {
     // Create test app with strict security headers

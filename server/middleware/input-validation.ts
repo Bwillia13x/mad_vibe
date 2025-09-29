@@ -1,10 +1,18 @@
 import { Request, Response, NextFunction } from 'express'
 import { log } from '../../lib/log'
 
+export type SanitizedValue =
+  | string
+  | number
+  | boolean
+  | null
+  | SanitizedValue[]
+  | { [key: string]: SanitizedValue }
+
 export interface SanitizedRequest extends Request {
-  sanitizedBody?: any
-  sanitizedQuery?: any
-  sanitizedParams?: any
+  sanitizedBody?: SanitizedValue
+  sanitizedQuery?: SanitizedValue
+  sanitizedParams?: SanitizedValue
 }
 
 /**
@@ -184,7 +192,7 @@ function sanitizeString(value: string): string {
 /**
  * Validates and sanitizes input values recursively
  */
-function sanitizeValue(value: any, maxDepth: number = 10): any {
+function sanitizeValue(value: unknown, maxDepth: number = 10): SanitizedValue {
   if (maxDepth <= 0) {
     log('Input validation warning: Maximum recursion depth reached', {
       type: typeof value,
@@ -218,21 +226,22 @@ function sanitizeValue(value: any, maxDepth: number = 10): any {
   }
 
   if (Array.isArray(value)) {
-    // Limit array size to prevent DoS
-    if (value.length > 1000) {
+    let arrayValue = value
+    if (arrayValue.length > 1000) {
       log('Input validation warning: Large array detected', {
-        length: value.length,
+        length: arrayValue.length,
         truncated: true
       })
-      value = value.slice(0, 1000)
+      arrayValue = arrayValue.slice(0, 1000)
     }
 
-    return value.map((item: any) => sanitizeValue(item, maxDepth - 1))
+    return arrayValue.map((item) => sanitizeValue(item, maxDepth - 1))
   }
 
   if (typeof value === 'object') {
     // Limit object properties to prevent DoS
-    const keys = Object.keys(value)
+    const entries = Object.entries(value as Record<string, unknown>)
+    const keys = entries.map(([key]) => key)
     if (keys.length > 100) {
       log('Input validation warning: Large object detected', {
         properties: keys.length,
@@ -240,11 +249,10 @@ function sanitizeValue(value: any, maxDepth: number = 10): any {
       })
     }
 
-    const sanitized: any = {}
-    for (let i = 0; i < Math.min(keys.length, 100); i++) {
-      const key = keys[i]
+    const sanitized: Record<string, SanitizedValue> = {}
+    for (const [key, rawValue] of entries.slice(0, 100)) {
       const sanitizedKey = sanitizeString(key)
-      sanitized[sanitizedKey] = sanitizeValue(value[key], maxDepth - 1)
+      sanitized[sanitizedKey] = sanitizeValue(rawValue, maxDepth - 1)
     }
     return sanitized
   }

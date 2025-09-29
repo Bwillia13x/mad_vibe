@@ -1,7 +1,10 @@
 import { getEnvVar } from './env-security'
 import { drizzle } from 'drizzle-orm/neon-http'
 import { neon } from '@neondatabase/serverless'
-import * as schema from './schema'
+import * as sharedSchema from '../shared/schema'
+import * as localSchema from './db/schema'
+
+const schema = { ...sharedSchema, ...localSchema }
 
 let db: any = null
 
@@ -19,4 +22,4 @@ if (getEnvVar('NODE_ENV') !== 'test') {
   console.log('Using null DB in test mode')
 }
 
-export { db }
+export { db, schema }

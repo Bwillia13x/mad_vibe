@@ -93,19 +93,17 @@ ${businessContext || 'No current business data available.'}
         console.log(`Non-streaming successful with model: ${model}`)
         return content
       }
-    } catch (error: any) {
-      console.error(`OpenAI API error with model ${model}:`, error?.message || error)
+    } catch (error) {
+      console.error(`OpenAI API error with model ${model}:`, error)
 
-      // If this is an organization verification error and we have more models to try, continue
-      if (
-        error?.message?.includes('organization') &&
-        model !== modelsToTry[modelsToTry.length - 1]
-      ) {
+      const isOrganizationIssue =
+        error instanceof Error && error.message.toLowerCase().includes('organization')
+
+      if (isOrganizationIssue && model !== modelsToTry[modelsToTry.length - 1]) {
         console.log(`Organization verification issue with ${model}, trying next model...`)
         continue
       }
 
-      // If we've exhausted all models or it's a different error, break
       break
     }
   }

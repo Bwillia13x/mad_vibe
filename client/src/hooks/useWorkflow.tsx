@@ -1,6 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { type StageGateChecklistItem, type WorkflowStage, workflowStages } from '@/lib/workflow'
-import { createResearchLogEntry, fetchResearchLog } from '@/lib/workflow-api'
 import type { ResearchLogEntry, ResearchLogInput } from '@shared/types'
 
 export type StageStatus = 'locked' | 'in-progress' | 'complete'
@@ -70,23 +69,18 @@ export function WorkflowProvider({ children }: { children: React.ReactNode }) {
 
   const logEvent = useCallback(
     async (entry: ResearchLogInput) => {
-      try {
-        const created = await createResearchLogEntry(entry)
-        appendLogEntry(created)
-      } catch (error) {
-        console.warn('Failed to persist research log entry', error)
-        appendLogEntry({
-          id:
-            typeof crypto !== 'undefined' && crypto.randomUUID
-              ? crypto.randomUUID()
-              : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-          stageSlug: entry.stageSlug,
-          stageTitle: entry.stageTitle,
-          action: entry.action,
-          details: entry.details,
-          timestamp: entry.timestamp ?? new Date().toISOString()
-        })
-      }
+      // Local-only logging now that server endpoints were removed
+      appendLogEntry({
+        id:
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        stageSlug: entry.stageSlug,
+        stageTitle: entry.stageTitle,
+        action: entry.action,
+        details: entry.details,
+        timestamp: entry.timestamp ?? new Date().toISOString()
+      })
     },
     [appendLogEntry]
   )
@@ -100,22 +94,7 @@ export function WorkflowProvider({ children }: { children: React.ReactNode }) {
     }
   }, [checklists])
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const data = await fetchResearchLog()
-        if (!cancelled) {
-          setResearchLog(data)
-        }
-      } catch (error) {
-        console.warn('Failed to load research log', error)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  // Remote research log removed; start with empty log (still persisted in-memory for session)
 
   const stageStatuses = useMemo(() => {
     const statuses: Record<string, StageStatus> = {}

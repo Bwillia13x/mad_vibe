@@ -127,7 +127,7 @@ async function main() {
         const nodes = Array.from(
           document.querySelectorAll('[role="tooltip"],[data-state="delayed-open"],[data-side]')
         )
-        return nodes.some((n: any) => (n.textContent || '').trim() === 'Staff')
+        return nodes.some((node) => (node.textContent || '').trim() === 'Staff')
       },
       { timeout: 2000 }
     )

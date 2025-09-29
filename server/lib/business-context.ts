@@ -1,12 +1,41 @@
 import { storage } from '../storage'
 import { getNow } from './clock'
+import type {
+  Appointment,
+  Staff,
+  InventoryItem,
+  AnalyticsSnapshot,
+  BusinessProfile,
+  Customer
+} from '@shared/schema'
 
 export interface BusinessContext {
-  todaysAppointments: any[]
-  staffSchedules: any[]
-  inventoryAlerts: any[]
-  recentAnalytics: any
-  businessProfile: any
+  todaysAppointments: Appointment[]
+  staffSchedules: Staff[]
+  inventoryAlerts: InventoryItem[]
+  recentAnalytics: AnalyticsSnapshot | null
+  businessProfile: BusinessProfile | null
+  customers: Customer[]
+}
+
+type AnalyticsSummaryRecord = AnalyticsSnapshot & {
+  topServices?: unknown
+}
+
+const getTopServiceNames = (analytics: AnalyticsSnapshot | null): string[] => {
+  if (!analytics) return []
+  const rawTopServices = (analytics as AnalyticsSummaryRecord).topServices
+  if (!Array.isArray(rawTopServices)) return []
+
+  return rawTopServices
+    .map((entry) => {
+      if (entry && typeof entry === 'object' && 'serviceName' in entry) {
+        const name = (entry as { serviceName?: unknown }).serviceName
+        return typeof name === 'string' ? name : null
+      }
+      return null
+    })
+    .filter((name): name is string => Boolean(name))
 }
 
 export async function getBusinessContext(): Promise<string> {
@@ -97,12 +126,8 @@ ${
 **KEY INSIGHTS:**
 - Total active customers: ${allCustomers.length}
 - Popular services: ${
-      latestAnalytics?.topServices && Array.isArray(latestAnalytics.topServices)
-        ? latestAnalytics.topServices
-            .slice(0, 3)
-            .map((s: any) => s.serviceName)
-            .join(', ')
-        : 'Executive Cut, Skin Fade, Beard Sculpt'
+      getTopServiceNames(latestAnalytics).slice(0, 3).join(', ') ||
+      'Executive Cut, Skin Fade, Beard Sculpt'
     }
 - Business hours: Mon-Wed 9-6, Thu-Fri 9-8, Sat 8-5, Sun 10-4
 `

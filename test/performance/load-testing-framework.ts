@@ -582,7 +582,8 @@ export async function createDynamicLoadTestConfig(baseUrl: string): Promise<Load
 
   try {
     // Fetch available services to get real IDs
-    const httpClient = new TestHttpClient(baseUrl)
+    const authToken = process.env.ADMIN_TOKEN || 'test-admin-token-12345-secure'
+    const httpClient = new TestHttpClient(baseUrl, authToken)
     const servicesResponse = await httpClient.get('/api/services')
 
     if (servicesResponse.ok) {

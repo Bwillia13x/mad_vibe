@@ -113,6 +113,29 @@ export interface ExecutionPlannerStatePayload {
 
 export type ExecutionPlannerStateInput = Omit<ExecutionPlannerStatePayload, 'updatedAt'>
 
+export interface Critique {
+  id: number
+  playbook: string
+  severity: 'High' | 'Med' | 'Low'
+  claim: string
+  rationale: string
+  action: string
+  decided: boolean | null
+}
+
+export interface ScanHit {
+  id: string
+  src: string
+  excerpt: string
+}
+
+export interface VulnerabilityItem {
+  id: string
+  label: string
+  completed: boolean
+  playbook?: string
+}
+
 export interface RedTeamStatePayload {
   artifact: string
   scope: string[]

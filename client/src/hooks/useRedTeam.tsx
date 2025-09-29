@@ -101,8 +101,7 @@ const INITIAL_SCAN_HITS: ScanHit[] = [
 ]
 
 export function useRedTeam(): UseRedTeamReturn {
-  const [version, setVersion] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const [_version, setVersion] = useState(0)
 
   // Target state
   const [artifact, setArtifact] = useState('Valuation v3')
@@ -125,45 +124,22 @@ export function useRedTeam(): UseRedTeamReturn {
 
   // Scan state
   const [scanQuery, setScanQuery] = useState('customer concentration OR lease renewal capex')
-  const [scanHits, setScanHits] = useState<ScanHit[]>(INITIAL_SCAN_HITS)
+  const [scanHits, _setScanHits] = useState<ScanHit[]>(INITIAL_SCAN_HITS)
 
   // Vulnerability checklist state
   const [vulnerabilityChecklist, setVulnerabilityChecklist] = useState<VulnerabilityItem[]>([])
 
   // Stable reference for initial data to prevent recreations
-  const initialCritiquesRef = useRef(INITIAL_CRITIQUES)
-  const initialScanHitsRef = useRef(INITIAL_SCAN_HITS)
+  const _initialCritiquesRef = useRef(INITIAL_CRITIQUES)
+  const _initialScanHitsRef = useRef(INITIAL_SCAN_HITS)
 
   // Error handling state
   const [error, setError] = useState<string | null>(null)
 
   const { state: scenarioState } = useScenarioLab()
 
-  // Load from API on mount
-  useEffect(() => {
-    const loadFromApi = async () => {
-      try {
-        setLoading(true)
-        const loaded = await fetchRedTeamState()
-        if (loaded) {
-          setArtifact(loaded.artifact)
-          setScope(loaded.scope)
-          setActivePlaybooks(loaded.activePlaybooks)
-          setCritiques(loaded.critiques)
-          setScanQuery(loaded.scanQuery)
-          setScanHits(loaded.scanHits)
-          setVulnerabilityChecklist(loaded.vulnerabilityChecklist)
-          setVersion(loaded.version)
-        }
-      } catch (err) {
-        console.warn('Failed to load red team state from API', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadFromApi()
-  }, [])
+  // Initialize local-only state on mount
+  useEffect(() => {}, [])
 
   // Cleanup effect for memory optimization
   useEffect(() => {
@@ -209,6 +185,24 @@ export function useRedTeam(): UseRedTeamReturn {
     return coverage >= 80 && highOpen === 0
   }, [coverage, highOpen])
 
+  // Helper simulateValue from useScenarioLab (inline for now)
+  interface ScenarioStateLike { driverValues: Record<string, number>; iterations: number }
+  const simulateValue = useCallback((state: ScenarioStateLike): number[] => {
+    const { driverValues, iterations } = state
+    const results: number[] = []
+    for (let i = 0; i < iterations; i++) {
+      const revenueGrowth = driverValues['driver-revenue-growth'] + (Math.random() - 0.5) * 2
+      const margin = driverValues['driver-margin'] + (Math.random() - 0.5) * 1.5
+      const multiple = driverValues['driver-multiple'] + (Math.random() - 0.5) * 1.2
+
+      const cashFlow = 258 * (1 + revenueGrowth / 100) * (margin / 15)
+      const terminalValue = cashFlow * multiple
+      results.push(terminalValue / 100)
+    }
+    results.sort((a, b) => a - b)
+    return results
+  }, [])
+
   // Memoized actions with proper dependencies and error handling
   const updateArtifact = useCallback(async (newArtifact: string) => {
     try {
@@ -217,38 +211,12 @@ export function useRedTeam(): UseRedTeamReturn {
       }
       setArtifact(newArtifact)
       setError(null)
-      // Persist
-      const payload: RedTeamStateInput = {
-        artifact: newArtifact,
-        scope,
-        activePlaybooks,
-        critiques,
-        scanQuery,
-        scanHits,
-        vulnerabilityChecklist,
-        version
-      }
-      const result = await persistRedTeamState(payload)
-      setVersion(result.version)
-    } catch (err: any) {
-      if (err.status === 409) {
-        // Reload on conflict
-        const loaded = await fetchRedTeamState()
-        if (loaded) {
-          setArtifact(loaded.artifact)
-          setScope(loaded.scope)
-          setActivePlaybooks(loaded.activePlaybooks)
-          setCritiques(loaded.critiques)
-          setScanQuery(loaded.scanQuery)
-          setScanHits(loaded.scanHits)
-          setVulnerabilityChecklist(loaded.vulnerabilityChecklist)
-          setVersion(loaded.version)
-        }
-      } else {
-        setError(err instanceof Error ? err.message : 'Unknown error occurred')
-      }
+      setVersion((v) => v + 1)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error occurred'
+      setError(message)
     }
-  }, [scope, activePlaybooks, critiques, scanQuery, scanHits, vulnerabilityChecklist, version])
+  }, [])
 
   const updateScope = useCallback(async (newScope: string[]) => {
     try {
@@ -257,36 +225,12 @@ export function useRedTeam(): UseRedTeamReturn {
       }
       setScope(newScope)
       setError(null)
-      const payload: RedTeamStateInput = {
-        artifact,
-        scope: newScope,
-        activePlaybooks,
-        critiques,
-        scanQuery,
-        scanHits,
-        vulnerabilityChecklist,
-        version
-      }
-      const result = await persistRedTeamState(payload)
-      setVersion(result.version)
-    } catch (err: any) {
-      if (err.status === 409) {
-        const loaded = await fetchRedTeamState()
-        if (loaded) {
-          setArtifact(loaded.artifact)
-          setScope(loaded.scope)
-          setActivePlaybooks(loaded.activePlaybooks)
-          setCritiques(loaded.critiques)
-          setScanQuery(loaded.scanQuery)
-          setScanHits(loaded.scanHits)
-          setVulnerabilityChecklist(loaded.vulnerabilityChecklist)
-          setVersion(loaded.version)
-        }
-      } else {
-        setError(err instanceof Error ? err.message : 'Unknown error occurred')
-      }
+      setVersion((v) => v + 1)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error occurred'
+      setError(message)
     }
-  }, [artifact, activePlaybooks, critiques, scanQuery, scanHits, vulnerabilityChecklist, version])
+  }, [])
 
   const togglePlaybook = useCallback(async (playbook: string) => {
     try {
@@ -296,36 +240,12 @@ export function useRedTeam(): UseRedTeamReturn {
       const newPlaybooks = activePlaybooks.includes(playbook) ? activePlaybooks.filter((p) => p !== playbook) : [...activePlaybooks, playbook]
       setActivePlaybooks(newPlaybooks)
       setError(null)
-      const payload: RedTeamStateInput = {
-        artifact,
-        scope,
-        activePlaybooks: newPlaybooks,
-        critiques,
-        scanQuery,
-        scanHits,
-        vulnerabilityChecklist,
-        version
-      }
-      const result = await persistRedTeamState(payload)
-      setVersion(result.version)
-    } catch (err: any) {
-      if (err.status === 409) {
-        const loaded = await fetchRedTeamState()
-        if (loaded) {
-          setArtifact(loaded.artifact)
-          setScope(loaded.scope)
-          setActivePlaybooks(loaded.activePlaybooks)
-          setCritiques(loaded.critiques)
-          setScanQuery(loaded.scanQuery)
-          setScanHits(loaded.scanHits)
-          setVulnerabilityChecklist(loaded.vulnerabilityChecklist)
-          setVersion(loaded.version)
-        }
-      } else {
-        setError(err instanceof Error ? err.message : 'Unknown error occurred')
-      }
+      setVersion((v) => v + 1)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error occurred'
+      setError(message)
     }
-  }, [artifact, scope, critiques, scanQuery, scanHits, vulnerabilityChecklist, version, activePlaybooks])
+  }, [activePlaybooks])
 
   const decideCritique = useCallback((id: number, decision: boolean) => {
     try {
@@ -358,7 +278,7 @@ export function useRedTeam(): UseRedTeamReturn {
       extremeUpside: Number(p95.toFixed(2)),
       biasShift: 'Bear-biased tails (revenue -20%, margin -10%, multiple -2x)'
     }
-  }, [activePlaybooks, scenarioState])
+  }, [activePlaybooks, scenarioState, simulateValue])
 
   const updateScanQuery = useCallback((query: string) => {
     try {
@@ -384,22 +304,7 @@ export function useRedTeam(): UseRedTeamReturn {
     setError(null)
   }, [])
 
-  // Helper simulateValue from useScenarioLab (inline for now)
-  const simulateValue = useCallback((state: any): number[] => {
-    const { driverValues, iterations } = state
-    const results: number[] = []
-    for (let i = 0; i < iterations; i++) {
-      const revenueGrowth = driverValues['driver-revenue-growth'] + (Math.random() - 0.5) * 2
-      const margin = driverValues['driver-margin'] + (Math.random() - 0.5) * 1.5
-      const multiple = driverValues['driver-multiple'] + (Math.random() - 0.5) * 1.2
-
-      const cashFlow = 258 * (1 + revenueGrowth / 100) * (margin / 15)
-      const terminalValue = cashFlow * multiple
-      results.push(terminalValue / 100)
-    }
-    results.sort((a, b) => a - b)
-    return results
-  }, [])
+  
 
   return {
     artifact,
@@ -408,15 +313,18 @@ export function useRedTeam(): UseRedTeamReturn {
     critiques,
     scanQuery,
     scanHits,
+    vulnerabilityChecklist,
     coverage,
     highOpen,
     gateReady,
+    adversarialSim,
     error,
     updateArtifact,
     updateScope,
     togglePlaybook,
     decideCritique,
     updateScanQuery,
+    toggleVulnerability,
     clearError
   }
 }

@@ -33,6 +33,34 @@ interface PerformanceRequirements {
   minThroughput: number // 10 RPS
 }
 
+interface PerformanceMonitoringValidation {
+  implemented: boolean
+  features: string[]
+  score: number
+}
+
+interface PerformanceOptimizationAnalysis {
+  connectionPooling: boolean
+  requestThrottling: boolean
+  errorHandling: boolean
+  caching: boolean
+  score: number
+}
+
+interface ErrorHandlingValidation {
+  enhancedErrorHandling: boolean
+  inputValidation: boolean
+  securityHeaders: boolean
+  score: number
+}
+
+interface ResourceManagementAnalysis {
+  memoryStable: boolean
+  resourceOptimization: boolean
+  performanceMonitoring: boolean
+  score: number
+}
+
 class PerformanceValidationReporter {
   private requirements: PerformanceRequirements = {
     maxErrorRate: 1.0, // 1%
@@ -146,11 +174,7 @@ class PerformanceValidationReporter {
     }
   }
 
-  private validatePerformanceMonitoring(): {
-    implemented: boolean
-    features: string[]
-    score: number
-  } {
+  private validatePerformanceMonitoring(): PerformanceMonitoringValidation {
     const features: string[] = []
     let score = 0
 
@@ -200,13 +224,7 @@ class PerformanceValidationReporter {
     }
   }
 
-  private analyzePerformanceOptimizations(): {
-    connectionPooling: boolean
-    requestThrottling: boolean
-    errorHandling: boolean
-    caching: boolean
-    score: number
-  } {
+  private analyzePerformanceOptimizations(): PerformanceOptimizationAnalysis {
     let score = 0
     const optimizations = {
       connectionPooling: false,
@@ -252,12 +270,7 @@ class PerformanceValidationReporter {
     return { ...optimizations, score }
   }
 
-  private validateErrorHandling(): {
-    enhancedErrorHandling: boolean
-    inputValidation: boolean
-    securityHeaders: boolean
-    score: number
-  } {
+  private validateErrorHandling(): ErrorHandlingValidation {
     let score = 0
     const validations = {
       enhancedErrorHandling: false,
@@ -291,12 +304,7 @@ class PerformanceValidationReporter {
     return { ...validations, score }
   }
 
-  private analyzeResourceManagement(): {
-    memoryStable: boolean
-    resourceOptimization: boolean
-    performanceMonitoring: boolean
-    score: number
-  } {
+  private analyzeResourceManagement(): ResourceManagementAnalysis {
     let score = 0
     const analysis = {
       memoryStable: true, // Assume stable unless proven otherwise
@@ -399,10 +407,10 @@ class PerformanceValidationReporter {
 
   private addPerformanceImprovements(
     improvements: string[],
-    monitoring: any,
-    optimization: any,
-    errorHandling: any,
-    resource: any
+    monitoring: PerformanceMonitoringValidation,
+    optimization: PerformanceOptimizationAnalysis,
+    errorHandling: ErrorHandlingValidation,
+    resource: ResourceManagementAnalysis
   ): void {
     // Performance monitoring improvements
     if (monitoring.implemented) {

@@ -5,6 +5,7 @@ import type { DataNormalizationStateInput } from '@shared/types'
 
 process.env.DATABASE_URL =
   process.env.DATABASE_URL || 'postgres://valor_user:valorpass@localhost:5432/valor_vibe'
+process.env.ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'test-admin-token'
 
 vi.mock(new URL('../../../lib/db/index.ts', import.meta.url).pathname, () => ({
   db: {}
@@ -18,6 +19,10 @@ const workflowModule = await import(
   new URL('../../../server/routes/workflow.ts', import.meta.url).pathname
 )
 const { createWorkflowRouter } = workflowModule
+
+const ADMIN_HEADERS = {
+  Authorization: 'Bearer test-admin-token'
+}
 
 type SelectChain = {
   from: ReturnType<typeof vi.fn>
@@ -54,8 +59,9 @@ const performRequest = async (
         const response = await fetch(`http://127.0.0.1:${port}${path}`, {
           method,
           headers: {
+            ...ADMIN_HEADERS,
             ...(body ? { 'Content-Type': 'application/json' } : {}),
-            ...headers
+            ...(headers ?? {})
           },
           body: body ? JSON.stringify(body) : undefined
         })
@@ -155,16 +161,32 @@ describe('Workflow normalization state API', () => {
     const from = vi.fn().mockReturnValue({ where })
     selectMock.mockReturnValue({ from })
 
-    const response = await performRequest(app, 'GET', '/api/workflow/normalization-state')
+    const response = await performRequest(
+      app,
+      'GET',
+      '/api/workflow/normalization-state',
+      undefined,
+      {
+        'x-session-key': 'norm-session'
+      }
+    )
 
     expect(response.status).toBe(500)
     expect(response.body).toMatchObject({ message: 'Failed to load normalization state' })
   })
 
   it('rejects malformed normalization payloads', async () => {
-    const response = await performRequest(app, 'PUT', '/api/workflow/normalization-state', {
-      reconciledSources: { 'source-1': true }
-    })
+    const response = await performRequest(
+      app,
+      'PUT',
+      '/api/workflow/normalization-state',
+      {
+        reconciledSources: { 'source-1': true }
+      },
+      {
+        'x-session-key': 'norm-session'
+      }
+    )
 
     expect(response.status).toBe(400)
     expect(insertMock).not.toHaveBeenCalled()
@@ -235,11 +257,19 @@ describe('Workflow normalization state API', () => {
       }
     ])
 
-    const response = await performRequest(app, 'PUT', '/api/workflow/normalization-state', {
-      reconciledSources: {},
-      appliedAdjustments: {},
-      version: 0
-    })
+    const response = await performRequest(
+      app,
+      'PUT',
+      '/api/workflow/normalization-state',
+      {
+        reconciledSources: {},
+        appliedAdjustments: {},
+        version: 0
+      },
+      {
+        'x-session-key': 'norm-session'
+      }
+    )
 
     expect(response.status).toBe(409)
     expect(insertMock).not.toHaveBeenCalled()
@@ -259,11 +289,19 @@ describe('Workflow normalization state API', () => {
     const values = vi.fn().mockReturnValue({ onConflictDoUpdate })
     insertMock.mockReturnValue({ values })
 
-    const response = await performRequest(app, 'PUT', '/api/workflow/normalization-state', {
-      reconciledSources: {},
-      appliedAdjustments: {},
-      version: 0
-    })
+    const response = await performRequest(
+      app,
+      'PUT',
+      '/api/workflow/normalization-state',
+      {
+        reconciledSources: {},
+        appliedAdjustments: {},
+        version: 0
+      },
+      {
+        'x-session-key': 'norm-session'
+      }
+    )
 
     expect(response.status).toBe(500)
     expect(response.body).toMatchObject({ message: 'Failed to persist normalization state' })

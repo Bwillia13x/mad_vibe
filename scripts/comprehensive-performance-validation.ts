@@ -14,6 +14,7 @@
 import { spawn, type ChildProcess } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import { type TestMetadata } from '../shared/test-results'
 
 async function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms))
@@ -50,7 +51,7 @@ interface TestResult {
   name: string
   status: 'pass' | 'fail'
   duration: number
-  metadata?: any
+  metadata?: TestMetadata
 }
 
 interface LoadTestResult {
@@ -62,6 +63,32 @@ interface LoadTestResult {
   p95ResponseTime: number
   throughput: number
   duration: number
+}
+
+interface LoadTestingSummary {
+  testResults: TestResult[]
+  maxConcurrentUsers: number
+  errorRate: number
+}
+
+interface ResponseTimeSummary {
+  testResults: TestResult[]
+  averageResponseTime: number
+  p95ResponseTime: number
+}
+
+interface SustainedLoadSummary {
+  testResults: TestResult[]
+  throughput: number
+}
+
+interface MemoryValidationSummary {
+  testResults: TestResult[]
+  memoryStable: boolean
+}
+
+interface SpikeLoadSummary {
+  testResults: TestResult[]
 }
 
 interface PerformanceRequirements {
@@ -291,7 +318,7 @@ class PerformanceValidator {
     }
   }
 
-  private async validateLoadTesting() {
+  private async validateLoadTesting(): Promise<LoadTestingSummary> {
     console.log('  Running load tests with increasing concurrent users...')
 
     const testResults: TestResult[] = []
@@ -459,7 +486,7 @@ class PerformanceValidator {
     }
   }
 
-  private async validateResponseTimes() {
+  private async validateResponseTimes(): Promise<ResponseTimeSummary> {
     console.log('  Measuring response times across all endpoints...')
 
     // Use same endpoints as smoke test
@@ -556,7 +583,7 @@ class PerformanceValidator {
     }
   }
 
-  private async validateSustainedLoad() {
+  private async validateSustainedLoad(): Promise<SustainedLoadSummary> {
     console.log('  Running sustained load test for 90 seconds...')
 
     const concurrentUsers = 25 // Moderate load for sustained test
@@ -589,7 +616,7 @@ class PerformanceValidator {
     }
   }
 
-  private async validateMemoryStability() {
+  private async validateMemoryStability(): Promise<MemoryValidationSummary> {
     console.log('  Monitoring memory usage under load...')
 
     const initialMemory = process.memoryUsage()
@@ -637,7 +664,7 @@ class PerformanceValidator {
     }
   }
 
-  private async validateSpikeLoad() {
+  private async validateSpikeLoad(): Promise<SpikeLoadSummary> {
     console.log('  Testing spike load handling...')
 
     const concurrentUsers = 100 // Spike to 100 users immediately
@@ -672,10 +699,10 @@ class PerformanceValidator {
   }
 
   private generateRecommendations(
-    loadResult: any,
-    responseResult: any,
-    sustainedResult: any,
-    memoryResult: any,
+    loadResult: LoadTestingSummary,
+    responseResult: ResponseTimeSummary,
+    sustainedResult: SustainedLoadSummary,
+    memoryResult: MemoryValidationSummary,
     recommendations: string[]
   ) {
     // Performance recommendations based on results

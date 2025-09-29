@@ -5,6 +5,7 @@
 
 import { Request, Response, NextFunction } from 'express'
 import { log } from '../../lib/log'
+import { getEnvVar } from '../../lib/env-security'
 
 export interface ThrottlingConfig {
   // Rate limiting configuration
@@ -434,17 +435,48 @@ export class RequestThrottler {
   }
 }
 
-// Create and export the request throttler
-export const requestThrottler = new RequestThrottler({
+const nodeEnv = getEnvVar('NODE_ENV')
+const skipRateLimit = Boolean(getEnvVar('SKIP_RATE_LIMIT'))
+
+const baseThrottleConfig = {
   maxRequestsPerMinute: 300,
   maxRequestsPerHour: 5000,
   maxConcurrentRequests: 50,
   maxQueueSize: 100,
   queueTimeoutMs: 30000,
+  burstSize: 20,
+  burstWindowMs: 1000,
   enablePriority: true,
   priorityRoutes: ['/api/health', '/api/auth'],
   enableMonitoring: true
-})
+} as const
+
+const relaxedThrottleConfig = {
+  maxRequestsPerMinute: 1_000_000,
+  maxRequestsPerHour: 10_000_000,
+  maxConcurrentRequests: 10_000,
+  maxQueueSize: 10_000,
+  queueTimeoutMs: 0,
+  burstSize: 1_000,
+  burstWindowMs: 100,
+  enablePriority: false,
+  priorityRoutes: baseThrottleConfig.priorityRoutes,
+  enableMonitoring: false
+} as const
+
+const shouldRelaxThrottling = nodeEnv === 'test' || skipRateLimit
+
+if (shouldRelaxThrottling) {
+  log('Request throttler running in permissive mode', {
+    nodeEnv,
+    skipRateLimit
+  })
+}
+
+// Create and export the request throttler
+export const requestThrottler = new RequestThrottler(
+  shouldRelaxThrottling ? relaxedThrottleConfig : baseThrottleConfig
+)
 
 // Graceful shutdown handling
 process.on('SIGTERM', () => {

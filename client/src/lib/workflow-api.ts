@@ -1,6 +1,6 @@
+declare const process: { env?: Record<string, string | undefined> } | undefined
+
 import type {
-  ResearchLogEntry,
-  ResearchLogInput,
   MemoComposerStatePayload,
   MemoComposerStateInput,
   DataNormalizationStatePayload,
@@ -11,7 +11,46 @@ import type {
   MonitoringStateInput
 } from '@shared/types'
 
+export interface PresencePeerPayload {
+  actorId: string
+  stageSlug: string
+  updatedAt: string
+}
+
+export interface PresenceHeartbeatResponse {
+  actorId: string
+  stageSlug: string
+  peers: PresencePeerPayload[]
+}
+
 const BASE_URL = '/api/workflow'
+
+const resolveAdminToken = (): string | undefined => {
+  try {
+    const viteToken = (import.meta as unknown as { env?: Record<string, unknown> })?.env?.VITE_ADMIN_TOKEN
+    if (typeof viteToken === 'string' && viteToken.trim().length > 0) {
+      return viteToken.trim()
+    }
+  } catch {
+    // ignore
+  }
+
+  const globalToken = (typeof globalThis !== 'undefined' && (globalThis as { __ADMIN_TOKEN__?: unknown }).__ADMIN_TOKEN__)
+  if (typeof globalToken === 'string' && globalToken.trim().length > 0) {
+    return globalToken.trim()
+  }
+
+  if (typeof process !== 'undefined') {
+    const procToken = process.env?.ADMIN_TOKEN
+    if (typeof procToken === 'string' && procToken.trim().length > 0) {
+      return procToken.trim()
+    }
+  }
+
+  return undefined
+}
+
+const ADMIN_BEARER = resolveAdminToken()
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -25,220 +64,148 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return JSON.parse(text) as T
 }
 
-export async function fetchResearchLog(): Promise<ResearchLogEntry[]> {
-  const res = await fetch(`${BASE_URL}/research-log`, {
-    credentials: 'include'
-  })
-  return await handleResponse<ResearchLogEntry[]>(res)
+type SessionHeaders = {
+  [key: string]: string
 }
 
-export async function createResearchLogEntry(entry: ResearchLogInput): Promise<ResearchLogEntry> {
-  const res = await fetch(`${BASE_URL}/research-log`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(entry)
-  })
-  return await handleResponse<ResearchLogEntry>(res)
+const buildHeaders = (sessionKey: string, extra?: SessionHeaders): HeadersInit => {
+  const headers: Record<string, string> = {
+    ...(extra ?? {}),
+    'x-session-key': sessionKey
+  }
+
+  if (!headers.Authorization && ADMIN_BEARER) {
+    headers.Authorization = `Bearer ${ADMIN_BEARER}`
+  }
+
+  return headers
 }
 
-export async function fetchMemoComposerState(): Promise<MemoComposerStatePayload | null> {
+export async function fetchMemoComposerState(
+  sessionKey: string
+): Promise<MemoComposerStatePayload | null> {
   const res = await fetch(`${BASE_URL}/memo-state`, {
-    credentials: 'include'
+    credentials: 'include',
+    headers: buildHeaders(sessionKey)
   })
   return await handleResponse<MemoComposerStatePayload | null>(res)
 }
 
 export async function persistMemoComposerState(
+  sessionKey: string,
   state: MemoComposerStateInput
 ): Promise<MemoComposerStatePayload> {
   const res = await fetch(`${BASE_URL}/memo-state`, {
     method: 'PUT',
     credentials: 'include',
-    headers: {
+    headers: buildHeaders(sessionKey, {
       'Content-Type': 'application/json'
-    },
+    }),
     body: JSON.stringify(state)
   })
   return await handleResponse<MemoComposerStatePayload>(res)
 }
 
-export async function fetchNormalizationState(): Promise<DataNormalizationStatePayload | null> {
+export async function fetchNormalizationState(
+  sessionKey: string
+): Promise<DataNormalizationStatePayload | null> {
   const res = await fetch(`${BASE_URL}/normalization-state`, {
-    credentials: 'include'
+    credentials: 'include',
+    headers: buildHeaders(sessionKey)
   })
   return await handleResponse<DataNormalizationStatePayload | null>(res)
 }
 
 export async function persistNormalizationState(
+  sessionKey: string,
   state: DataNormalizationStateInput
 ): Promise<DataNormalizationStatePayload> {
   const res = await fetch(`${BASE_URL}/normalization-state`, {
     method: 'PUT',
     credentials: 'include',
-    headers: {
+    headers: buildHeaders(sessionKey, {
       'Content-Type': 'application/json'
-    },
+    }),
     body: JSON.stringify(state)
   })
   return await handleResponse<DataNormalizationStatePayload>(res)
 }
 
-export async function fetchValuationState(): Promise<ValuationStatePayload | null> {
+export async function fetchValuationState(
+  sessionKey: string
+): Promise<ValuationStatePayload | null> {
   const res = await fetch(`${BASE_URL}/valuation-state`, {
-    credentials: 'include'
+    credentials: 'include',
+    headers: buildHeaders(sessionKey)
   })
   return await handleResponse<ValuationStatePayload | null>(res)
 }
 
 export async function persistValuationState(
+  sessionKey: string,
   state: ValuationStateInput
 ): Promise<ValuationStatePayload> {
   const res = await fetch(`${BASE_URL}/valuation-state`, {
     method: 'PUT',
     credentials: 'include',
-    headers: {
+    headers: buildHeaders(sessionKey, {
       'Content-Type': 'application/json'
-    },
+    }),
     body: JSON.stringify(state)
   })
   return await handleResponse<ValuationStatePayload>(res)
 }
 
-export async function fetchMonitoringState(): Promise<MonitoringStatePayload | null> {
+export async function fetchMonitoringState(
+  sessionKey: string
+): Promise<MonitoringStatePayload | null> {
   const res = await fetch(`${BASE_URL}/monitoring-state`, {
-    credentials: 'include'
+    credentials: 'include',
+    headers: buildHeaders(sessionKey)
   })
   return await handleResponse<MonitoringStatePayload | null>(res)
 }
 
 export async function persistMonitoringState(
+  sessionKey: string,
   state: MonitoringStateInput
 ): Promise<MonitoringStatePayload> {
   const res = await fetch(`${BASE_URL}/monitoring-state`, {
     method: 'PUT',
     credentials: 'include',
-    headers: {
+    headers: buildHeaders(sessionKey, {
       'Content-Type': 'application/json'
-    },
+    }),
     body: JSON.stringify(state)
   })
   return await handleResponse<MonitoringStatePayload>(res)
 }
 
-export async function fetchScenarioLabState(): Promise<ScenarioLabStatePayload | null> {
-  const res = await fetch(`${BASE_URL}/scenario-lab-state`, {
-    credentials: 'include'
+export async function sendPresenceHeartbeat(
+  sessionKey: string,
+  stageSlug: string,
+  actorId?: string
+): Promise<PresenceHeartbeatResponse> {
+  const headers = buildHeaders(sessionKey, {
+    'Content-Type': 'application/json',
+    ...(actorId ? { 'x-actor-id': actorId } : {})
   })
-  return await handleResponse<ScenarioLabStatePayload | null>(res)
-}
-
-export async function persistScenarioLabState(
-  state: ScenarioLabStateInput
-): Promise<ScenarioLabStatePayload> {
-  const res = await fetch(`${BASE_URL}/scenario-lab-state`, {
-    method: 'PUT',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(state)
-  })
-  return await handleResponse<ScenarioLabStatePayload>(res)
-}
-
-export async function fetchExecutionPlannerState(): Promise<ExecutionPlannerStatePayload | null> {
-  const res = await fetch(`${BASE_URL}/execution-planner-state`, {
-    credentials: 'include'
-  })
-  return await handleResponse<ExecutionPlannerStatePayload | null>(res)
-}
-
-export async function persistExecutionPlannerState(
-  state: ExecutionPlannerStateInput
-): Promise<ExecutionPlannerStatePayload> {
-  const res = await fetch(`${BASE_URL}/execution-planner-state`, {
-    method: 'PUT',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(state)
-  })
-  return await handleResponse<ExecutionPlannerStatePayload>(res)
-}
-
-export async function fetchRedTeamState(): Promise<RedTeamStatePayload | null> {
-  const res = await fetch(`${BASE_URL}/red-team-state`, {
-    credentials: 'include'
-  })
-  return await handleResponse<RedTeamStatePayload | null>(res)
-}
-
-export async function persistRedTeamState(
-  state: RedTeamStateInput
-): Promise<RedTeamStatePayload> {
-  const res = await fetch(`${BASE_URL}/red-team-state`, {
-    method: 'PUT',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(state)
-  })
-  return await handleResponse<RedTeamStatePayload>(res)
-}
-
-export type WorkflowHistoryContext = 'memo' | 'normalization' | 'valuation' | 'monitoring'
-
-export interface WorkflowHistoryEvent<State = Record<string, unknown>> {
-  id: string
-  actorId: string
-  version: number
-  state: State
-  createdAt: string
-}
-
-export async function fetchWorkflowHistory<State = Record<string, unknown>>(
-  context: WorkflowHistoryContext,
-  limit = 20
-): Promise<WorkflowHistoryEvent<State>[]> {
-  const res = await fetch(`${BASE_URL}/history/${context}?limit=${limit}`, {
-    credentials: 'include'
-  })
-  return await handleResponse<WorkflowHistoryEvent<State>[]>(res)
-}
-
-export interface PresencePeer {
-  actorId: string
-  stageSlug: string
-  updatedAt: string
-}
-
-export interface PresenceHeartbeatResponse {
-  actorId: string
-  stageSlug: string
-  updatedAt: string
-  peers: PresencePeer[]
-}
-
-export async function sendPresenceHeartbeat(stageSlug: string): Promise<PresenceHeartbeatResponse> {
   const res = await fetch(`${BASE_URL}/presence/heartbeat`, {
     method: 'POST',
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers,
     body: JSON.stringify({ stageSlug })
   })
   return await handleResponse<PresenceHeartbeatResponse>(res)
 }
 
-export async function fetchPresence(stageSlug: string): Promise<PresencePeer[]> {
+export async function fetchPresencePeers(
+  sessionKey: string,
+  stageSlug: string
+): Promise<PresencePeerPayload[]> {
   const res = await fetch(`${BASE_URL}/presence?stage=${encodeURIComponent(stageSlug)}`, {
-    credentials: 'include'
+    credentials: 'include',
+    headers: buildHeaders(sessionKey)
   })
-  return await handleResponse<PresencePeer[]>(res)
+  return await handleResponse<PresencePeerPayload[]>(res)
 }

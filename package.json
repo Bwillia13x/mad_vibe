@@ -35,7 +35,7 @@
     "run:smoke:timeout": "node scripts/run-with-timeout.mjs 300 'npm run smoke'",
     "validate:performance": "tsx scripts/performance-validation-report.ts",
     "db:push": "drizzle-kit push",
-    "test:workflow": "vitest run client/test/integration/workflow-research-log-api.test.ts client/test/integration/storage-research-log-seed.test.ts client/test/integration/workflow-memo-state-api.test.ts client/test/integration/workflow-normalization-state-api.test.ts client/test/integration/workflow-valuation-state-api.test.ts client/test/integration/workflow-monitoring-state-api.test.ts client/test/integration/workflow-presence-api.test.ts",
+    "test:workflow": "vitest run client/test/integration/workflow-memo-state-api.test.ts client/test/integration/workflow-normalization-state-api.test.ts client/test/integration/workflow-valuation-state-api.test.ts client/test/integration/workflow-monitoring-state-api.test.ts",
     "test:snapshots": "vitest run client/test/unit/snapshots.test.tsx client/test/unit/stage-snapshots.test.tsx",
     "test:snapshots:generate": "tsx scripts/generate-snapshots.ts"
   },

@@ -51,7 +51,8 @@ Key API Endpoints (demo)
 - POS: `GET /api/pos/sales`, `POST /api/pos/sales`, `DELETE /api/pos/sales/:id`
 - Marketing: `GET/POST /api/marketing/campaigns`, `PATCH /api/marketing/campaigns/:id`, `GET /api/marketing/performance`
 - Loyalty: `GET /api/loyalty/entries[?customerId]`, `POST /api/loyalty/entries`
-- Workflow: `GET/PUT /api/workflow/memo-state`, `GET/PUT /api/workflow/normalization-state`, `GET/PUT /api/workflow/valuation-state`, `GET/PUT /api/workflow/monitoring-state`, `GET/POST /api/workflow/research-log`
+- Workflow (session-scoped): `GET/PUT /api/workflow/memo-state`, `GET/PUT /api/workflow/normalization-state`, `GET/PUT /api/workflow/valuation-state`, `GET/PUT /api/workflow/monitoring-state`
+  - Include the `x-session-key` header on all requests to persist/fetch session state.
 
 Testing
 
@@ -62,7 +63,8 @@ Testing
   - Also validates streaming chat, CSV export, deterministic reseed (`seed`), time freeze, and demo reset.
   - Exercises POS/Marketing/Loyalty endpoints for demo flows
 - Workflow persistence tests: `npm run test:workflow`
-  - Runs Vitest integration coverage for `/api/workflow/research-log`, `/api/workflow/memo-state`, `/api/workflow/normalization-state`, `/api/workflow/valuation-state`, `/api/workflow/monitoring-state`, and the demo seeding hook.
+  - Runs Vitest integration for session-scoped endpoints: `/api/workflow/memo-state`, `/api/workflow/normalization-state`, `/api/workflow/valuation-state`, `/api/workflow/monitoring-state`.
+  - Presence is now handled client-side; server presence/research-log routes are considered legacy and excluded from default workflow tests.
 
 Navigation and smoke helpers
 

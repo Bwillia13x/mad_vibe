@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
-import { fetchPresence, sendPresenceHeartbeat, type PresencePeer } from '@/lib/workflow-api'
+import { useSessionKey } from './useSessionKey'
+import {
+  fetchPresencePeers,
+  sendPresenceHeartbeat,
+  type PresenceHeartbeatResponse,
+  type PresencePeerPayload
+} from '@/lib/workflow-api'
+
+export interface PresencePeer {
+  actorId: string
+  stageSlug: string
+  updatedAt: string
+}
 
 interface PresenceState {
   actorId: string | null
@@ -7,67 +19,73 @@ interface PresenceState {
 }
 
 const HEARTBEAT_INTERVAL = 10_000
-const POLL_INTERVAL = 20_000
 
 export function usePresence(stageSlug: string): PresenceState {
   const [actorId, setActorId] = useState<string | null>(null)
-  const [peers, setPeers] = useState<PresencePeer[]>([])
+  const [peers, setPeers] = useState<PresencePeerPayload[]>([])
+  const sessionKey = useSessionKey()
 
   useEffect(() => {
-    if (!stageSlug) return
+    if (!stageSlug || !sessionKey) return
     let cancelled = false
-    let timer: ReturnType<typeof setTimeout>
+    let timer: ReturnType<typeof setTimeout> | undefined
 
-    const heartbeat = async () => {
+    const runHeartbeat = async () => {
+      if (cancelled) return
       try {
-        const response = await sendPresenceHeartbeat(stageSlug)
+        const response: PresenceHeartbeatResponse = await sendPresenceHeartbeat(
+          sessionKey,
+          stageSlug
+        )
         if (!cancelled) {
           setActorId(response.actorId)
           setPeers(response.peers)
         }
       } catch (error) {
-        if (!cancelled) {
-          // Ignore heartbeat errors; next interval will retry
-        }
+        console.warn('Presence heartbeat failed', error)
       } finally {
         if (!cancelled) {
-          timer = setTimeout(heartbeat, HEARTBEAT_INTERVAL)
+          timer = setTimeout(runHeartbeat, HEARTBEAT_INTERVAL)
         }
       }
     }
 
-    heartbeat()
+    runHeartbeat()
 
     return () => {
       cancelled = true
-      clearTimeout(timer)
+      if (timer) clearTimeout(timer)
     }
-  }, [stageSlug])
+  }, [stageSlug, sessionKey])
 
   useEffect(() => {
-    if (!stageSlug) return
+    if (!stageSlug || !sessionKey) return
     let cancelled = false
+    let poller: ReturnType<typeof setInterval> | undefined
+
     const poll = async () => {
       try {
-        const presence = await fetchPresence(stageSlug)
-        if (!cancelled) setPeers(presence)
+        const results = await fetchPresencePeers(sessionKey, stageSlug)
+        if (!cancelled) {
+          setPeers(results)
+        }
       } catch (error) {
-        // Swallow errors; heartbeat continues to keep us in sync
+        console.warn('Presence poll failed', error)
       }
     }
 
-    const interval = setInterval(poll, POLL_INTERVAL)
-    void poll()
+    poll()
+    poller = setInterval(poll, HEARTBEAT_INTERVAL)
 
     return () => {
       cancelled = true
-      clearInterval(interval)
+      if (poller) clearInterval(poller)
     }
-  }, [stageSlug])
+  }, [stageSlug, sessionKey])
 
   const peersWithActor = useMemo(() => {
     if (!actorId) return peers
-    const uniq = new Map<string, PresencePeer>()
+    const uniq = new Map<string, PresencePeerPayload>()
     for (const peer of peers) {
       uniq.set(peer.actorId, peer)
     }

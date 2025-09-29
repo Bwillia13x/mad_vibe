@@ -2,8 +2,8 @@ import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useScenarioLab } from './useScenarioLab'
 import { useMonitoring } from './useMonitoring'
 import { useWorkflow } from './useWorkflow'
-import type { ResearchLogInput } from '@/lib/workflow-api'
-import type { ExecutionPlannerStatePayload, ExecutionPlannerStateInput, Row } from '@shared/types'
+import { useValuation } from './useValuation'
+import type { Row } from '@shared/types'
 
 const STORAGE_KEY = 'valor-execution-planner-state'
 
@@ -57,33 +57,16 @@ export function useExecutionPlanner() {
   const { simulation } = useScenarioLab()
   const { alerts } = useMonitoring()
   const { activeStage, logEvent } = useWorkflow()
+  const { currentScenario } = useValuation()
 
-  // Load from API on mount
+  // Load from local storage on mount
   useEffect(() => {
-    const loadFromApi = async () => {
-      try {
-        setLoading(true)
-        const loaded = await fetchExecutionPlannerState()
-        if (loaded) {
-          setState({
-            ...defaultState,
-            ...loaded,
-            rows: loaded.rows || defaultState.rows // Ensure rows is array
-          })
-          setVersion(loaded.version)
-        } else {
-          // Fallback to local
-          setState(loadLocalState())
-        }
-      } catch (err) {
-        console.warn('Failed to load execution planner state from API', err)
-        setState(loadLocalState())
-      } finally {
-        setLoading(false)
-      }
+    setLoading(true)
+    try {
+      setState(loadLocalState())
+    } finally {
+      setLoading(false)
     }
-
-    loadFromApi()
   }, [])
 
   // Save to local on state change
@@ -92,30 +75,21 @@ export function useExecutionPlanner() {
   }, [state])
 
   // Derive rows if empty (dynamic from valuation/scenario)
-  const derivedRows = useMemo(() => {
+  const derivedRows = useMemo((): Row[] => {
     if (state.rows.length > 0) return state.rows
 
-    const { currentScenario } = useValuation() // Assume useValuation available or pass as prop if needed
-    const mosThreshold = currentScenario?.mos || 15
+    const mosThreshold = (currentScenario?.impliedMoS ?? 15)
     const baseTgtW = mosThreshold > 20 ? 5 : mosThreshold > 10 ? 3 : 2
-    const ticker = currentScenario?.ticker || 'DEMO'
-    const px = currentScenario?.value || 41.2
-    const adv = simulation?.adv || 6.0
-
-    if (ticker !== 'DEMO') {
-      return [
-        { t: ticker, side: 'Buy' as const, px, adv, curW: 0, tgtW: baseTgtW },
-        { t: `${ticker}-bear`, side: 'Buy' as const, px: px * 0.9, adv: adv * 0.8, curW: 0, tgtW: baseTgtW * 0.5 },
-        { t: `${ticker}-bull`, side: 'Buy' as const, px: px * 1.1, adv: adv * 1.2, curW: 0, tgtW: baseTgtW * 1.5 }
-      ]
-    }
+    const ticker = 'DEMO'
+    const px = currentScenario?.value ?? 41.2
+    const adv = 6.0
 
     return [
-      { t: 'TKR', side: 'Buy' as const, px: 41.2, adv: 6.0, curW: 3.0, tgtW: baseTgtW },
-      { t: 'ACME', side: 'Buy' as const, px: 21.4, adv: 4.2, curW: 2.0, tgtW: baseTgtW * 0.8 },
-      { t: 'NTR', side: 'Sell' as const, px: 12.9, adv: 1.3, curW: 1.5, tgtW: baseTgtW * 0.3 }
+      { t: ticker, side: 'Buy', px, adv, curW: 0, tgtW: baseTgtW },
+      { t: `${ticker}-bear`, side: 'Buy', px: px * 0.9, adv: adv * 0.8, curW: 0, tgtW: baseTgtW * 0.5 },
+      { t: `${ticker}-bull`, side: 'Buy', px: px * 1.1, adv: adv * 1.2, curW: 0, tgtW: baseTgtW * 1.5 }
     ]
-  }, [state.rows.length, simulation, currentScenario]) // currentScenario from useValuation
+  }, [state.rows, currentScenario])
 
   const updateState = useCallback((updates: Partial<ExecutionPlannerState>) => {
     setState(prev => ({ ...prev, ...updates }))
@@ -151,33 +125,19 @@ export function useExecutionPlanner() {
 
   const persist = useCallback(async () => {
     try {
-      const payload: ExecutionPlannerStateInput = {
-        ...state,
-        rows: derivedRows,
-        version
-      }
-      const result = await persistExecutionPlannerState(payload)
-      setVersion(result.version)
+      const next = { ...state, rows: derivedRows }
+      saveLocalState(next)
+      setVersion(v => v + 1)
+      const vstr = (version + 1).toString()
       logEvent({
         stageSlug: activeStage.slug,
         stageTitle: activeStage.title,
         action: 'State persisted',
-        details: `v${result.version}`
+        details: `v${vstr}`
       }).catch(console.warn)
-    } catch (err: any) {
-      if (err.status === 409) {
-        // Conflict: reload and merge
-        const loaded = await fetchExecutionPlannerState()
-        if (loaded) {
-          setState(prev => ({ ...prev, ...loaded, version: loaded.version }))
-          setVersion(loaded.version)
-          setError('State conflict resolved by reload')
-          setTimeout(() => setError(null), 3000)
-        }
-      } else {
-        setError('Failed to persist state')
-        console.error(err)
-      }
+    } catch (err) {
+      setError('Failed to persist state')
+      console.error(err)
     }
   }, [state, derivedRows, version, activeStage, logEvent])
 
@@ -220,7 +180,7 @@ export function useExecutionPlanner() {
       const limitPx = state.algo === 'Limit ladder' ? (side === 'Buy' ? r.px * (1 + state.limitBps / 10000) : r.px * (1 - state.limitBps / 10000)) : null
       return { ...r, side, deltaW, notional, shares, days, participation, bps, cost, limitPx }
     })
-  }, [derivedRows, state.portfolioNotional, state.maxPart, state.algo, state.limitBps, state.tif, state.daysHorizon, riskCap, slipBps])
+  }, [derivedRows, state.portfolioNotional, state.maxPart, state.algo, state.limitBps, state.daysHorizon, riskCap, slipBps])
 
   const totals = useMemo(() => ({
     buy: plan.filter(p => p.side === 'Buy').reduce((s, x) => s + x.notional, 0),
@@ -235,14 +195,18 @@ export function useExecutionPlanner() {
   const gateReady = planConstraintsMet && noAlerts // Add checklist if needed
 
   const setTgt = useCallback((t: string, v: number) => {
-    setRows(prev => prev.map(x => x.t === t ? { ...x, tgtW: v } : x))
+    const sourceRows = state.rows.length > 0 ? state.rows : derivedRows
+    if (sourceRows.length === 0) return
+
+    const updated = sourceRows.map((x: Row) => (x.t === t ? ({ ...x, tgtW: v } as Row) : x))
+    setRows(updated)
     logEvent({
       stageSlug: activeStage.slug,
       stageTitle: activeStage.title,
       action: 'Target updated',
       details: `${t}:${v}%`
     }).catch(console.warn)
-  }, [setRows, logEvent, activeStage])
+  }, [state.rows, derivedRows, setRows, logEvent, activeStage])
 
   return {
     state,

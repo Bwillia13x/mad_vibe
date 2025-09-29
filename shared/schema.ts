@@ -125,3 +125,14 @@ export const redTeamStateEvents = pgTable('red_team_state_events', {
   state: jsonb('state').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow()
 })
+
+export const researchLogEntries = pgTable('research_log_entries', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  stageSlug: text('stage_slug').notNull(),
+  stageTitle: text('stage_title').notNull(),
+  action: text('action').notNull(),
+  details: text('details'),
+  timestamp: timestamp('timestamp').notNull()
+})

@@ -42,6 +42,12 @@
       "rules": {
         "react/prop-types": "off"
       }
+    },
+    {
+      "files": ["scripts/**/*.ts", "scripts/**/*.tsx", "server/**/*.ts", "server/**/*.tsx"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "warn"
+      }
     }
   ],
   "ignorePatterns": [

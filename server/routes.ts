@@ -2,7 +2,7 @@ import type { Express } from 'express'
 import { createServer, type Server } from 'http'
 import { storage } from './storage'
 import chatRouter from './routes/chat'
-import createWorkflowRouter from './routes/workflow'
+import { createWorkflowRouter } from './routes/workflow'
 import { getNow, setFreeze, getFreeze } from './lib/clock'
 import { rateLimitedAuth, type AuthenticatedRequest } from './middleware/auth'
 import { securityHeaders } from './middleware/security-headers'
@@ -19,6 +19,38 @@ import {
   getCircuitBreakerStatus
 } from './middleware/error-handling'
 import { getEnvVar } from '../lib/env-security'
+
+type ServiceRecord = Awaited<ReturnType<typeof storage.getAllServices>>[number]
+type AppointmentRecord = Awaited<ReturnType<typeof storage.getAllAppointments>>[number]
+type InventoryRecord = Awaited<ReturnType<typeof storage.getAllInventoryItems>>[number]
+type BusinessProfileRecord = NonNullable<Awaited<ReturnType<typeof storage.getBusinessProfile>>>
+type AnalyticsRecord = Awaited<ReturnType<typeof storage.getAllAnalytics>>[number]
+
+interface SaleItemInput {
+  kind: 'service' | 'product'
+  id?: string
+  name?: string
+  quantity?: number
+}
+
+interface NormalizedSaleItem {
+  kind: 'service' | 'product'
+  id: string
+  quantity: number
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const toNumber = (value: unknown): number => {
+  if (typeof value === 'number') return value
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+  if (typeof value === 'bigint') return Number(value)
+  return 0
+}
 
 // Extend Express Request to include session
 declare module 'express-session' {
@@ -162,10 +194,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lbIsHealthy &&
         sessionMetrics.healthy
 
-      const freeze = getFreeze()
-      if (freeze && freeze.date == null) {
-        freeze.date = '' as any
-      }
+      const freezeStatus = getFreeze()
+      const freeze = { ...freezeStatus, date: freezeStatus.date ?? '' }
       res.json({
         status: isHealthy ? 'ok' : 'degraded',
         env: app.get('env'),
@@ -330,65 +360,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
   })
 
   // Helper mappers to align API schema with tests
-  function mapAppointment(a: any) {
-    if (!a) return a
-    return { ...a, startTime: a.scheduledStart, endTime: a.scheduledEnd }
-  }
-  function mapService(s: any) {
-    if (!s) return s
-    const priceNum = typeof s.price === 'string' ? parseFloat(s.price) : s.price
-    return { ...s, price: priceNum }
-  }
-  function mapInventoryItem(i: any) {
-    if (!i) return i
-    const quantity = i.quantity ?? i.currentStock ?? 0
-    const min = i.minStock ?? 0
-    let status = 'in-stock'
+  const mapAppointment = (appointment: AppointmentRecord) => ({
+    ...appointment,
+    startTime: appointment.scheduledStart,
+    endTime: appointment.scheduledEnd
+  })
+
+  const mapService = (service: ServiceRecord) => ({
+    ...service,
+    price: toNumber(service.price)
+  })
+
+  const mapInventoryItem = (item: InventoryRecord) => {
+    const quantity =
+      typeof item.quantity === 'number'
+        ? item.quantity
+        : typeof item.currentStock === 'number'
+          ? item.currentStock
+          : 0
+    const minStock = typeof item.minStock === 'number' ? item.minStock : 0
+
+    let status: 'in-stock' | 'low-stock' | 'out-of-stock' = 'in-stock'
     if (quantity === 0) status = 'out-of-stock'
-    else if (quantity <= min) status = 'low-stock'
-    return { ...i, quantity, status }
+    else if (quantity <= minStock) status = 'low-stock'
+
+    return { ...item, quantity, status }
   }
-  function mapProfile(p: any) {
-    if (!p) return p
-    const hours =
-      p.hours && typeof p.hours === 'object'
-        ? Object.fromEntries(
-            Object.entries(p.hours).map(([day, val]: any) => {
-              if (typeof val === 'string') return [day, val]
-              const open = val?.open ?? val?.start ?? ''
-              const close = val?.close ?? val?.end ?? ''
-              return [day, `${open}-${close}`]
-            })
-          )
-        : p.hours
-    return { ...p, hours }
+
+  const mapProfile = (profile: BusinessProfileRecord) => {
+    const hoursValue = profile.hours
+    let hours = hoursValue
+    if (isRecord(hoursValue)) {
+      const normalized = Object.entries(hoursValue).map(([day, rawValue]) => {
+        if (typeof rawValue === 'string') return [day, rawValue]
+        if (isRecord(rawValue)) {
+          const open =
+            typeof rawValue.open === 'string'
+              ? rawValue.open
+              : typeof rawValue.start === 'string'
+                ? rawValue.start
+                : ''
+          const close =
+            typeof rawValue.close === 'string'
+              ? rawValue.close
+              : typeof rawValue.end === 'string'
+                ? rawValue.end
+                : ''
+          return [day, `${open}-${close}`]
+        }
+        return [day, '']
+      })
+      hours = Object.fromEntries(normalized)
+    }
+    return { ...profile, hours }
   }
-  function toNum(x: any) {
-    return typeof x === 'string' ? parseFloat(x) : x
-  }
-  function mapAnalytics(a: any) {
-    if (!a) return a
-    const topServices = Array.isArray(a.topServices)
-      ? a.topServices.map((t: any) => ({
-          ...t,
-          revenue: toNum(t.revenue)
-        }))
-      : a.topServices
-    const staffPerformance = Array.isArray(a.staffPerformance)
-      ? a.staffPerformance.map((s: any) => ({
-          ...s,
-          revenue: toNum(s.revenue),
-          rating: toNum(s.rating)
-        }))
-      : a.staffPerformance
+
+  const mapAnalytics = (analytics: AnalyticsRecord) => {
+    const topServices = Array.isArray(analytics.topServices)
+      ? analytics.topServices.map((entry) => {
+          if (!isRecord(entry)) return entry
+          return { ...entry, revenue: toNumber(entry.revenue) }
+        })
+      : analytics.topServices
+
+    const staffPerformance = Array.isArray(analytics.staffPerformance)
+      ? analytics.staffPerformance.map((entry) => {
+          if (!isRecord(entry)) return entry
+          return {
+            ...entry,
+            revenue: toNumber(entry.revenue),
+            rating: toNumber(entry.rating)
+          }
+        })
+      : analytics.staffPerformance
+
     return {
-      ...a,
-      totalRevenue: toNum(a.totalRevenue),
-      averageRating: toNum(a.averageRating),
-      utilizationRate: toNum(a.utilizationRate),
-      customerSatisfaction: toNum(a.customerSatisfaction),
-      noShowRate: toNum(a.noShowRate),
-      repeatCustomerRate: toNum(a.repeatCustomerRate),
+      ...analytics,
+      totalRevenue: toNumber(analytics.totalRevenue),
+      averageRating: toNumber(analytics.averageRating),
+      utilizationRate: toNumber(analytics.utilizationRate),
+      customerSatisfaction: toNumber(analytics.customerSatisfaction),
+      noShowRate: toNumber(analytics.noShowRate),
+      repeatCustomerRate: toNumber(analytics.repeatCustomerRate),
       topServices,
       staffPerformance
     }
@@ -482,10 +535,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       setFreeze(null)
       await storage.seedDemoData('default', undefined)
-      const freeze = getFreeze()
-      if (freeze && freeze.date == null) {
-        freeze.date = '' as any
-      }
+      const freezeStatus = getFreeze()
+      const freeze = { ...freezeStatus, date: freezeStatus.date ?? '' }
       res.json({
         ok: true,
         scenario: storage.getCurrentScenario?.(),
@@ -587,37 +638,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     rateLimitedAuth,
     async (req: AuthenticatedRequest, res) => {
       try {
-        let items = Array.isArray(req.body?.items) ? req.body.items : []
-        if (!items.length) return res.status(400).json({ message: 'No items provided' })
+        const rawItems = Array.isArray(req.body?.items)
+          ? (req.body.items as SaleItemInput[])
+          : []
+        if (!rawItems.length) return res.status(400).json({ message: 'No items provided' })
 
         // Map incoming items that may specify name instead of id (test convenience)
-        const mapped: any[] = []
-        for (const it of items) {
-          if (!it) continue
-          if (it.kind === 'service' && !it.id && it.name) {
+        const mapped: NormalizedSaleItem[] = []
+        for (const item of rawItems) {
+          if (!item || (item.kind !== 'service' && item.kind !== 'product')) continue
+
+          if (item.kind === 'service' && !item.id && item.name) {
             const services = await storage.getAllServices()
-            const found = services.find((s) => s.name === it.name)
-            if (found) mapped.push({ kind: 'service', id: found.id, quantity: it.quantity || 1 })
+            const found = services.find((service) => service.name === item.name)
+            if (found) {
+              mapped.push({ kind: 'service', id: found.id, quantity: item.quantity || 1 })
+            }
             else return res.status(400).json({ message: 'Service not found' })
-          } else if (it.kind === 'product' && !it.id && it.name) {
+          } else if (item.kind === 'product' && !item.id && item.name) {
             const inv = await storage.getAllInventoryItems()
-            const found = inv.find((p) => p.name === it.name)
-            if (found) mapped.push({ kind: 'product', id: found.id, quantity: it.quantity || 1 })
+            const found = inv.find((product) => product.name === item.name)
+            if (found) {
+              mapped.push({ kind: 'product', id: found.id, quantity: item.quantity || 1 })
+            }
             else return res.status(400).json({ message: 'Product not found' })
           } else {
-            mapped.push({ kind: it.kind, id: it.id, quantity: it.quantity || 1 })
+            if (!item.id) return res.status(400).json({ message: 'Item ID is required' })
+            mapped.push({ kind: item.kind, id: item.id, quantity: item.quantity || 1 })
           }
         }
-        items = mapped
 
         const discountPct =
           typeof req.body?.discountPct === 'number' ? req.body.discountPct : undefined
         const taxPct = typeof req.body?.taxPct === 'number' ? req.body.taxPct : undefined
-        const sale = await storage.createSale({ items, discountPct, taxPct })
+        const sale = await storage.createSale({ items: mapped, discountPct, taxPct })
         res.json(sale)
-      } catch (error: any) {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to create sale'
         console.error('Error creating sale:', error)
-        res.status(400).json({ message: error?.message || 'Failed to create sale' })
+        res.status(400).json({ message })
       }
     }
   )
@@ -780,9 +839,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: 'customerId and type are required' })
         const entry = await storage.createLoyaltyEntry({ customerId, type, points, note })
         res.json(entry)
-      } catch (error: any) {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to create loyalty entry'
         console.error('Error creating loyalty entry:', error)
-        res.status(400).json({ message: error?.message || 'Failed to create loyalty entry' })
+        res.status(400).json({ message })
       }
     }
   )

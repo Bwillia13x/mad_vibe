@@ -12,23 +12,141 @@
  * - Security compliance reporting
  */
 
-import { startTestServer, TestHttpClient, TestDataManager } from '../test/utils/test-environment'
+import {
+  startTestServer,
+  TestHttpClient,
+  TestDataManager,
+  type TestEnvironment
+} from '../test/utils/test-environment'
 import { TestReporter } from '../test/reporting/test-reporter'
-import { SecurityTestSuite } from '../test/security/security-test-suite'
+import { SecurityTestSuite, type SecurityTestSuiteResult } from '../test/security/security-test-suite'
 import { loadTestConfig } from '../test/config/test-config'
 import {
   testSecurityHeaders,
-  testStrictSecurityHeaders
+  testStrictSecurityHeaders,
+  type SecurityHeaderTestResult
 } from '../test/security/security-headers-validation'
 import fs from 'fs'
 import path from 'path'
+
+interface DirectoryTraversalDetails {
+  attempts: string[]
+  responses: Array<{ payload: string; status: number; hasSystemContent: boolean }>
+}
+
+interface MethodResultDetail {
+  method: string
+  status: number | 'error'
+  allowed?: boolean
+  error?: string
+}
+
+interface HttpMethodTamperingDetails {
+  methodResults: MethodResultDetail[]
+}
+
+interface HeaderInjectionRecord {
+  injectedHeader: string
+  injectedValue?: string
+  responseStatus?: number
+  hasInjectedHeader?: boolean
+  responseHeaders?: string[]
+  error?: string
+}
+
+interface HeaderInjectionDetails {
+  headerTests: HeaderInjectionRecord[]
+}
+
+interface BypassAttemptRecord {
+  endpoint: string
+  description: string
+  headers?: Record<string, string>
+  status?: number
+  bypassSuccessful?: boolean
+  error?: string
+}
+
+interface AuthenticationBypassDetails {
+  bypassAttempts: BypassAttemptRecord[]
+}
+
+interface SessionTestRecord {
+  test?: string
+  hasCookie?: boolean
+  cookieDetails?: string | null
+  isSecure?: boolean
+  isHttpOnly?: boolean
+  hasSameSite?: boolean
+  status?: number
+  sentFixedSession?: string
+  receivedNewSession?: boolean | null
+  sessionRegenerated?: boolean | null
+  sessionIdInUrl?: string
+  sessionAcceptedFromUrl?: boolean
+  error?: string
+}
+
+interface SessionFixationDetails {
+  sessionTests: SessionTestRecord[]
+}
+
+interface CsrfTestRecord {
+  endpoint?: string
+  test?: string
+  status?: number
+  hasProtection?: boolean
+  error?: string
+}
+
+interface CsrfTestDetails {
+  csrfTests: CsrfTestRecord[]
+}
+
+interface DisclosureTestRecord {
+  path: string
+  status?: number
+  accessible?: boolean
+  hasSecretInfo?: boolean
+  contentLength?: number
+  error?: string
+}
+
+interface InformationDisclosureDetails {
+  disclosureTests: DisclosureTestRecord[]
+}
+
+interface RateLimitTestRecord {
+  test?: string
+  requestCount?: number
+  statusCodes?: number[]
+  rateLimited?: boolean
+  allSuccessful?: boolean
+  status?: number
+  bypassSuccessful?: boolean
+  error?: string
+}
+
+interface RateLimitDetails {
+  rateLimitTests: RateLimitTestRecord[]
+}
+
+type PenetrationDetails =
+  | DirectoryTraversalDetails
+  | HttpMethodTamperingDetails
+  | HeaderInjectionDetails
+  | AuthenticationBypassDetails
+  | SessionFixationDetails
+  | CsrfTestDetails
+  | InformationDisclosureDetails
+  | RateLimitDetails
 
 interface PenetrationTestResult {
   testName: string
   status: 'pass' | 'fail' | 'warning'
   severity: 'critical' | 'high' | 'medium' | 'low' | 'info'
   description: string
-  details: any
+  details: PenetrationDetails
   recommendations: string[]
 }
 
@@ -41,9 +159,9 @@ interface SecurityValidationResult {
   lowIssues: number
   securityScore: number
   testResults: {
-    securityTestSuite: any
-    securityHeaders: any
-    strictSecurityHeaders: any
+    securityTestSuite: SecurityTestSuiteResult
+    securityHeaders: SecurityHeaderTestResult[]
+    strictSecurityHeaders: SecurityHeaderTestResult[]
     penetrationTests: PenetrationTestResult[]
   }
   recommendations: string[]
@@ -107,7 +225,7 @@ class PenetrationTester {
     ]
 
     let vulnerabilityFound = false
-    const details: any = { attempts: [], responses: [] }
+    const details: DirectoryTraversalDetails = { attempts: [], responses: [] }
 
     for (const payload of payloads) {
       try {
@@ -143,7 +261,7 @@ class PenetrationTester {
 
   private async testHttpMethodTampering(): Promise<PenetrationTestResult> {
     const methods = ['PUT', 'DELETE', 'PATCH', 'TRACE', 'OPTIONS', 'CONNECT']
-    const details: any = { methodResults: [] }
+    const details: HttpMethodTamperingDetails = { methodResults: [] }
     let vulnerabilityFound = false
 
     for (const method of methods) {
@@ -189,7 +307,7 @@ class PenetrationTester {
       Referer: 'http://example.com\r\nSet-Cookie: injected=true'
     }
 
-    const details: any = { headerTests: [] }
+    const details: HeaderInjectionDetails = { headerTests: [] }
     let vulnerabilityFound = false
 
     for (const [headerName, headerValue] of Object.entries(maliciousHeaders)) {
@@ -256,7 +374,7 @@ class PenetrationTester {
       { headers: { Authorization: '' }, description: 'Empty authorization' }
     ]
 
-    const details: any = { bypassAttempts: [] }
+    const details: AuthenticationBypassDetails = { bypassAttempts: [] }
     let vulnerabilityFound = false
 
     for (const endpoint of protectedEndpoints) {
@@ -308,7 +426,7 @@ class PenetrationTester {
   }
 
   private async testSessionFixation(): Promise<PenetrationTestResult> {
-    const details: any = { sessionTests: [] }
+    const details: SessionFixationDetails = { sessionTests: [] }
     let vulnerabilityFound = false
 
     try {
@@ -384,7 +502,7 @@ class PenetrationTester {
   }
 
   private async testCSRFProtection(): Promise<PenetrationTestResult> {
-    const details: any = { csrfTests: [] }
+    const details: CsrfTestDetails = { csrfTests: [] }
     let vulnerabilityFound = false
 
     // Test state-changing endpoints that should have CSRF protection
@@ -466,7 +584,7 @@ class PenetrationTester {
       '/config.json'
     ]
 
-    const details: any = { disclosureTests: [] }
+    const details: InformationDisclosureDetails = { disclosureTests: [] }
     let vulnerabilityFound = false
 
     for (const path of testPaths) {
@@ -515,7 +633,7 @@ class PenetrationTester {
   }
 
   private async testRateLimitingBypass(): Promise<PenetrationTestResult> {
-    const details: any = { rateLimitTests: [] }
+    const details: RateLimitDetails = { rateLimitTests: [] }
     let vulnerabilityFound = false
 
     try {
@@ -577,7 +695,7 @@ async function runComprehensiveSecurityValidation(): Promise<SecurityValidationR
   const config = loadTestConfig()
   const reporter = new TestReporter(config)
 
-  let testEnv: any = null
+  let testEnv: TestEnvironment | null = null
   let result: SecurityValidationResult
 
   try {
@@ -733,7 +851,7 @@ This comprehensive security validation includes:
 ### Authentication & Session Security
 ${result.testResults.securityTestSuite.authenticationResults
   .map(
-    (r: any) =>
+    (r) =>
       `- ${r.status === 'pass' ? '✅' : r.status === 'fail' ? '❌' : '⏭️'} ${r.testName} (${r.duration}ms)`
   )
   .join('\n')}
@@ -741,7 +859,7 @@ ${result.testResults.securityTestSuite.authenticationResults
 ### Input Validation & Injection Prevention
 ${result.testResults.securityTestSuite.inputValidationResults
   .map(
-    (r: any) =>
+    (r) =>
       `- ${r.status === 'pass' ? '✅' : r.status === 'fail' ? '❌' : '⏭️'} ${r.testName} (${r.duration}ms)`
   )
   .join('\n')}
@@ -749,7 +867,7 @@ ${result.testResults.securityTestSuite.inputValidationResults
 ### API Security Validation
 ${result.testResults.securityTestSuite.apiSecurityResults
   .map(
-    (r: any) =>
+    (r) =>
       `- ${r.status === 'pass' ? '✅' : r.status === 'fail' ? '❌' : '⏭️'} ${r.testName} (${r.duration}ms)`
   )
   .join('\n')}
@@ -757,7 +875,7 @@ ${result.testResults.securityTestSuite.apiSecurityResults
 ### Environment Variable Security
 ${result.testResults.securityTestSuite.environmentSecurityResults
   .map(
-    (r: any) =>
+    (r) =>
       `- ${r.status === 'pass' ? '✅' : r.status === 'fail' ? '❌' : '⏭️'} ${r.testName} (${r.duration}ms)`
   )
   .join('\n')}
@@ -766,12 +884,12 @@ ${result.testResults.securityTestSuite.environmentSecurityResults
 
 ### Standard Security Headers
 ${result.testResults.securityHeaders
-  .map((r: any) => `- ${r.passed ? '✅' : '❌'} ${r.name}`)
+  .map((r) => `- ${r.passed ? '✅' : '❌'} ${r.name}`)
   .join('\n')}
 
 ### Strict Security Headers
 ${result.testResults.strictSecurityHeaders
-  .map((r: any) => `- ${r.passed ? '✅' : '❌'} ${r.name}`)
+  .map((r) => `- ${r.passed ? '✅' : '❌'} ${r.name}`)
   .join('\n')}
 
 ## Penetration Test Results

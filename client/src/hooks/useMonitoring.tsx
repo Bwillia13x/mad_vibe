@@ -7,6 +7,7 @@ import {
   type MonitoringAlert
 } from '@/lib/workflow-data'
 import { fetchMonitoringState, persistMonitoringState } from '@/lib/workflow-api'
+import { useSessionKey } from './useSessionKey'
 import type { MonitoringStateInput } from '@shared/types'
 
 const MONITORING_STATUSES: MonitoringThesisDelta['status'][] = ['on-track', 'warning', 'breach']
@@ -54,6 +55,7 @@ export function MonitoringProvider({ children }: { children: React.ReactNode }) 
   const [isSyncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState<string | null>(null)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
+  const sessionKey = useSessionKey()
 
   const applyRemoteState = useCallback(
     (remote: Awaited<ReturnType<typeof fetchMonitoringState>>) => {
@@ -87,8 +89,9 @@ export function MonitoringProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      if (!sessionKey) return
       try {
-        const remote = await fetchMonitoringState()
+        const remote = await fetchMonitoringState(sessionKey)
         if (cancelled) return
         applyRemoteState(remote)
         setSyncError(null)
@@ -104,10 +107,10 @@ export function MonitoringProvider({ children }: { children: React.ReactNode }) 
     return () => {
       cancelled = true
     }
-  }, [applyRemoteState])
+  }, [applyRemoteState, sessionKey])
 
   useEffect(() => {
-    if (!hydrated) return
+    if (!hydrated || !sessionKey) return
 
     let cancelled = false
     const timeout = setTimeout(() => {
@@ -125,7 +128,7 @@ export function MonitoringProvider({ children }: { children: React.ReactNode }) 
             deltaOverrides: deltaOverridesPayload,
             version
           }
-          const saved = await persistMonitoringState(payload)
+          const saved = await persistMonitoringState(sessionKey, payload)
           if (!cancelled) {
             setVersion(saved.version ?? version)
             setLastSavedAt(saved.updatedAt ?? new Date().toISOString())
@@ -133,10 +136,11 @@ export function MonitoringProvider({ children }: { children: React.ReactNode }) 
           }
         } catch (error) {
           if (!cancelled) {
-            const status = (error as any)?.status as number | undefined
+            const maybe = error as Record<string, unknown>
+            const status = typeof maybe?.status === 'number' ? (maybe.status as number) : undefined
             if (status === 409) {
               try {
-                const remote = await fetchMonitoringState()
+                const remote = await fetchMonitoringState(sessionKey)
                 if (!cancelled) {
                   applyRemoteState(remote)
                   setSyncError('Monitoring state refreshed due to concurrent edits.')
@@ -161,7 +165,7 @@ export function MonitoringProvider({ children }: { children: React.ReactNode }) 
       cancelled = true
       clearTimeout(timeout)
     }
-  }, [state, version, hydrated, applyRemoteState])
+  }, [state, version, hydrated, applyRemoteState, sessionKey])
 
   const acknowledgeAlert = useCallback((id: string) => {
     setState((prev) => ({

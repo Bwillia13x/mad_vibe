@@ -33,18 +33,6 @@ const ScenarioLabContext = createContext<ScenarioLabContextValue | undefined>(un
 const loadState = async (): Promise<ScenarioState> => {
   if (typeof window === 'undefined') return defaultState
   try {
-    const loaded = await fetchScenarioLabState()
-    if (loaded) {
-      return {
-        driverValues: { ...defaultState.driverValues, ...loaded.driverValues },
-        iterations: loaded.iterations ?? defaultState.iterations
-      }
-    }
-  } catch (err) {
-    console.warn('Failed to load scenario lab state from API', err)
-  }
-  // Fallback to local
-  try {
     const raw = window.localStorage.getItem(SCENARIO_STORAGE_KEY)
     if (!raw) return defaultState
     const parsed = JSON.parse(raw) as ScenarioState
@@ -75,7 +63,6 @@ function simulateValue(state: ScenarioState): number[] {
 
 export function ScenarioLabProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<ScenarioState>(defaultState)
-  const [version, setVersion] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -87,32 +74,17 @@ export function ScenarioLabProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (loading) return
-    const timer = setTimeout(async () => {
+    const timer = setTimeout(() => {
       try {
-        const payload: ScenarioLabStateInput = {
-          ...state,
-          version
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(SCENARIO_STORAGE_KEY, JSON.stringify(state))
         }
-        const result = await persistScenarioLabState(payload)
-        setVersion(result.version)
-      } catch (err: any) {
-        if (err.status === 409) {
-          // Conflict: reload
-          const loaded = await fetchScenarioLabState()
-          if (loaded) {
-            setState({
-              driverValues: { ...defaultState.driverValues, ...loaded.driverValues },
-              iterations: loaded.iterations ?? defaultState.iterations
-            })
-            setVersion(loaded.version)
-          }
-        } else {
-          console.error('Failed to persist scenario lab state', err)
-        }
+      } catch (err) {
+        console.warn('Failed to persist scenario lab state locally', err)
       }
     }, 1000)
     return () => clearTimeout(timer)
-  }, [state, version, loading])
+  }, [state, loading])
 
   const applyPreset = useCallback((id: string) => {
     const preset = scenarioPresets.find((entry) => entry.id === id)

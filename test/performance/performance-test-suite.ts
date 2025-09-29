@@ -50,6 +50,7 @@ export interface PerformanceTestSuiteConfig {
 export class PerformanceTestSuite {
   private httpClient: TestHttpClient
   private testEnvironment: TestEnvironment | null = null
+  private adminToken: string = ''
 
   constructor(
     private config: TestConfig,
@@ -71,10 +72,20 @@ export class PerformanceTestSuite {
       this.testEnvironment = await startTestServer(this.config)
       this.httpClient = new TestHttpClient(this.testEnvironment.baseUrl)
 
+      this.adminToken =
+        this.config.server.env.ADMIN_TOKEN ||
+        process.env.ADMIN_TOKEN ||
+        'test-admin-token-12345-secure'
+      this.httpClient.setAuthToken(this.adminToken)
+      process.env.ADMIN_TOKEN = this.adminToken
+
       console.log(`✅ Test server started on ${this.testEnvironment.baseUrl}`)
 
       // Verify server is ready
       await this.verifyServerReady()
+
+      // Seed default demo data so load tests operate on realistic records
+      await this.httpClient.postJson('/api/demo/reset')
 
       // Execute load tests
       if (this.suiteConfig.loadTest.enabled) {
@@ -261,7 +272,10 @@ export class PerformanceTestSuite {
     responseTimeConfig.streamingTest.enabled = this.suiteConfig.responseTimeTest.includeStreaming
 
     // Create and execute response time tester
-    const responseTester = new ResponseTimeTester(this.testEnvironment!.baseUrl)
+    const responseTester = new ResponseTimeTester(
+      this.testEnvironment!.baseUrl,
+      this.adminToken
+    )
     const results = await responseTester.executeTests(responseTimeConfig)
 
     return results

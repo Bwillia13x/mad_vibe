@@ -1,9 +1,20 @@
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { UserWorkflowTests } from '../test/e2e/user-workflow-tests'
+import { UserWorkflowTests, type WorkflowTestResult } from '../test/e2e/user-workflow-tests'
 import { type TestEnvironment } from '../test/utils/test-environment'
 import { TestReporter } from '../test/reporting/test-reporter'
+import { type TestConfig } from '../test/config/test-config'
+import {
+  type AccessibilityTestResult,
+  type BrowserTestResult,
+  type GenericTestResult,
+  type ResponsiveTestResult,
+  type UsabilityTestResult,
+  type ComplianceViolation
+} from '../shared/test-results'
+
+type ExtendedWorkflowResult = WorkflowTestResult & { violations?: ComplianceViolation[] }
 
 async function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms))
@@ -23,11 +34,11 @@ async function waitForPortFile(portFile: string, timeoutMs = 20000): Promise<num
 }
 
 interface ComprehensiveTestResults {
-  workflow: any[]
-  accessibility: any[]
-  usability: any[]
-  browserCompatibility: any[]
-  responsiveDesign: any[]
+  workflow: ExtendedWorkflowResult[]
+  accessibility: AccessibilityTestResult[]
+  usability: UsabilityTestResult[]
+  browserCompatibility: BrowserTestResult[]
+  responsiveDesign: ResponsiveTestResult[]
   summary: {
     totalTests: number
     passed: number
@@ -97,8 +108,8 @@ async function runComprehensiveE2ETests(): Promise<void> {
       }
     }
 
-    const reporter = new TestReporter({
-      environment: 'production',
+    const reporterConfig: TestConfig = {
+      environment: 'local',
       testSuites: [],
       thresholds: {
         maxResponseTime: 200,
@@ -119,7 +130,9 @@ async function runComprehensiveE2ETests(): Promise<void> {
         includeMetrics: true
       },
       server: { startupTimeoutMs: 20000, portFile, env: {} }
-    } as any)
+    }
+
+    const reporter = new TestReporter(reporterConfig)
 
     const results: ComprehensiveTestResults = {
       workflow: [],
@@ -160,7 +173,7 @@ async function runComprehensiveE2ETests(): Promise<void> {
     console.log('\n🌐 Browser compatibility/responsive tests disabled for this run')
 
     // Calculate overall summary
-    const allResults = [
+    const allResults: Array<ExtendedWorkflowResult | GenericTestResult> = [
       ...results.workflow,
       ...results.accessibility,
       ...results.usability,
@@ -305,9 +318,11 @@ async function runComprehensiveE2ETests(): Promise<void> {
     )
 
     // Show critical issues
+    const hasCriticalViolation = (violations?: ComplianceViolation[]) =>
+      violations?.some((violation) => violation.impact === 'critical') ?? false
+
     const criticalIssues = allResults.filter(
-      (r) =>
-        r.status === 'fail' && (r.error || r.violations?.some((v: any) => v.impact === 'critical'))
+      (r) => r.status === 'fail' && (r.error || hasCriticalViolation(r.violations))
     )
     if (criticalIssues.length > 0) {
       console.log('\n⚠️  Critical Issues Found:')

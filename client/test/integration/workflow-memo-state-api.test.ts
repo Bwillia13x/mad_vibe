@@ -5,6 +5,7 @@ import type { MemoComposerStateInput } from '@shared/types'
 
 process.env.DATABASE_URL =
   process.env.DATABASE_URL || 'postgres://valor_user:valorpass@localhost:5432/valor_vibe'
+process.env.ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'test-admin-token'
 
 vi.mock(new URL('../../../lib/db/index.ts', import.meta.url).pathname, () => ({
   db: {}
@@ -18,6 +19,10 @@ const workflowModule = await import(
   new URL('../../../server/routes/workflow.ts', import.meta.url).pathname
 )
 const { createWorkflowRouter } = workflowModule
+
+const ADMIN_HEADERS = {
+  Authorization: 'Bearer test-admin-token'
+}
 
 type SelectChain = {
   from: ReturnType<typeof vi.fn>
@@ -54,8 +59,9 @@ const performRequest = async (
         const response = await fetch(`http://127.0.0.1:${port}${path}`, {
           method,
           headers: {
+            ...ADMIN_HEADERS,
             ...(body ? { 'Content-Type': 'application/json' } : {}),
-            ...headers
+            ...(headers ?? {})
           },
           body: body ? JSON.stringify(body) : undefined
         })
@@ -109,6 +115,29 @@ describe('Workflow memo state API', () => {
     expect(response.status).toBe(200)
     expect(response.body).toBeNull()
     expect(selectMock).toHaveBeenCalled()
+  })
+
+  it('rejects memo state requests without a session header', async () => {
+    buildSelectChain([])
+
+    const getResponse = await performRequest(app, 'GET', '/api/workflow/memo-state')
+    expect(getResponse.status).toBe(400)
+    expect(getResponse.body).toMatchObject({ message: 'Session key header required' })
+
+    const putResponse = await performRequest(
+      app,
+      'PUT',
+      '/api/workflow/memo-state',
+      {
+        sections: {},
+        reviewChecklist: {},
+        attachments: {},
+        commentThreads: {},
+        version: 0
+      }
+    )
+    expect(putResponse.status).toBe(400)
+    expect(putResponse.body).toMatchObject({ message: 'Session key header required' })
   })
 
   it('returns the stored memo state for the session', async () => {
@@ -244,13 +273,21 @@ describe('Workflow memo state API', () => {
       }
     ])
 
-    const response = await performRequest(app, 'PUT', '/api/workflow/memo-state', {
-      sections: {},
-      reviewChecklist: {},
-      attachments: {},
-      commentThreads: {},
-      version: 0
-    })
+    const response = await performRequest(
+      app,
+      'PUT',
+      '/api/workflow/memo-state',
+      {
+        sections: {},
+        reviewChecklist: {},
+        attachments: {},
+        commentThreads: {},
+        version: 0
+      },
+      {
+        'x-session-key': 'memo-test-session'
+      }
+    )
 
     expect(response.status).toBe(409)
     expect(insertMock).not.toHaveBeenCalled()
@@ -270,13 +307,21 @@ describe('Workflow memo state API', () => {
     const values = vi.fn().mockReturnValue({ onConflictDoUpdate })
     insertMock.mockReturnValue({ values })
 
-    const response = await performRequest(app, 'PUT', '/api/workflow/memo-state', {
-      sections: {},
-      reviewChecklist: {},
-      attachments: {},
-      commentThreads: {},
-      version: 0
-    })
+    const response = await performRequest(
+      app,
+      'PUT',
+      '/api/workflow/memo-state',
+      {
+        sections: {},
+        reviewChecklist: {},
+        attachments: {},
+        commentThreads: {},
+        version: 0
+      },
+      {
+        'x-session-key': 'memo-test-session'
+      }
+    )
 
     expect(response.status).toBe(500)
     expect(response.body).toMatchObject({ message: 'Failed to persist memo composer state' })

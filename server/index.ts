@@ -62,13 +62,14 @@ app.use(
 app.use((req, res, next) => {
   const start = Date.now()
   const path = req.path
-  let capturedJsonResponse: Record<string, any> | undefined = undefined
+  let capturedJsonResponse: unknown
 
-  const originalResJson = res.json
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson
-    return originalResJson.apply(res, [bodyJson, ...args])
+  const originalResJson = res.json.bind(res)
+  const jsonOverride = (...args: Parameters<typeof res.json>): ReturnType<typeof res.json> => {
+    capturedJsonResponse = args[0]
+    return originalResJson(...args)
   }
+  res.json = jsonOverride as typeof res.json
 
   res.on('finish', () => {
     const duration = Date.now() - start
@@ -95,7 +96,7 @@ app.use((req, res, next) => {
 ;(async () => {
   const server = await registerRoutes(app)
 
-  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     // Use enhanced error handler
     enhancedErrorHandler(req, res, next, err)
   })
@@ -155,11 +156,18 @@ app.use((req, res, next) => {
 
   async function tryListen(portToUse: number): Promise<boolean> {
     return await new Promise<boolean>((resolve) => {
-      const onError = (err: any) => {
-        log(
-          `listen error on ${host}:${portToUse} -> ${err?.code || err?.message || err}`,
-          'express'
-        )
+      const onError = (err: unknown) => {
+        let descriptor: string
+        if (err instanceof Error) {
+          descriptor = err.message
+        } else if (typeof err === 'object' && err !== null && 'code' in err) {
+          const code = (err as { code?: unknown }).code
+          descriptor = String(code ?? err)
+        } else {
+          descriptor = String(err)
+        }
+
+        log(`listen error on ${host}:${portToUse} -> ${descriptor}`, 'express')
         server.off('listening', onListening)
         server.off('error', onError)
         resolve(false)

@@ -6,6 +6,7 @@ import {
   adjustmentPresets
 } from '@/lib/workflow-data'
 import { fetchNormalizationState, persistNormalizationState } from '@/lib/workflow-api'
+import { useSessionKey } from './useSessionKey'
 
 interface CoverageSnapshot {
   avgCoverage: number
@@ -39,6 +40,7 @@ export function DataNormalizationProvider({ children }: { children: React.ReactN
   const [isSyncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState<string | null>(null)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
+  const sessionKey = useSessionKey()
 
   const applyRemoteState = useCallback(
     (remote: Awaited<ReturnType<typeof fetchNormalizationState>>) => {
@@ -66,8 +68,9 @@ export function DataNormalizationProvider({ children }: { children: React.ReactN
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      if (!sessionKey) return
       try {
-        const remote = await fetchNormalizationState()
+        const remote = await fetchNormalizationState(sessionKey)
         if (cancelled) return
         applyRemoteState(remote)
         setSyncError(null)
@@ -83,17 +86,17 @@ export function DataNormalizationProvider({ children }: { children: React.ReactN
     return () => {
       cancelled = true
     }
-  }, [applyRemoteState])
+  }, [applyRemoteState, sessionKey])
 
   useEffect(() => {
-    if (!hydrated) return
+    if (!hydrated || !sessionKey) return
 
     let cancelled = false
     const timeout = setTimeout(() => {
       void (async () => {
         setSyncing(true)
         try {
-          const saved = await persistNormalizationState({
+          const saved = await persistNormalizationState(sessionKey, {
             reconciledSources: state.reconciledSources,
             appliedAdjustments: state.appliedAdjustments,
             version
@@ -105,10 +108,11 @@ export function DataNormalizationProvider({ children }: { children: React.ReactN
           }
         } catch (error) {
           if (!cancelled) {
-            const status = (error as any)?.status as number | undefined
+            const maybe = error as Record<string, unknown>
+            const status = typeof maybe?.status === 'number' ? (maybe.status as number) : undefined
             if (status === 409) {
               try {
-                const remote = await fetchNormalizationState()
+                const remote = await fetchNormalizationState(sessionKey)
                 if (!cancelled) {
                   applyRemoteState(remote)
                   setSyncError('Normalization state refreshed due to concurrent edits.')
@@ -133,7 +137,7 @@ export function DataNormalizationProvider({ children }: { children: React.ReactN
       cancelled = true
       clearTimeout(timeout)
     }
-  }, [state, version, hydrated, applyRemoteState])
+  }, [state, version, hydrated, applyRemoteState, sessionKey])
 
   const toggleSource = useCallback((id: string) => {
     setState((prev) => ({

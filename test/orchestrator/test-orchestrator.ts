@@ -63,6 +63,11 @@ export class TestOrchestrator {
 
       // Initialize test utilities
       const httpClient = new TestHttpClient(testEnvironment.baseUrl)
+      const adminToken =
+        this.config.server.env.ADMIN_TOKEN ||
+        process.env.ADMIN_TOKEN ||
+        'test-admin-token-12345-secure'
+      httpClient.setAuthToken(adminToken)
       const dataManager = new TestDataManager(httpClient)
 
       // Verify server health
@@ -231,6 +236,9 @@ export class TestOrchestrator {
         }
       })
     )
+
+    // Ensure demo data is seeded before hitting core endpoints
+    await dataManager.resetDemoData()
 
     // Core data endpoints
     tests.push(

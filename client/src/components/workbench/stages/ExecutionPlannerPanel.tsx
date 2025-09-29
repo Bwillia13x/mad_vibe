@@ -371,31 +371,6 @@ function ConstraintsSection({
   )
 }
 
-// Route suggestions based on alerts and downside
-const routeSuggestions = useMemo(() => {
-  const { simulation } = useScenarioLab()
-  const { alerts } = useMonitoring()
-  const downside = simulation?.downsideProbability || 0
-  const alertCount = alerts.filter((a: any) => !a.acknowledged).length
-  const suggestions = []
-  if (alertCount > 0 || downside > 25) {
-    suggestions.push('Use TWAP for gradual execution to minimize impact')
-    suggestions.push('Set TIF to IOC for high-risk entries')
-  } else {
-    suggestions.push('VWAP suitable for base case')
-    suggestions.push('Day TIF for standard liquidity')
-  }
-  return suggestions
-}, [])
-
-// Risk Budget Panel data
-const riskBudgetData = useMemo(() => {
-  const { simulation } = useScenarioLab()
-  const downside = simulation?.downsideProbability || 0
-  const suggestedCap = riskCap * 100 // From earlier memo
-  return { downside, suggestedCap, alerts: outstandingAlerts.length }
-}, [riskCap, outstandingAlerts])
-
 // ---------------- main ----------------
 export default function ExecutionPlannerPanel() {
   const {
@@ -410,21 +385,20 @@ export default function ExecutionPlannerPanel() {
   const { currentScenario, agg } = useValuation()
   const { alerts } = useMonitoring()
   const {
+    state: { portfolioNotional, maxPart, algo, limitBps, tif, daysHorizon },
     derivedRows: rows,
     plan,
     totals,
     riskCap,
     outstandingAlerts,
-    gateReady,
-    setRows,
+    gateReady: baseGateReady,
     setPortfolioNotional,
     setMaxPart,
     setAlgo,
     setLimitBps,
     setTif,
     setDaysHorizon,
-    setTgt,
-    slipBps
+    setTgt
   } = useExecutionPlanner()
 
   const checklist = useMemo(() => getChecklist(activeStage.slug), [activeStage.slug, getChecklist])
@@ -441,8 +415,16 @@ export default function ExecutionPlannerPanel() {
 
   const readinessComplete = readinessSignals.every((item: any) => item.complete)
   const noAlerts = outstandingAlerts.length === 0
-  const planConstraintsMet = plan.length > 0 ? plan.every((p) => p.days <= state.daysHorizon && p.participation <= state.maxPart * 1.1 && p.tgtW <= riskCap * 100) : true
-  const gateReady = planConstraintsMet && readinessComplete && noAlerts
+  const planConstraintsMet =
+    plan.length > 0
+      ? plan.every(
+          (p) =>
+            p.days <= daysHorizon &&
+            p.participation <= maxPart * 1.1 &&
+            p.tgtW <= riskCap * 100
+        )
+      : true
+  const gateReady = baseGateReady && planConstraintsMet && readinessComplete && noAlerts
 
   const onPortChange = useCallback((v: number) => setPortfolioNotional(v), [setPortfolioNotional])
   const onMaxPartChange = useCallback((v: number) => setMaxPart(v), [setMaxPart])
@@ -450,6 +432,28 @@ export default function ExecutionPlannerPanel() {
   const onLimitBpsChange = useCallback((v: number) => setLimitBps(v), [setLimitBps])
   const onTifChange = useCallback((v: string) => setTif(v), [setTif])
   const onDaysChange = useCallback((v: number) => setDaysHorizon(v), [setDaysHorizon])
+
+  const routeSuggestions = useMemo(() => {
+    const downside = simulation?.downsideProbability ?? 0
+    const unresolved = alerts.filter((a: any) => !a?.acknowledged)
+    if (unresolved.length > 0 || downside > 25) {
+      return [
+        'Use TWAP for gradual execution to minimize impact',
+        'Set TIF to IOC for high-risk entries'
+      ]
+    }
+    return ['VWAP suitable for base case', 'Day TIF for standard liquidity']
+  }, [alerts, simulation])
+
+  const riskBudgetData = useMemo(() => {
+    const downside = simulation?.downsideProbability ?? 0
+    const suggestedCap = Number((riskCap * 100).toFixed(1))
+    return {
+      downside: Number(downside.toFixed(0)),
+      suggestedCap,
+      alerts: outstandingAlerts.length
+    }
+  }, [simulation, riskCap, outstandingAlerts])
 
   // Enhanced Export: Download CSV
   const handleExport = useCallback(() => {

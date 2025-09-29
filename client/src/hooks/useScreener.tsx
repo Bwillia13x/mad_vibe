@@ -288,4 +288,12 @@ export function ScreenerProvider({ children }: { children: ReactNode }) {
   return <ScreenerContext.Provider value={value}>{children}</ScreenerContext.Provider>
 }
 
+export function useScreener(): ScreenerContextValue {
+  const context = useContext(ScreenerContext)
+  if (!context) {
+    throw new Error('useScreener must be used within a ScreenerProvider')
+  }
+  return context
+}
+
     

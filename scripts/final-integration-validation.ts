@@ -5,11 +5,18 @@
  * Executes comprehensive integration tests, production readiness validation, and generates client handoff package
  */
 
-import { startTestServer, type TestEnvironment } from '../test/utils/test-environment.js'
+import {
+  startTestServer,
+  TestHttpClient,
+  TestDataManager,
+  PerformanceMonitor,
+  type TestEnvironment
+} from '../test/utils/test-environment.js'
 import { ComprehensiveIntegrationTests } from '../test/integration/comprehensive-integration-tests.js'
 import { ProductionReadinessValidation } from '../test/production/production-readiness-validation.js'
 import { ClientHandoffPackage } from '../test/handoff/client-handoff-package.js'
 import { TestReporter } from '../test/reporting/test-reporter.js'
+import { loadTestConfig, type TestConfig } from '../test/config/test-config.js'
 
 interface FinalValidationOptions {
   generateHandoffPackage?: boolean
@@ -34,19 +41,26 @@ async function runFinalIntegrationValidation(options: FinalValidationOptions = {
   try {
     // Initialize test environment
     console.log('\n📡 Initializing Test Environment...')
-    testEnvironment = await startTestServer({
+    const baseConfig = loadTestConfig()
+    const config: TestConfig = {
+      ...baseConfig,
       environment: 'production',
-      testSuites: [],
-      thresholds: {
-        maxResponseTime: 200,
-        maxMemoryUsage: 512,
-        minConcurrentUsers: 50,
-        maxErrorRate: 1
+      server: {
+        ...baseConfig.server,
+        portFile: baseConfig.server.portFile || '.local/final_validation_port',
+        env: {
+          ...baseConfig.server.env,
+          NODE_ENV: 'production'
+        }
       }
-    } as any)
+    }
 
-    const { httpClient, performanceMonitor, dataManager } = testEnvironment
-    const reporter = new TestReporter({ environment: 'production' } as any)
+    testEnvironment = await startTestServer(config)
+
+    const httpClient = new TestHttpClient(testEnvironment.baseUrl)
+    const performanceMonitor = new PerformanceMonitor()
+    const dataManager = new TestDataManager(httpClient)
+    const reporter = new TestReporter(config)
 
     // Initialize test suites
     const integrationTests = new ComprehensiveIntegrationTests(

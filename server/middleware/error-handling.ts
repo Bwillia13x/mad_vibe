@@ -214,7 +214,12 @@ function shouldRetry(statusCode: number): boolean {
 /**
  * Enhanced error handling middleware with comprehensive logging and response formatting
  */
-export function enhancedErrorHandler(req: Request, res: Response, next: NextFunction, error?: any) {
+export function enhancedErrorHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  error?: unknown
+) {
   if (!error) {
     return next()
   }
@@ -228,8 +233,15 @@ export function enhancedErrorHandler(req: Request, res: Response, next: NextFunc
   let message = 'Internal server error'
   let shouldLog = true
 
-  if (error.status || error.statusCode) {
-    statusCode = error.status || error.statusCode
+  if (typeof error === 'object' && error !== null) {
+    if ('status' in error && typeof (error as { status?: unknown }).status === 'number') {
+      statusCode = (error as { status: number }).status
+    } else if (
+      'statusCode' in error &&
+      typeof (error as { statusCode?: unknown }).statusCode === 'number'
+    ) {
+      statusCode = (error as { statusCode: number }).statusCode
+    }
   }
 
   // Categorize errors
@@ -259,8 +271,19 @@ export function enhancedErrorHandler(req: Request, res: Response, next: NextFunc
   }
 
   // Log error if appropriate
+  const resolvedMessage = (() => {
+    if (error instanceof Error) return error.message
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+      const maybeMessage = (error as { message?: unknown }).message
+      return typeof maybeMessage === 'string' ? maybeMessage : message
+    }
+    return message
+  })()
+
+  const resolvedStack = error instanceof Error ? error.stack : undefined
+
   if (shouldLog) {
-    log(`Error ${errorId}: ${error.message || message}`, {
+    log(`Error ${errorId}: ${resolvedMessage}`, {
       errorId,
       errorType,
       statusCode,
@@ -268,7 +291,7 @@ export function enhancedErrorHandler(req: Request, res: Response, next: NextFunc
       method: req.method,
       ip: req.ip,
       userAgent: req.get('User-Agent'),
-      stack: error.stack,
+      stack: resolvedStack,
       timestamp
     })
   }
@@ -290,9 +313,11 @@ export function enhancedErrorHandler(req: Request, res: Response, next: NextFunc
 
   // Add additional details in development
   if (process.env.NODE_ENV === 'development') {
-    errorResponse.details = error.message
-    if (error.stack) {
-      errorResponse.stack = error.stack
+    if (resolvedMessage && resolvedMessage !== message) {
+      errorResponse.details = resolvedMessage
+    }
+    if (resolvedStack) {
+      errorResponse.stack = resolvedStack
     }
   }
 

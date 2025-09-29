@@ -173,8 +173,8 @@ export class MemStorage implements IStorage {
       phone: profile.phone,
       email: profile.email,
       website: profile.website ?? null,
-      hours: profile.hours as any,
-      socialLinks: profile.socialLinks as any,
+      hours: profile.hours,
+      socialLinks: profile.socialLinks,
       id,
       createdAt: now,
       updatedAt: now
@@ -248,7 +248,7 @@ export class MemStorage implements IStorage {
       rating: staff.rating ?? '4.5',
       bio: staff.bio ?? null,
       avatar: staff.avatar ?? null,
-      availability: staff.availability as any,
+      availability: staff.availability ?? null,
       isActive: staff.isActive ?? true,
       id,
       createdAt: now,
@@ -291,7 +291,7 @@ export class MemStorage implements IStorage {
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
-      preferences: customer.preferences as any,
+      preferences: customer.preferences ?? null,
       id,
       createdAt: now,
       updatedAt: now
@@ -394,7 +394,7 @@ export class MemStorage implements IStorage {
     const now = new Date()
     const stock = item.currentStock ?? 0
     const min = item.minStock ?? 0
-    let computedStatus: any = 'in-stock'
+    let computedStatus: InventoryItem['status'] = 'in-stock'
     if (stock === 0) computedStatus = 'out-of-stock'
     else if (stock <= min) computedStatus = 'low'
     const newItem: InventoryItem = {
@@ -463,8 +463,8 @@ export class MemStorage implements IStorage {
       noShowRate: analytics.noShowRate,
       repeatCustomerRate: analytics.repeatCustomerRate,
       averageServiceDuration: analytics.averageServiceDuration,
-      topServices: analytics.topServices as any,
-      staffPerformance: analytics.staffPerformance as any,
+      topServices: analytics.topServices ?? [],
+      staffPerformance: analytics.staffPerformance ?? [],
       id,
       createdAt: now
     }
@@ -519,11 +519,11 @@ export class MemStorage implements IStorage {
         // decrement stock and update status
         const newStock = Math.max(0, (prod.currentStock ?? 0) - qty)
         let status: InventoryItem['status'] = 'in-stock'
-        if (newStock === 0) status = 'out-of-stock' as any
-        else if (newStock <= (prod.minStock ?? 0)) status = 'low' as any
+        if (newStock === 0) status = 'out-of-stock'
+        else if (newStock <= (prod.minStock ?? 0)) status = 'low'
         await this.updateInventoryItem(prod.id, {
-          currentStock: newStock as any,
-          status: status as any
+          currentStock: newStock,
+          status
         })
       }
     }
@@ -557,11 +557,11 @@ export class MemStorage implements IStorage {
         if (prod) {
           const newStock = (prod.currentStock ?? 0) + (li.quantity || 0)
           let status: InventoryItem['status'] = 'in-stock'
-          if (newStock === 0) status = 'out-of-stock' as any
-          else if (newStock <= (prod.minStock ?? 0)) status = 'low' as any
+          if (newStock === 0) status = 'out-of-stock'
+          else if (newStock <= (prod.minStock ?? 0)) status = 'low'
           await this.updateInventoryItem(prod.id, {
-            currentStock: newStock as any,
-            status: status as any
+            currentStock: newStock,
+            status
           })
         }
       }
@@ -701,11 +701,7 @@ export class MemStorage implements IStorage {
 
     // Seed business profile
     if (demoData.businessProfileData) {
-      this.businessProfile = await this.setBusinessProfile({
-        ...demoData.businessProfileData,
-        hours: demoData.businessProfileData.hours as any,
-        socialLinks: demoData.businessProfileData.socialLinks as any
-      })
+      this.businessProfile = await this.setBusinessProfile(demoData.businessProfileData)
     }
 
     // Seed services and create tempId mappings
@@ -718,21 +714,24 @@ export class MemStorage implements IStorage {
     // Seed staff and create tempId mappings
     for (const staffData of demoData.staffData) {
       const { tempId, ...staffFields } = staffData
-      const staff = await this.createStaff({
-        ...staffFields,
-        availability: staffFields.availability as any
-      })
+      const staff = await this.createStaff(staffFields)
       tempIdToRealId.set(tempId, staff.id)
     }
 
     // Seed customers and create tempId mappings
     for (const customerData of demoData.customersData) {
       const { tempId, ...customerFields } = customerData
-      const customer = await this.createCustomer({
-        ...customerFields,
-        preferences: customerFields.preferences as any
-      })
+      const customer = await this.createCustomer(customerFields)
       tempIdToRealId.set(tempId, customer.id)
+    }
+
+    const toDate = (value: unknown): Date => {
+      if (value instanceof Date) return new Date(value.getTime())
+      if (typeof value === 'string' || typeof value === 'number') {
+        const parsed = new Date(value)
+        if (!Number.isNaN(parsed.getTime())) return parsed
+      }
+      return new Date()
     }
 
     // Determine appointments based on scenario
@@ -742,8 +741,8 @@ export class MemStorage implements IStorage {
       appointmentSource = [
         ...demoData.appointmentsData,
         ...demoData.appointmentsData.map((a) => {
-          const start = new Date(a.scheduledStart as any as Date)
-          const end = new Date(a.scheduledEnd as any as Date)
+          const start = toDate(a.scheduledStart)
+          const end = toDate(a.scheduledEnd)
           const durationMs =
             Math.max(15, (end.getTime() - start.getTime()) / (1000 * 60)) * 60 * 1000 // minutes -> ms
           const shiftedStart = new Date(end.getTime() + 5 * 60 * 1000) // start 5 minutes after original end
@@ -774,8 +773,8 @@ export class MemStorage implements IStorage {
     for (const appointmentData of appointmentSource) {
       const mappedAppointment = {
         ...appointmentData,
-        scheduledStart: alignToCurrentDay(new Date(appointmentData.scheduledStart as any as Date)),
-        scheduledEnd: alignToCurrentDay(new Date(appointmentData.scheduledEnd as any as Date)),
+        scheduledStart: alignToCurrentDay(toDate(appointmentData.scheduledStart)),
+        scheduledEnd: alignToCurrentDay(toDate(appointmentData.scheduledEnd)),
         customerId: tempIdToRealId.get(appointmentData.customerId) || appointmentData.customerId,
         staffId: tempIdToRealId.get(appointmentData.staffId) || appointmentData.staffId,
         serviceId: tempIdToRealId.get(appointmentData.serviceId) || appointmentData.serviceId
@@ -788,15 +787,14 @@ export class MemStorage implements IStorage {
       const item = { ...inventoryData } as InsertInventoryItem
       if (this.scenario === 'low_inventory') {
         const r = this.rng ? this.rng() : Math.random()
-        const tempItem = item as any
         if (r < 0.4) {
-          tempItem.currentStock = 0
-          tempItem.status = 'out-of-stock'
+          item.currentStock = 0
+          item.status = 'out-of-stock'
         } else if (r < 0.7) {
           const minStock = inventoryData.minStock ?? 0
           const newStock = Math.max(0, minStock) - 1
-          tempItem.currentStock = newStock
-          tempItem.status = 'low'
+          item.currentStock = newStock
+          item.status = 'low'
         }
       }
       await this.createInventoryItem(item)
@@ -804,11 +802,7 @@ export class MemStorage implements IStorage {
 
     // Seed analytics
     for (const analyticsData of demoData.analyticsData) {
-      await this.createAnalytics({
-        ...analyticsData,
-        topServices: analyticsData.topServices as any,
-        staffPerformance: analyticsData.staffPerformance as any
-      })
+      await this.createAnalytics(analyticsData)
     }
 
     console.log('Demo data seeded successfully')

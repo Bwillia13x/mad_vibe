@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { startTestServer, TestHttpClient, TestDataManager } from '../test/utils/test-environment'
+import { startTestServer, TestHttpClient, TestDataManager, type TestEnvironment } from '../test/utils/test-environment'
 import { TestReporter } from '../test/reporting/test-reporter'
 import { SecurityTestSuite } from '../test/security/security-test-suite'
 import { loadTestConfig } from '../test/config/test-config'
@@ -13,18 +13,21 @@ async function runSecurityTests() {
   const config = loadTestConfig()
   const reporter = new TestReporter(config)
 
-  let testEnv: any = null
+  let testEnv: TestEnvironment | null = null
 
   try {
     // Initialize test environment
     testEnv = await startTestServer(config)
     console.log('✅ Test environment initialized')
 
+    const httpClient = new TestHttpClient(testEnv.baseUrl)
+    const dataManager = new TestDataManager(httpClient)
+
     // Create test environment wrapper
     const testEnvWrapper = {
       baseUrl: testEnv.baseUrl,
-      httpClient: new TestHttpClient(testEnv.baseUrl),
-      dataManager: new TestDataManager(new TestHttpClient(testEnv.baseUrl)),
+      httpClient,
+      dataManager,
       makeRequest: (path: string, options?: RequestInit) => {
         return fetch(`${testEnv.baseUrl}${path}`, options)
       }
