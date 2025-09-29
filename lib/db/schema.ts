@@ -135,3 +135,29 @@ export const workflowMonitoringStates = pgTable('workflow_monitoring_states', {
   version: integer('version').notNull().default(0),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })
+
+// Placeholder companies table for screener (TODO: implement full schema)
+export const companies = pgTable('companies', {
+  id: serial('id').primaryKey(),
+  ticker: varchar('ticker', { length: 10 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  sector: varchar('sector', { length: 100 }),
+  geo: varchar('geo', { length: 100 }),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
+// Placeholder financial metrics table for screener (TODO: implement full schema)
+export const financialMetrics = pgTable('financial_metrics', {
+  id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  roic: integer('roic'),
+  fcfYield: integer('fcf_yield'),
+  leverage: integer('leverage'),
+  growthDurability: integer('growth_durability'),
+  insiderOwnership: integer('insider_ownership'),
+  moat: varchar('moat', { length: 100 }),
+  accruals: integer('accruals'),
+  selected: integer('selected').default(0),
+  matchReason: varchar('match_reason', { length: 255 }),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})

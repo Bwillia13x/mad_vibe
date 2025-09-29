@@ -107,6 +107,9 @@ export interface MonitoringAlert {
   title: string
   severity: 'info' | 'warning' | 'critical'
   trigger: string
+  text?: string
+  age?: string
+  tone?: string
   owner?: string
   acknowledged: boolean
 }

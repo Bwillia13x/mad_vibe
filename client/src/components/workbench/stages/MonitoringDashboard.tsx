@@ -251,7 +251,7 @@ function IconNext() {
 }
 
 // ---------------- main ----------------
-export default function MonitoringDashboard() {
+function MonitoringDashboard() {
   const { deltas, alerts, acknowledgeAlert } = useMonitoring()
   const { simulation, state: scenarioState } = useScenarioLab()
   const { researchLog, logEvent } = useWorkflow()
@@ -754,3 +754,6 @@ export default function MonitoringDashboard() {
     </div>
   )
 }
+
+export { MonitoringDashboard }
+export default MonitoringDashboard

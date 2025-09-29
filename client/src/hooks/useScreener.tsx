@@ -24,6 +24,11 @@ interface NLQueryResult {
   averageROIC: number
   averageFCFYield: number
   averageLeverage: number
+  roicMin?: number
+  fcfyMin?: number
+  netCash?: boolean
+  lowAccruals?: boolean
+  neglect?: boolean
 }
 
 export interface QueryHistory {

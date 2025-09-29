@@ -126,7 +126,7 @@ const IconNext = () => (
   </span>
 )
 
-export default function MemoHistoryTimeline() {
+function MemoHistoryTimeline() {
   const { lessons } = useMonitoring()
   const { logEvent } = useWorkflow()
 
@@ -631,3 +631,6 @@ export default function MemoHistoryTimeline() {
     </div>
   )
 }
+
+export { MemoHistoryTimeline }
+export default MemoHistoryTimeline

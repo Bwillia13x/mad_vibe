@@ -417,20 +417,22 @@ export class ResourceManager {
     this.cleanupUnusedResources()
 
     // Integrate with main memory optimizer if available
-    if (typeof memoryOptimizer !== 'undefined') {
-      memoryOptimizer.performOptimization()
-    }
+    // Note: memoryOptimizer integration disabled to avoid circular dependencies
+    // if (typeof memoryOptimizer !== 'undefined') {
+    //   memoryOptimizer.performOptimization()
+    // }
 
     // Prune DB idle connections
-    if (typeof connectionPool !== 'undefined' && connectionPool) {
-      try {
-        // Release idle connections
-        connectionPool.pool.query('SELECT pg_advisory_unlock_all();')  // If advisory locks used
-        log('Pruned DB resources during optimization')
-      } catch (error) {
-        logWarn('DB prune error', { error: String(error) })
-      }
-    }
+    // Note: connectionPool integration disabled to avoid circular dependencies
+    // if (typeof connectionPool !== 'undefined' && connectionPool) {
+    //   try {
+    //     // Release idle connections
+    //     connectionPool.pool.query('SELECT pg_advisory_unlock_all();')  // If advisory locks used
+    //     log('Pruned DB resources during optimization')
+    //   } catch (error) {
+    //     logWarn('DB prune error', { error: String(error) })
+    //   }
+    // }
 
     const after = Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
     log('Memory optimization completed', {

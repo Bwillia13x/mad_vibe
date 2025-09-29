@@ -42,6 +42,11 @@ interface NLQueryResult {
   averageROIC: number
   averageFCFYield: number
   averageLeverage: number
+  roicMin?: number
+  fcfyMin?: number
+  netCash?: boolean
+  lowAccruals?: boolean
+  neglect?: boolean
 }
 
 export function createScreenerRouter() {
@@ -79,7 +84,7 @@ export function createScreenerRouter() {
         .orderBy(desc(financialMetrics.updatedAt ?? companies.updatedAt))
         .limit(100)
 
-      const screenerCompanies: ScreenerCompany[] = results.map(row => ({
+      const screenerCompanies: ScreenerCompany[] = results.map((row: any) => ({
         ...row,
         roic: row.roic ?? 0,
         fcfYield: row.fcfYield ?? 0,
@@ -168,7 +173,7 @@ export function createScreenerRouter() {
 
       const results = await dbQuery
 
-      const screenerCompanies: ScreenerCompany[] = results.map(row => ({
+      const screenerCompanies: ScreenerCompany[] = results.map((row: any) => ({
         ...row,
         roic: row.roic ?? 0,
         fcfYield: row.fcfYield ?? 0,
@@ -183,15 +188,20 @@ export function createScreenerRouter() {
       }))
 
       // Compute averages
-      const averageROIC = screenerCompanies.reduce((sum, c) => sum + c.roic, 0) / screenerCompanies.length || 0
-      const averageFCFYield = screenerCompanies.reduce((sum, c) => sum + c.fcfYield, 0) / screenerCompanies.length || 0
-      const averageLeverage = screenerCompanies.reduce((sum, c) => sum + c.leverage, 0) / screenerCompanies.length || 0
+      const averageROIC = screenerCompanies.reduce((sum, c) => sum + (c.roic ?? 0), 0) / screenerCompanies.length || 0
+      const averageFCFYield = screenerCompanies.reduce((sum, c) => sum + (c.fcfYield ?? 0), 0) / screenerCompanies.length || 0
+      const averageLeverage = screenerCompanies.reduce((sum, c) => sum + (c.leverage ?? 0), 0) / screenerCompanies.length || 0
 
       const nlResult: NLQueryResult = {
         companies: screenerCompanies,
         averageROIC,
         averageFCFYield,
-        averageLeverage
+        averageLeverage,
+        roicMin: parsedFilters.roicMin,
+        fcfyMin: parsedFilters.fcfYieldMin,
+        netCash: parsedFilters.leverageMax !== undefined && parsedFilters.leverageMax < 0,
+        lowAccruals: true, // Placeholder
+        neglect: true // Placeholder
       }
 
       res.json(nlResult)

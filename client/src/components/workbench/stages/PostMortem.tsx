@@ -250,46 +250,6 @@ function IconHome() {
   )
 }
 
-// Auto-extract function
-const autoExtract = useCallback(() => {
-  const { deltas, lessons: monitoringLessons } = useMonitoring()
-  const { compiledMemo, commentThreads } = useMemoComposer()
-
-  // Extract thesis from memo (first section or search)
-  const thesisMatch = compiledMemo.match(/## Thesis\n([\s\S]*?)(?=##|\n---)/)
-  const extractedThesis = thesisMatch ? thesisMatch[1].trim() : 'Thesis not found in memo history.'
-
-  // Outcome from deltas
-  const outcomes = deltas
-    .filter((delta) => delta.status === 'breach' || delta.status === 'warning')
-    .map((delta) => `${delta.name}: Expected ${delta.thesis} but actual ${delta.actual}; impact ${delta.impact}.`)
-    .join(' ')
-
-  // Errors from breaches and unresolved comments
-  const breachErrors = deltas
-    .filter((delta) => delta.status === 'breach')
-    .map((delta) => `Error: ${delta.name} breach - root cause ${delta.description}.`)
-  const commentErrors = commentThreads
-    .flatMap((thread) => thread.comments.filter((c) => c.status !== 'resolved'))
-    .map((c) => `Reviewer error note: ${c.message}`)
-  const extractedErrors = [...breachErrors, ...commentErrors.slice(0, 2)] // Limit to 2
-
-  // Lessons from warnings and monitoring lessons
-  const warningLessons = deltas
-    .filter((delta) => delta.status === 'warning')
-    .map((delta) => `Lesson: ${delta.name} - Adjust future assumptions for ${delta.description}; monitor ${delta.metric}.`)
-  const extractedLessons = [...warningLessons, ...monitoringLessons.slice(0, 2)] // Limit
-
-  // Pre-fill
-  setHypo((prev) => ({ ...prev, thesis: extractedThesis, outcome: outcomes || prev.outcome }))
-  setErrors(extractedErrors.length ? extractedErrors : ['No auto-extracted errors.'])
-  setLessons(extractedLessons.length ? extractedLessons : ['No auto-extracted lessons.'])
-
-  // Tags from deltas
-  const deltaTags = deltas.map((d) => d.name.toLowerCase().replace(/\s+/g, '-'))
-  setTags((prev) => [...new Set([...prev, ...deltaTags.slice(0, 3)])]) // Add up to 3 unique
-}, [])
-
 // ---------------- main ----------------
 export function PostMortem() {
   const { deltas, lessons: monitoringLessons } = useMonitoring()
@@ -334,6 +294,43 @@ export function PostMortem() {
   ])
   const [tags, setTags] = useState<string[]>(['pricing-power', 'capex-estimates', 'execution'])
 
+  // Auto-extract function
+  const autoExtract = useCallback(() => {
+    // Extract thesis from memo (first section or search)
+    const thesisMatch = compiledMemo.match(/## Thesis\n([\s\S]*?)(?=##|\n---)/)
+    const extractedThesis = thesisMatch ? thesisMatch[1].trim() : 'Thesis not found in memo history.'
+
+    // Outcome from deltas
+    const outcomes = deltas
+      .filter((delta) => delta.status === 'breach' || delta.status === 'warning')
+      .map((delta) => `${delta.metric}: ${delta.description}; variance ${delta.variance.toFixed(1)}%.`)
+      .join(' ')
+
+    // Errors from breaches and unresolved comments
+    const breachErrors = deltas
+      .filter((delta) => delta.status === 'breach')
+      .map((delta) => `Error: ${delta.metric} breach - ${delta.description}.`)
+    const commentErrors = commentThreads
+      .flatMap((thread) => thread.comments.filter((c) => c.status !== 'resolved'))
+      .map((c) => `Reviewer error note: ${c.message}`)
+    const extractedErrors = [...breachErrors, ...commentErrors.slice(0, 2)] // Limit to 2
+
+    // Lessons from warnings and monitoring lessons
+    const warningLessons = deltas
+      .filter((delta) => delta.status === 'warning')
+      .map((delta) => `Lesson: ${delta.metric} - Adjust future assumptions for ${delta.description}; monitor ${delta.metric}.`)
+    const extractedLessons = [...warningLessons, ...monitoringLessons.slice(0, 2)] // Limit
+
+    // Pre-fill
+    setHypo((prev: Hypothesis) => ({ ...prev, thesis: extractedThesis, outcome: outcomes || prev.outcome }))
+    setErrors(extractedErrors.length ? extractedErrors : ['No auto-extracted errors.'])
+    setLessons(extractedLessons.length ? extractedLessons : ['No auto-extracted lessons.'])
+
+    // Tags from deltas
+    const deltaTags = deltas.map((d) => d.metric.toLowerCase().replace(/\s+/g, '-'))
+    setTags((prev: string[]) => [...new Set([...prev, ...deltaTags.slice(0, 3)])]) // Add up to 3 unique
+  }, [deltas, monitoringLessons, compiledMemo, commentThreads])
+
   // simple metrics
   const pnlPct = useMemo(() => ((meta.exitPx - meta.entryPx) / meta.entryPx) * 100, [meta])
   const holdDays = 97 // stub
@@ -346,12 +343,12 @@ export function PostMortem() {
   const gateReady =
     docFillPct >= 100 && errors.length >= 2 && lessons.length >= 2 && tags.length >= 2
 
-  function addItem(arrSetter: React.Dispatch<React.SetStateAction<string[]>>) {
+  function addItem(callback: (v: string) => void) {
     const v = prompt('Add item')
-    if (v) arrSetter((a) => [...a, v])
+    if (v) callback(v)
   }
-  function removeAt(arrSetter: React.Dispatch<React.SetStateAction<string[]>>, idx: number) {
-    arrSetter((a) => a.filter((_, i) => i !== idx))
+  function removeAt(callback: (idx: number) => void, idx: number) {
+    callback(idx)
   }
 
   return (
@@ -494,7 +491,7 @@ export function PostMortem() {
                 </ul>
                 <button
                   onClick={() =>
-                    addItem((v) => setAttrib((a) => ({ ...a, whatWorked: [...a.whatWorked, v] })))
+                    addItem((v: string) => setAttrib((a: Attribution) => ({ ...a, whatWorked: [...a.whatWorked, v] })))
                   }
                   className="mt-1 text-xs text-slate-300"
                 >
@@ -527,7 +524,7 @@ export function PostMortem() {
                 </ul>
                 <button
                   onClick={() =>
-                    addItem((v) => setAttrib((a) => ({ ...a, whatDidnt: [...a.whatDidnt, v] })))
+                    addItem((v: string) => setAttrib((a: Attribution) => ({ ...a, whatDidnt: [...a.whatDidnt, v] })))
                   }
                   className="mt-1 text-xs text-slate-300"
                 >

@@ -4,7 +4,7 @@ import { useScenarioLab } from '@/hooks/useScenarioLab'
 import { useValuation } from '@/hooks/useValuation'
 import { useMonitoring } from '@/hooks/useMonitoring'
 import { useExecutionPlanner } from '@/hooks/useExecutionPlanner'
-import type { ResearchLogInput } from '@/lib/workflow-api'
+import type { ResearchLogInput } from '@shared/schema'
 
 // Types
 type Tone = 'slate' | 'violet' | 'emerald' | 'amber' | 'rose' | 'blue'
@@ -372,7 +372,7 @@ function ConstraintsSection({
 }
 
 // ---------------- main ----------------
-export default function ExecutionPlannerPanel() {
+function ExecutionPlannerPanel() {
   const {
     getChecklist,
     checklistState,
@@ -506,7 +506,7 @@ export default function ExecutionPlannerPanel() {
 
   const handleConstraintChange = useCallback(
     (value: number | string, type: string) => {
-      toggleChecklistItem('confirm-constraints')
+      toggleChecklistItem(activeStage.slug, 'confirm-constraints')
       logEvent({
         stageSlug: activeStage.slug,
         stageTitle: activeStage.title,
@@ -515,6 +515,14 @@ export default function ExecutionPlannerPanel() {
       }).catch(console.warn)
     },
     [toggleChecklistItem, logEvent, activeStage]
+  )
+
+  // Create a curried version of toggleChecklistItem for child components
+  const handleToggleChecklist = useCallback(
+    (itemId: string) => {
+      toggleChecklistItem(activeStage.slug, itemId)
+    },
+    [toggleChecklistItem, activeStage.slug]
   )
 
   return (
@@ -540,7 +548,7 @@ export default function ExecutionPlannerPanel() {
           <OrderIntentSection
             rows={rows}
             onSetTgt={setTgt}
-            toggleChecklistItem={toggleChecklistItem}
+            toggleChecklistItem={handleToggleChecklist}
           />
           {/* New Route Suggestions Card */}
           <Card title="Route Suggestions" subtitle="Algo & TIF based on risk" right={<Tag tone="blue">Auto</Tag>}>
@@ -580,7 +588,7 @@ export default function ExecutionPlannerPanel() {
             onTifChange={onTifChange}
             daysHorizon={daysHorizon}
             onDaysChange={onDaysChange}
-            toggleChecklistItem={toggleChecklistItem}
+            toggleChecklistItem={handleToggleChecklist}
             logEvent={logEvent}
             activeStage={activeStage}
           />

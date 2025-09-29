@@ -447,9 +447,9 @@ const baseThrottleConfig = {
   burstSize: 20,
   burstWindowMs: 1000,
   enablePriority: true,
-  priorityRoutes: ['/api/health', '/api/auth'],
+  priorityRoutes: ['/api/health', '/api/auth'] as string[],
   enableMonitoring: true
-} as const
+}
 
 const relaxedThrottleConfig = {
   maxRequestsPerMinute: 1_000_000,
@@ -460,9 +460,9 @@ const relaxedThrottleConfig = {
   burstSize: 1_000,
   burstWindowMs: 100,
   enablePriority: false,
-  priorityRoutes: baseThrottleConfig.priorityRoutes,
+  priorityRoutes: [...baseThrottleConfig.priorityRoutes] as string[],
   enableMonitoring: false
-} as const
+}
 
 const shouldRelaxThrottling = nodeEnv === 'test' || skipRateLimit
 

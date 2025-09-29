@@ -5,11 +5,18 @@
 import React, { useMemo, useState } from 'react'
 
 // ---------------- helpers ----------------
-const cls = (...s) => s.filter(Boolean).join(' ')
-const fmt = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 1 })
-const fmt2 = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 2 })
+const cls = (...s: (string | false | null | undefined)[]) => s.filter(Boolean).join(' ')
+const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 1 })
+const fmt2 = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 })
 
-function Card({ title, subtitle, right, children }) {
+interface CardProps {
+  title: string
+  subtitle?: string
+  right?: React.ReactNode
+  children: React.ReactNode
+}
+
+function Card({ title, subtitle, right, children }: CardProps) {
   return (
     <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-sm">
       <div className="flex items-start justify-between mb-3">
@@ -24,8 +31,15 @@ function Card({ title, subtitle, right, children }) {
   )
 }
 
-function Tag({ tone = 'slate', children }) {
-  const palette = {
+type TonePalette = 'slate' | 'violet' | 'emerald' | 'amber' | 'rose' | 'blue'
+
+interface TagProps {
+  tone?: TonePalette
+  children: React.ReactNode
+}
+
+function Tag({ tone = 'slate', children }: TagProps) {
+  const palette: Record<TonePalette, string> = {
     slate: 'bg-slate-800/60 text-slate-200 ring-slate-700/80',
     violet: 'bg-violet-800/40 text-violet-100 ring-violet-700/70',
     emerald: 'bg-emerald-800/40 text-emerald-100 ring-emerald-700/70',
@@ -40,7 +54,13 @@ function Tag({ tone = 'slate', children }) {
   )
 }
 
-function Row({ left, right, badge }) {
+interface RowProps {
+  left: React.ReactNode
+  right: React.ReactNode
+  badge?: React.ReactNode
+}
+
+function Row({ left, right, badge }: RowProps) {
   return (
     <div className="flex items-center justify-between py-1.5">
       <div className="flex items-center gap-2 min-w-0">
@@ -258,8 +278,8 @@ export function ValuationWorkbench() {
     { k: 'Net debt / shares', w: 0.1, note: 'Capital structure' }
   ]
 
-  function setNum(key, val) {
-    setState((s) => ({ ...s, [key]: isNaN(val) ? s[key] : val }))
+  function setNum(key: string, val: number) {
+    setState((s) => ({ ...s, [key]: isNaN(val) ? (s as any)[key] : val }))
   }
 
   // ---------------- render ----------------

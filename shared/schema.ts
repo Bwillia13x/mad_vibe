@@ -136,3 +136,159 @@ export const researchLogEntries = pgTable('research_log_entries', {
   details: text('details'),
   timestamp: timestamp('timestamp').notNull()
 })
+
+// Type exports for convenience
+export type User = typeof users.$inferSelect
+export type InsertUser = typeof users.$inferInsert
+export type BusinessProfile = typeof businessProfile.$inferSelect
+export type InsertBusinessProfile = typeof businessProfile.$inferInsert
+export type Customer = typeof customers.$inferSelect
+export type InsertCustomer = typeof customers.$inferInsert
+export type Staff = typeof staff.$inferSelect & {
+  isActive?: boolean
+}
+export type InsertStaff = typeof staff.$inferInsert
+
+// Placeholder types for missing tables (to be defined later)
+export type Service = {
+  id: string
+  name: string
+  description?: string
+  duration: number
+  price: number
+  category?: string
+}
+
+export type InsertService = Omit<Service, 'id'>
+
+export type Appointment = {
+  id: string
+  customerId: string
+  staffId: string
+  serviceId: string
+  scheduledStart: Date | string
+  scheduledEnd: Date | string
+  status: string
+  notes?: string
+}
+
+export type InsertAppointment = Omit<Appointment, 'id'>
+
+// Extended appointment type with details
+export type AppointmentWithDetails = Appointment & {
+  customer?: Customer
+  staff?: Staff
+  service?: Service
+}
+
+// Extended staff type with metrics
+export type StaffWithMetrics = Staff & {
+  id: string
+  name: string
+  role: string
+  rating: number
+}
+
+export type InventoryItem = {
+  id: string
+  name: string
+  description?: string
+  quantity: number
+  unitCost: number
+  sellPrice: number
+  category?: string
+  supplier?: string
+  reorderLevel?: number
+  currentStock: number
+  minStock: number
+  sku: string
+  status?: string
+  retailPrice?: number
+}
+
+export type InsertInventoryItem = Omit<InventoryItem, 'id'>
+
+export type TopService = {
+  serviceName: string
+  count: number
+  revenue: string
+}
+
+export type StaffPerformance = {
+  staffName: string
+  appointments: number
+  revenue: string
+  rating: string
+}
+
+export type AnalyticsSnapshot = {
+  id: string
+  date: Date
+  revenue: number
+  totalRevenue: string
+  appointments: number
+  totalAppointments: number
+  newCustomers: number
+  topServices: TopService[] | string[]
+  avgTicket: number
+  customerSatisfaction: string
+  utilizationRate: string
+  staffPerformance?: StaffPerformance[]
+  totalCustomers?: number
+  averageRating?: string
+  noShowRate?: string
+  repeatCustomerRate?: string
+  averageServiceDuration?: number
+}
+
+export type InsertAnalyticsSnapshot = Omit<AnalyticsSnapshot, 'id'>
+
+export type PosSale = {
+  id: string
+  customerId?: string
+  staffId: string
+  total: number
+  paymentMethod: string
+  completedAt: Date
+  lineItems: PosLineItem[]
+}
+
+export type InsertPosSale = Omit<PosSale, 'id'>
+
+export type PosLineItem = {
+  id: string
+  name: string
+  quantity: number
+  price: number
+}
+
+export type Campaign = {
+  id: string
+  name: string
+  description?: string
+  type: string
+  status: string
+  startDate: Date
+  endDate?: Date
+  targetAudience?: string
+}
+
+export type InsertCampaign = Omit<Campaign, 'id'>
+
+export type LoyaltyEntry = {
+  id: string
+  customerId: string
+  points: number
+  reason: string
+  createdAt: Date
+}
+
+export type InsertLoyaltyEntry = Omit<LoyaltyEntry, 'id' | 'createdAt'>
+
+export type ResearchLogInput = {
+  stageSlug: string
+  stageTitle: string
+  action: string
+  details?: string
+  timestamp?: string
+}

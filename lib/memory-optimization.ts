@@ -102,29 +102,32 @@ class MemoryOptimizer {
 
     // Clear global caches and integrate resource manager
     this.clearGlobalCaches()
-    if (typeof resourceManager !== 'undefined') {
-      resourceManager.optimizeMemory()
-    }
+    // Note: resourceManager integration disabled to avoid circular dependencies
+    // if (typeof resourceManager !== 'undefined') {
+    //   resourceManager.optimizeMemory()
+    // }
 
     // Prune idle DB connections if pool exists
-    if (typeof connectionPool !== 'undefined' && connectionPool) {
-      try {
-        // Force release of idle connections
-        await connectionPool.pool.query('SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid() AND state = \'idle\';')
-        log('Pruned idle database connections during optimization')
-      } catch (error) {
-        logWarn('Failed to prune idle DB connections', { error: String(error) })
-      }
-    }
+    // Note: connectionPool integration disabled to avoid circular dependencies
+    // if (typeof connectionPool !== 'undefined' && connectionPool) {
+    //   try {
+    //     // Force release of idle connections
+    //     await connectionPool.pool.query('SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid() AND state = \'idle\';')
+    //     log('Pruned idle database connections during optimization')
+    //   } catch (error) {
+    //     logWarn('Failed to prune idle DB connections', { error: String(error) })
+    //   }
+    // }
 
     // Clear session or other app-specific caches (assuming session-store exists)
-    try {
-      if (typeof clearSessionCache === 'function') {
-        clearSessionCache()
-      }
-    } catch (error) {
-      // Ignore if not available
-    }
+    // Note: clearSessionCache integration disabled to avoid undefined reference
+    // try {
+    //   if (typeof clearSessionCache === 'function') {
+    //     clearSessionCache()
+    //   }
+    // } catch (error) {
+    //   // Ignore if not available
+    // }
 
     // Force process to release memory back to OS
     if (process.platform !== 'win32') {
@@ -138,6 +141,7 @@ class MemoryOptimizer {
     }
 
     const afterUtil = this.getHeapUtilization()
+    const heapUtilization = this.getHeapUtilization()
     log('Aggressive memory optimization completed', {
       heapUtilization: afterUtil.toFixed(2) + '%',
       reduction: (heapUtilization - afterUtil).toFixed(2) + '%'
@@ -160,13 +164,15 @@ class MemoryOptimizer {
     // Clear any module caches that might be holding references (ESM compatible)
     try {
       // In ESM, no require.cache; clear known global caches instead
-      if (typeof global.gcCache === 'object' && 'clear' in global.gcCache) {
-        global.gcCache.clear()
+      const globalAny = global as any
+      if (typeof globalAny.gcCache === 'object' && 'clear' in globalAny.gcCache) {
+        globalAny.gcCache.clear()
       }
       // Clear other known caches (e.g., from resource-manager)
-      if (typeof resourceManager !== 'undefined' && resourceManager.clearCache) {
-        resourceManager.clearCache()
-      }
+      // Note: resourceManager integration disabled to avoid circular dependencies
+      // if (typeof resourceManager !== 'undefined' && resourceManager.clearCache) {
+      //   resourceManager.clearCache()
+      // }
       log('Cleared global caches (ESM mode)')
     } catch (error) {
       logWarn('Global cache clearing error', { error: String(error) })

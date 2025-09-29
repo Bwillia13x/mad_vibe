@@ -202,7 +202,7 @@ function sanitizeValue(value: unknown, maxDepth: number = 10): SanitizedValue {
   }
 
   if (value === null || value === undefined) {
-    return value
+    return null
   }
 
   if (typeof value === 'string') {
@@ -279,14 +279,14 @@ export function inputValidation(req: SanitizedRequest, res: Response, next: Next
     if (req.query && typeof req.query === 'object') {
       req.sanitizedQuery = sanitizeValue(req.query)
       // Replace original query with sanitized version
-      req.query = req.sanitizedQuery
+      req.query = req.sanitizedQuery as any
     }
 
     // Sanitize URL parameters
     if (req.params && typeof req.params === 'object') {
       req.sanitizedParams = sanitizeValue(req.params)
       // Replace original params with sanitized version
-      req.params = req.sanitizedParams
+      req.params = req.sanitizedParams as any
     }
 
     const duration = Date.now() - startTime

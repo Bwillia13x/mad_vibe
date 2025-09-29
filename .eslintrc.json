@@ -11,11 +11,7 @@
     "sourceType": "module",
     "ecmaFeatures": { "jsx": true }
   },
-  "plugins": [
-    "@typescript-eslint",
-    "react",
-    "react-hooks"
-  ],
+  "plugins": ["@typescript-eslint", "react", "react-hooks"],
   "rules": {
     "@typescript-eslint/no-unused-vars": [
       "warn",

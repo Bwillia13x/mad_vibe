@@ -13,6 +13,7 @@ import {
   IconSpark,
   IconBolt,
   IconCopy,
+  IconTool,
   cn
 } from '@/lib/workbench-ui.tsx'
 import { Separator } from '@/components/ui/separator'

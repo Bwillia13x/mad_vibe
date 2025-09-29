@@ -417,14 +417,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const mapAnalytics = (analytics: AnalyticsRecord) => {
     const topServices = Array.isArray(analytics.topServices)
-      ? analytics.topServices.map((entry) => {
+      ? analytics.topServices.map((entry: any) => {
           if (!isRecord(entry)) return entry
           return { ...entry, revenue: toNumber(entry.revenue) }
         })
       : analytics.topServices
 
     const staffPerformance = Array.isArray(analytics.staffPerformance)
-      ? analytics.staffPerformance.map((entry) => {
+      ? analytics.staffPerformance.map((entry: any) => {
           if (!isRecord(entry)) return entry
           return {
             ...entry,
@@ -620,7 +620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         s.discount ?? '',
         s.tax ?? '',
         s.total,
-        (s.items || []).map((i) => `${i.kind}:${i.name}x${i.quantity}@${i.unitPrice}`).join('; ')
+        (s.items || []).map((i: any) => `${i.kind}:${i.name}x${i.quantity}@${i.unitPrice}`).join('; ')
       ])
       const csv = [header.join(','), ...rows.map((r) => r.join(','))].join('\n')
       res.setHeader('Content-Type', 'text/csv')

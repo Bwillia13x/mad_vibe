@@ -3,6 +3,7 @@ import { type StageGateChecklistItem, type WorkflowStage, workflowStages } from 
 import type { ResearchLogEntry, ResearchLogInput } from '@shared/types'
 
 export type StageStatus = 'locked' | 'in-progress' | 'complete'
+export type { WorkflowStage } from '@/lib/workflow'
 
 const STORAGE_KEY = 'valor-workflow-state'
 
