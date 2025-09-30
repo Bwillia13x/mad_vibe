@@ -47,6 +47,24 @@ ADMIN_TOKEN=your-secure-admin-token-here-min-32-chars
 - [x] **Authentication Flow**: Session-based auth with secure tokens
 - [x] **Authorization**: Role-based access control implemented
 
+### **Known Security Advisories** ⚠️
+
+#### npm Audit Findings (as of 2025-09-29)
+
+- **Severity**: 4 moderate vulnerabilities
+- **Affected Package**: `esbuild` <=0.24.2 (via `@esbuild-kit/core-utils` → `@esbuild-kit/esm-loader` → `drizzle-kit`)
+- **Advisory**: [GHSA-67mh-4wv8-2f99](https://github.com/advisories/GHSA-67mh-4wv8-2f99) - esbuild enables any website to send requests to development server
+- **Impact**: Dev-time CLI tool only; does not affect production runtime
+- **Mitigation Status**:
+  - `drizzle-kit` upgraded to `0.31.5` (latest stable)
+  - Upstream dependency (`@esbuild-kit/esm-loader`) still pins vulnerable `esbuild` `~0.18.20`
+  - `npm audit fix --force` would downgrade `drizzle-kit` to `0.18.1` (breaking change, still vulnerable)
+- **Risk Assessment**: **LOW** - Vulnerability only affects development server; does not impact production builds or runtime
+- **Recommendation**:
+  - Monitor `drizzle-kit` releases for updated `@esbuild-kit` dependencies
+  - Avoid exposing `drizzle-kit` dev server to untrusted networks
+  - No production deployment blocker; document and track for future resolution
+
 ## ⚡ **Performance Optimization** (Status: ✅ Complete)
 
 ### **Performance Achievements** ✅

@@ -8,7 +8,7 @@ import {
   workflowMonitoringStates
 } from '../../lib/db/schema'
 import { log } from '../../lib/log'
-import { requireAuth } from '../middleware/auth'
+import { optionalAuth } from '../middleware/auth'
 
 type SessionTable =
   | typeof workflowMemoStates
@@ -325,7 +325,7 @@ export function createWorkflowRouter(dbOverride: DatabaseClient | null = db as u
   const router = Router()
   const database = dbOverride
 
-  router.use(requireAuth)
+  router.use(optionalAuth)
 
   if (!database || typeof database.select !== 'function' || typeof database.insert !== 'function') {
     log('Workflow router operating in demo mode without database; returning stub responses')

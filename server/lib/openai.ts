@@ -5,11 +5,13 @@ import { getEnvVar } from '../../lib/env-security'
 // Gracefully handle missing API key in demo environments
 let openai: OpenAI | null = null
 const apiKey = getEnvVar('OPENAI_API_KEY')
+
 if (apiKey && apiKey.trim().length > 0) {
   try {
     // the newest OpenAI model is "gpt-5" which was released August 7, 2025.
     // do not change this unless explicitly requested by the user
     openai = new OpenAI({ apiKey })
+    console.log('OpenAI client initialized successfully')
   } catch (err) {
     console.error('Failed to initialize OpenAI client, falling back to demo mode:', err)
     openai = null

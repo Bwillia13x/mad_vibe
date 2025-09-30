@@ -99,22 +99,18 @@ export function WorkflowProvider({ children }: { children: React.ReactNode }) {
 
   const stageStatuses = useMemo(() => {
     const statuses: Record<string, StageStatus> = {}
-    let previousComplete = true
 
     workflowStages.forEach((stage) => {
       const checklist = stage.gateChecklist
       const stageState = checklists[stage.slug] ?? {}
       const allDone = checklist.length === 0 || checklist.every((item) => stageState[item.id])
 
-      if (!previousComplete && stage.id !== 0) {
-        statuses[stage.slug] = 'locked'
-      } else if (allDone) {
+      // All stages are unlocked - no sequential progression required
+      if (allDone) {
         statuses[stage.slug] = 'complete'
       } else {
         statuses[stage.slug] = 'in-progress'
       }
-
-      previousComplete = previousComplete && allDone
     })
 
     return statuses
@@ -130,8 +126,7 @@ export function WorkflowProvider({ children }: { children: React.ReactNode }) {
 
   const setActiveStage = useCallback(
     (slug: string) => {
-      const status = stageStatuses[slug]
-      if (status === 'locked' || slug === activeSlug) return
+      if (slug === activeSlug) return
       const stage = workflowStages.find((entry) => entry.slug === slug)
       if (!stage) return
       setActiveSlug(slug)
@@ -141,7 +136,7 @@ export function WorkflowProvider({ children }: { children: React.ReactNode }) {
         action: 'Stage opened'
       })
     },
-    [activeSlug, logEvent, stageStatuses]
+    [activeSlug, logEvent]
   )
 
   const ensureStageState = useCallback((stageSlug: string) => {

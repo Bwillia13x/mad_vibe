@@ -74,37 +74,37 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
           <nav className="flex items-center gap-1">
             {navItems.map((item) => (
-              <Link key={item.label} href={item.href}>
-                <a
-                  onMouseEnter={() => {
-                    // Prefetch common queries when user hovers a nav item
-                    if (item.href.startsWith('/analytics')) {
-                      queryClient.prefetchQuery({ queryKey: ['/api/analytics'] })
-                      queryClient.prefetchQuery({ queryKey: ['/api/marketing/campaigns'] })
-                    } else if (
-                      item.href.startsWith('/inventory') ||
-                      item.href.startsWith('/staff') ||
-                      item.href.startsWith('/scheduling') ||
-                      item.href.startsWith('/loyalty') ||
-                      item.href.startsWith('/marketing') ||
-                      item.href.startsWith('/pos')
-                    ) {
-                      queryClient.prefetchQuery({ queryKey: ['/api/inventory'] })
-                      queryClient.prefetchQuery({ queryKey: ['/api/appointments', 'today'] })
-                      queryClient.prefetchQuery({ queryKey: ['/api/loyalty/entries'] })
-                      queryClient.prefetchQuery({ queryKey: ['/api/marketing/campaigns'] })
-                    }
-                  }}
-                  className={cn(
-                    'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition',
-                    item.match(location)
-                      ? 'border-violet-600/50 bg-violet-600/20 text-violet-200 shadow-[0_0_12px_rgba(99,102,241,0.35)]'
-                      : 'border-transparent text-slate-300 hover:bg-slate-900/70'
-                  )}
-                >
-                  {item.icon}
-                  {item.label}
-                </a>
+              <Link
+                key={item.label}
+                href={item.href}
+                onMouseEnter={() => {
+                  // Prefetch common queries when user hovers a nav item
+                  if (item.href.startsWith('/analytics')) {
+                    queryClient.prefetchQuery({ queryKey: ['/api/analytics'] })
+                    queryClient.prefetchQuery({ queryKey: ['/api/marketing/campaigns'] })
+                  } else if (
+                    item.href.startsWith('/inventory') ||
+                    item.href.startsWith('/staff') ||
+                    item.href.startsWith('/scheduling') ||
+                    item.href.startsWith('/loyalty') ||
+                    item.href.startsWith('/marketing') ||
+                    item.href.startsWith('/pos')
+                  ) {
+                    queryClient.prefetchQuery({ queryKey: ['/api/inventory'] })
+                    queryClient.prefetchQuery({ queryKey: ['/api/appointments', 'today'] })
+                    queryClient.prefetchQuery({ queryKey: ['/api/loyalty/entries'] })
+                    queryClient.prefetchQuery({ queryKey: ['/api/marketing/campaigns'] })
+                  }
+                }}
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition',
+                  item.match(location)
+                    ? 'border-violet-600/50 bg-violet-600/20 text-violet-200 shadow-[0_0_12px_rgba(99,102,241,0.35)]'
+                    : 'border-transparent text-slate-300 hover:bg-slate-900/70'
+                )}
+              >
+                {item.icon}
+                {item.label}
               </Link>
             ))}
           </nav>

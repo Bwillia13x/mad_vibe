@@ -5,6 +5,7 @@ import { lazy, Suspense } from 'react'
 
 // Lazy load stage components
 const HomeDailyBrief = lazy(() => import('./stages/HomeDailyBrief').then(module => ({ default: module.HomeDailyBrief })))
+const HomeIdeaWorkspace = lazy(() => import('./stages/HomeIdeaWorkspace').then(module => ({ default: module.HomeIdeaWorkspace })))
 const IntakeOnePagerDraft = lazy(() => import('./stages/IntakeOnePagerDraft').then(module => ({ default: module.IntakeOnePagerDraft })))
 const PairAnalystOmniPrompt = lazy(() => import('./stages/PairAnalystOmniPrompt').then(module => ({ default: module.PairAnalystOmniPrompt })))
 const WatchlistsPortfolios = lazy(() => import('./stages/WatchlistsPortfolios').then(module => ({ default: module.WatchlistsPortfolios })))
@@ -102,6 +103,11 @@ export const buildStageTabs = (stage: WorkflowStage): WorkbenchTab[] => {
   switch (stage.slug) {
     case 'home':
       return [
+        {
+          id: 'idea-workspace',
+          label: 'Idea Workspace',
+          content: <HomeIdeaWorkspace />
+        },
         {
           id: 'daily-brief',
           label: 'Daily Brief',

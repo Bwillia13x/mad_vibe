@@ -16,7 +16,7 @@ export interface WorkflowStageViewProps {
 }
 
 export function WorkflowStageView({ stageSlug }: WorkflowStageViewProps) {
-  const { stages, stageStatuses, activeStage, setActiveStage } = useWorkflow()
+  const { stages, activeStage, setActiveStage } = useWorkflow()
   const [, setLocation] = useLocation()
   const [promptOpen, setPromptOpen] = useState(false)
 
@@ -28,20 +28,10 @@ export function WorkflowStageView({ stageSlug }: WorkflowStageViewProps) {
       return
     }
 
-    const status = stageStatuses[stage.slug]
-    if (status === 'locked') {
-      const fallback = stages.find((entry) => stageStatuses[entry.slug] !== 'locked') ?? stages[0]
-      if (stageSlug !== fallback.slug) {
-        setLocation(`/${fallback.slug}`, { replace: true })
-      }
-      if (fallback.slug !== activeStage.slug) setActiveStage(fallback.slug)
-      return
-    }
-
     if (stage.slug !== activeStage.slug) {
       setActiveStage(stage.slug)
     }
-  }, [activeStage.slug, setActiveStage, setLocation, stageSlug, stageStatuses, stages])
+  }, [activeStage.slug, setActiveStage, setLocation, stageSlug, stages])
 
   const tabs = useMemo(() => buildStageTabs(activeStage), [activeStage])
 

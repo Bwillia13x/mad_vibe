@@ -1,3 +1,6 @@
+// Load environment variables from .env file FIRST
+import 'dotenv/config'
+
 import express, { type Request, Response, NextFunction } from 'express'
 import session from 'express-session'
 import fs from 'fs'
@@ -6,6 +9,7 @@ import { setupVite, serveStatic, log } from './vite'
 import { getEnvVar } from '../lib/env-security'
 import { enhancedErrorHandler } from './middleware/error-handling'
 import { requestThrottler } from './middleware/request-throttling'
+import { createSecurityHeadersMiddleware } from './middleware/security-headers'
 import { resourceManager } from '../lib/resource-manager'
 import { performanceMonitor } from '../lib/performance-monitor'
 import { performanceOptimizer } from '../lib/performance-optimizer'
@@ -21,6 +25,9 @@ const app = express()
 // Configure Express for better performance under load
 app.set('trust proxy', 1) // Trust first proxy for proper IP detection
 app.set('x-powered-by', false) // Remove X-Powered-By header for security
+
+// Apply security headers middleware first
+app.use(createSecurityHeadersMiddleware())
 
 // Apply request throttling middleware early in the stack
 app.use(requestThrottler.middleware())

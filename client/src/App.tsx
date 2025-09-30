@@ -20,6 +20,8 @@ import NotFoundPage from '@/pages/not-found'
 import { AppShell } from '@/components/layout/AppShell'
 import { workflowStages } from '@/lib/workflow'
 import { useWorkflow } from '@/hooks/useWorkflow'
+import { FloatingAIAssistant } from '@/components/ai/FloatingAIAssistant'
+import { KeyboardShortcutsOverlay } from '@/components/ui/KeyboardShortcutsOverlay'
 
 function RedirectToHome() {
   const [, navigate] = useLocation()
@@ -68,7 +70,7 @@ function Router() {
   )
 }
 
-function App() {
+function AppContent() {
   const { activeStage, setActiveStage } = useWorkflow()
   const [, navigate] = useLocation()
 
@@ -98,16 +100,24 @@ function App() {
   }, [activeStage.slug, navigate, setActiveStage])
 
   return (
+    <ScreenerProvider>
+      <TooltipProvider>
+        <AppShell>
+          <Router />
+        </AppShell>
+        <FloatingAIAssistant />
+        <KeyboardShortcutsOverlay />
+        <Toaster />
+      </TooltipProvider>
+    </ScreenerProvider>
+  )
+}
+
+function App() {
+  return (
     <QueryClientProvider client={queryClient}>
       <WorkflowProvider>
-        <ScreenerProvider>
-          <TooltipProvider>
-            <AppShell>
-              <Router />
-            </AppShell>
-            <Toaster />
-          </TooltipProvider>
-        </ScreenerProvider>
+        <AppContent />
       </WorkflowProvider>
     </QueryClientProvider>
   )

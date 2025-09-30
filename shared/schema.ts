@@ -75,7 +75,7 @@ export const staff = pgTable('staff', {
   rating: decimal('rating', { precision: 2, scale: 1 }).notNull().default('4.5'),
   bio: text('bio'),
   avatar: text('avatar'),
-  availability: jsonb('availability').default(sql`{}::jsonb`)
+  availability: jsonb('availability').$defaultFn(() => ({}))
 })
 
 export const scenarioLabStates = pgTable('scenario_lab_states', {

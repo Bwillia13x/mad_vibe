@@ -319,7 +319,9 @@ class EnvironmentSecurityManager {
    * Validate OpenAI API key format
    */
   private isValidOpenAIKey(key: string): boolean {
-    // OpenAI keys start with 'sk-' and are followed by 48 characters
+    // OpenAI keys can be:
+    // - Legacy: sk-[48 chars]
+    // - Project: sk-proj-[longer string with hyphens]
     // Allow placeholder values in development/demo mode
     if (
       key === 'your-api-key' ||
@@ -329,7 +331,8 @@ class EnvironmentSecurityManager {
     ) {
       return true
     }
-    return /^sk-[a-zA-Z0-9]{48}$/.test(key)
+    // Accept both legacy (sk-...) and project keys (sk-proj-...)
+    return /^sk-[a-zA-Z0-9_-]{20,}$/.test(key)
   }
 
   /**

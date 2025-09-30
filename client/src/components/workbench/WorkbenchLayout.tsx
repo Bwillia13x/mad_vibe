@@ -7,8 +7,11 @@ import { Button } from '@/components/ui/button'
 import { useWorkflow } from '@/hooks/useWorkflow'
 import { usePresence } from '@/hooks/usePresence'
 import { useMemoComposer } from '@/hooks/useMemoComposer'
+import { useAICopilot } from '@/hooks/useAICopilot'
 import { explorerObjects } from '@/lib/workflow'
 import { Console, Explorer, Inspector, MemoSyncStatusCard, TopBar, Workbench } from './panels'
+import { AIAssistantPanel } from './AIAssistantPanel'
+import { ContextualHelp } from '@/components/ui/ContextualHelp'
 import type { StageStatus } from './panels'
 
 export type WorkbenchTab = {
@@ -63,6 +66,15 @@ export function WorkbenchLayout({
   const enableRemotePromptHistory = true
 
   const [activeTab, setActiveTab] = useState(() => tabs[0]?.id ?? 'main')
+
+  // AI Copilot integration
+  const { suggestions, availablePrompts, dismissSuggestion } = useAICopilot({
+    stageSlug: activeStage.slug,
+    stageTitle: activeStage.title,
+    activeTab,
+    currentData: {},
+    recentActions: []
+  })
   const [promptHistory, setPromptHistory] = useState<PromptHistoryEntry[]>(() => {
     try {
       const raw = localStorage.getItem('workbench_prompt_history')
@@ -90,16 +102,17 @@ export function WorkbenchLayout({
   })
   const [consoleCollapsed, setConsoleCollapsed] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('workbench_console_collapsed') === '1'
+      const saved = localStorage.getItem('workbench_console_collapsed')
+      return saved === null ? true : saved === '1' // Default to collapsed (true) if not set
     } catch {
-      return false
+      return true // Default to collapsed
     }
   })
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try {
-      return localStorage.getItem('workbench_onboarding_shown') !== 'true'
+      return false // Default to not showing onboarding
     } catch {
-      return true
+      return false
     }
   })
 
@@ -296,6 +309,7 @@ export function WorkbenchLayout({
 
   return (
     <div className="flex h-screen w-full flex-col bg-slate-950 text-slate-100">
+      <ContextualHelp stageName={activeStage.slug} />
       {showOnboarding && (
         <div className="fixed top-4 right-4 z-50">
           <Tooltip open={showOnboarding}>
@@ -375,6 +389,14 @@ export function WorkbenchLayout({
               presenceLabel={presenceSummary}
               inspectorExtras={combinedInspectorExtras}
               aiModes={activeStage.aiModes ?? []}
+              aiAssistantPanel={
+                <AIAssistantPanel
+                  suggestions={suggestions}
+                  availablePrompts={availablePrompts}
+                  onDismiss={dismissSuggestion}
+                  onPromptSelect={handlePromptSubmit}
+                />
+              }
               onPromptShortcut={handlePromptSubmit}
             />
           </div>

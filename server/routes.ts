@@ -2,6 +2,7 @@ import type { Express } from 'express'
 import { createServer, type Server } from 'http'
 import { storage } from './storage'
 import chatRouter from './routes/chat'
+import aiCopilotRouter from './routes/ai-copilot'
 import { createWorkflowRouter } from './routes/workflow'
 import { getNow, setFreeze, getFreeze } from './lib/clock'
 import { rateLimitedAuth, type AuthenticatedRequest } from './middleware/auth'
@@ -86,6 +87,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Add chat route for AI business assistant
   app.use('/api', chatRouter)
+
+  // AI Copilot endpoints
+  app.use('/api', aiCopilotRouter)
 
   // Workflow research log endpoints
   app.use('/api/workflow', createWorkflowRouter())

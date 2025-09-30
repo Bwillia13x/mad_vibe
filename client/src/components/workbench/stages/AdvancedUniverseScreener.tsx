@@ -5,8 +5,8 @@
 
 import React, { useCallback, useState } from 'react'
 import { ScreenerCompany } from '@/hooks/useScreener'
-import { MemoizedCard, MemoizedTag, ProgressBar, cls } from '@/lib/workbench-ui.tsx'
-import type { PaletteKey } from '@/lib/workbench-ui.tsx'
+import { MemoizedCard, MemoizedTag, ProgressBar, cls } from '@/lib/workbench-ui'
+import type { PaletteKey } from '@/lib/workbench-ui'
 import { useScreener } from '@/hooks/useScreener'  // Use the updated hook
 
 const ChipScore = React.memo<{ n?: number; label?: string; tone?: PaletteKey }>(
