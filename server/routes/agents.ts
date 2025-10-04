@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { optionalAuth } from '../middleware/auth'
+import { optionalAuth, type AuthenticatedRequest } from '../middleware/auth'
 import { agentOrchestrator, type AgentTaskType } from '../../lib/agents/orchestrator'
 
 const router = Router()
@@ -77,7 +77,7 @@ router.get('/agents/workspaces/:workspaceId/tasks', async (req, res) => {
 /**
  * Start task execution
  */
-router.post('/agents/tasks/:taskId/start', async (req, res) => {
+router.post('/agents/tasks/:taskId/start', async (req: AuthenticatedRequest, res) => {
   try {
     const { taskId } = req.params
 
@@ -99,7 +99,7 @@ router.post('/agents/tasks/:taskId/start', async (req, res) => {
 /**
  * Pause task execution
  */
-router.post('/agents/tasks/:taskId/pause', async (req, res) => {
+router.post('/agents/tasks/:taskId/pause', async (req: AuthenticatedRequest, res) => {
   try {
     const { taskId } = req.params
     agentOrchestrator.pauseTask(taskId)

@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { Bot, X, Minimize2, Maximize2, Send, Sparkles, RotateCcw } from 'lucide-react'
+import { Bot, X, Minimize2, Maximize2, Send, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useWorkflow } from '@/hooks/useWorkflow'
 import { useWorkspaceContext } from '@/hooks/useWorkspaceContext'
 import { fetchConversations, createMessage } from '@/lib/workspace-api'
-import type { ConversationMessage } from '@shared/types'
 
 interface Message {
   id: string
@@ -20,7 +19,7 @@ export function FloatingAIAssistant() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+  const [_isLoadingHistory, setIsLoadingHistory] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { activeStage } = useWorkflow()
   const { currentWorkspace } = useWorkspaceContext()
@@ -70,7 +69,7 @@ export function FloatingAIAssistant() {
     }
 
     loadHistory()
-  }, [currentWorkspace?.id, isOpen])
+  }, [currentWorkspace, isOpen])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -163,7 +162,7 @@ export function FloatingAIAssistant() {
     }
   }
 
-  const handleStartFresh = () => {
+  const _handleStartFresh = () => {
     if (confirm('Start a fresh conversation? Previous messages will remain saved.')) {
       setMessages([
         {
