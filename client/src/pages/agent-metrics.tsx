@@ -3,6 +3,33 @@ import { GlassCard } from '@/components/layout/GlassCard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useWorkspaceContext } from '@/hooks/useWorkspaceContext'
 
+interface CostBreakdown {
+  totalCostMicroUsd: number
+  totalTokens: number
+  totalRequests: number
+  byModel: Record<
+    string,
+    {
+      requests: number
+      tokens: number
+      costMicroUsd: number
+      avgLatencyMs: number
+    }
+  >
+  last24h: {
+    costMicroUsd: number
+    requests: number
+  }
+  last7d: {
+    costMicroUsd: number
+    requests: number
+  }
+  last30d: {
+    costMicroUsd: number
+    requests: number
+  }
+}
+
 interface AgentPerformanceMetrics {
   totalTasks: number
   completedTasks: number
@@ -24,6 +51,7 @@ interface AgentPerformanceMetrics {
 export default function AgentMetricsPage() {
   const { currentWorkspace, isLoading: isWorkspaceLoading } = useWorkspaceContext()
   const [metrics, setMetrics] = useState<AgentPerformanceMetrics | null>(null)
+  const [costData, setCostData] = useState<CostBreakdown | null>(null)
   const [periodHours, setPeriodHours] = useState(720)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,10 +66,23 @@ export default function AgentMetricsPage() {
         const params = new URLSearchParams()
         params.set('workspaceId', String(currentWorkspace.id))
         params.set('periodHours', String(periodHours))
-        const res = await fetch(`/api/agent-results/metrics?${params.toString()}`)
-        if (!res.ok) throw new Error(`Failed to load metrics (${res.status})`)
-        const data = (await res.json()) as { metrics: AgentPerformanceMetrics }
-        if (!cancelled) setMetrics(data.metrics)
+
+        // Fetch metrics and cost analytics in parallel
+        const [metricsRes, costRes] = await Promise.all([
+          fetch(`/api/agent-results/metrics?${params.toString()}`),
+          fetch(`/api/agent-results/cost-analytics?${params.toString()}`)
+        ])
+
+        if (!metricsRes.ok) throw new Error(`Failed to load metrics (${metricsRes.status})`)
+        const metricsData = (await metricsRes.json()) as { metrics: AgentPerformanceMetrics }
+
+        if (!cancelled) setMetrics(metricsData.metrics)
+
+        // Cost analytics is optional - may have no data if AI features aren't used
+        if (costRes.ok) {
+          const costResponse = (await costRes.json()) as { costBreakdown: CostBreakdown }
+          if (!cancelled) setCostData(costResponse.costBreakdown)
+        }
       } catch (err) {
         if (!cancelled) {
           const message = err instanceof Error ? err.message : 'Failed to load metrics'
@@ -261,6 +302,64 @@ export default function AgentMetricsPage() {
                 </div>
               )}
             </section>
+
+            {costData && costData.totalRequests > 0 && (
+              <section className="mt-6 pt-6 border-t border-slate-700/50">
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-3">
+                  AI Cost Analytics (OpenAI)
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-4">
+                  <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
+                    <p className="text-xs text-slate-500">Total Cost</p>
+                    <p className="text-lg font-semibold text-violet-400">
+                      ${(costData.totalCostMicroUsd / 1000000).toFixed(4)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
+                    <p className="text-xs text-slate-500">Total Tokens</p>
+                    <p className="text-lg font-semibold text-slate-200">
+                      {costData.totalTokens.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
+                    <p className="text-xs text-slate-500">Requests</p>
+                    <p className="text-lg font-semibold text-slate-200">
+                      {costData.totalRequests.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
+                    <p className="text-xs text-slate-500">Last 24h Cost</p>
+                    <p className="text-lg font-semibold text-emerald-400">
+                      ${(costData.last24h.costMicroUsd / 1000000).toFixed(4)}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">By Model</p>
+                  <div className="space-y-2">
+                    {Object.entries(costData.byModel)
+                      .sort((a, b) => b[1].costMicroUsd - a[1].costMicroUsd)
+                      .map(([model, stats]) => (
+                        <div
+                          key={model}
+                          className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2"
+                        >
+                          <div>
+                            <p className="text-sm font-medium text-slate-200">{model}</p>
+                            <p className="text-xs text-slate-500">
+                              {stats.requests} requests • {stats.tokens.toLocaleString()} tokens •{' '}
+                              {stats.avgLatencyMs}ms avg
+                            </p>
+                          </div>
+                          <p className="text-sm font-semibold text-violet-400">
+                            ${(stats.costMicroUsd / 1000000).toFixed(4)}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </section>
+            )}
           </div>
         )}
       </GlassCard>

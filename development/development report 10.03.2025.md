@@ -413,6 +413,33 @@
 2. **Phase 13 Prep**: SLA automation, escalation rules, batch reassignment
 3. **Production Readiness**: Complete remaining TypeScript fixes, comprehensive E2E coverage
 
+### 2025-10-04 Phase 12B Completion (Cost Analytics)
+
+**Cost Analytics Dashboard:** ✅ COMPLETE
+
+- **Backend**: Created `lib/agents/cost-analytics.ts` with `fetchCostAnalytics()` function
+  - Aggregates AI usage data from `ai_audit_logs` table
+  - Groups costs by model (gpt-5, gpt-4o, gpt-4-turbo)
+  - Calculates period breakdowns (24h, 7d, 30d)
+  - Computes average latency per model
+- **API Endpoint**: `/api/agent-results/cost-analytics?workspaceId&periodHours`
+  - Returns total cost, tokens, requests, and model-specific breakdowns
+  - Integrated into existing agent-results router
+- **UI Integration**: Agent Metrics Dashboard (`/agent-metrics`)
+  - 4 KPI tiles: Total Cost, Total Tokens, Requests, Last 24h Cost
+  - Model breakdown section with cost/tokens/latency per model
+  - Conditional rendering (only shows when AI features are used)
+  - Violet accent colors for cost values, emerald for recent activity
+  - Automatically fetches alongside performance metrics
+
+**Phase 12B Status:**
+
+**✅ Complete:**
+
+- Cost analytics API and backend logic
+- Dashboard UI integration with model breakdowns
+- Period-based cost tracking (24h, 7d, 30d)
+
 ### Milestones
 
 - **M1 (Oct 20)**: TypeScript cleanup complete, all errors resolved _(in progress)_
