@@ -66,10 +66,12 @@ export function ScenarioLabProvider({ children }: { children: React.ReactNode })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadState().then(loadedState => {
-      setState(loadedState)
-      setLoading(false)
-    }).catch(() => setLoading(false))
+    loadState()
+      .then((loadedState) => {
+        setState(loadedState)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
   }, [])
 
   useEffect(() => {

@@ -5,19 +5,34 @@ import { getEnvVar } from '../../lib/env-security'
 // Gracefully handle missing API key in demo environments
 let openai: OpenAI | null = null
 const apiKey = getEnvVar('OPENAI_API_KEY')
+const resolvedApiKey = typeof apiKey === 'string' && apiKey.length > 0 ? apiKey : undefined
+const configuredAiMode = (getEnvVar('AI_MODE') as string | undefined)?.toLowerCase()
 
-if (apiKey && apiKey.trim().length > 0) {
+let aiMode: 'demo' | 'live'
+if (configuredAiMode === 'demo' || configuredAiMode === 'live') {
+  aiMode = configuredAiMode
+} else {
+  aiMode = resolvedApiKey ? 'live' : 'demo'
+}
+
+if (aiMode === 'live' && resolvedApiKey) {
   try {
     // the newest OpenAI model is "gpt-5" which was released August 7, 2025.
     // do not change this unless explicitly requested by the user
-    openai = new OpenAI({ apiKey })
+    openai = new OpenAI({ apiKey: resolvedApiKey })
     console.log('OpenAI client initialized successfully')
   } catch (err) {
     console.error('Failed to initialize OpenAI client, falling back to demo mode:', err)
     openai = null
   }
 } else {
-  console.warn('OPENAI_API_KEY not set. AI features will run in demo mode with fallback responses.')
+  if (aiMode === 'demo') {
+    console.warn('AI_MODE set to demo. AI features will run in demo mode with fallback responses.')
+  } else {
+    console.warn(
+      'OPENAI_API_KEY not set. AI features will run in demo mode with fallback responses.'
+    )
+  }
 }
 
 export interface BusinessChatMessage {
@@ -25,57 +40,77 @@ export interface BusinessChatMessage {
   content: string
 }
 
-export async function generateBusinessResponse(
-  messages: BusinessChatMessage[],
+export interface GenerateBusinessResponseOptions {
   businessContext?: string
-): Promise<string> {
-  const systemPrompt: BusinessChatMessage = {
-    role: 'system',
-    content: `You are an AI business assistant for Andreas For Men, Calgary's premier men's grooming destination located in Bridgeland. You have intimate knowledge of the barbershop's daily operations and can provide real-time business insights.
+  systemPromptOverride?: string
+  includeDefaultSystemPrompt?: boolean
+}
 
-**BUSINESS INFORMATION:**
-- Name: Andreas For Men
-- Location: 1234 1 Avenue NE, Bridgeland, Calgary, AB T2E 0B2
-- Phone: (403) 555-CUTS
-- Email: info@andreasformen.ca
-- Website: https://www.andreasformen.ca
-- Specializes in sophisticated men's grooming with traditional barbering techniques and modern style
+function buildDefaultSystemPrompt(businessContext?: string): string {
+  return (
+    `You are an AI equity-research copilot embedded in the MadLab value-investing IDE. ` +
+    `You work alongside human analysts to progress ideas from screening through ` +
+    `valuation, memo drafting, and position sizing. Ground every answer in fundamental ` +
+    `analysis and disciplined capital allocation.
 
-**YOUR CAPABILITIES:**
-- Scheduling and appointment management
-- Real-time inventory tracking and stock management
-- Staff coordination, availability, and performance monitoring
-- Business analytics and financial insights
-- Customer preferences and service recommendations
-- Administrative tasks and operational efficiency
+**WHAT YOU KNOW:**
+- Pipeline companies, normalized financials, scenario models, and monitoring triggers are ` +
+    `kept in the workspace context provided below.
+- Analysts expect market-agnostic, skeptical thinking with explicit acknowledgment of data ` +
+    `quality, assumptions, and margin-of-safety requirements.
+- The research mandate is long-term value creation with a focus on ROIC, free-cash-flow ` +
+    `durability, balance sheet resilience, and downside protection.
 
-**CURRENT BUSINESS CONTEXT:**
-${businessContext || 'No current business data available.'}
+**CURRENT WORK CONTEXT:**
+${businessContext || 'No additional context supplied.'}
 
 **RESPONSE GUIDELINES:**
-- Use real business data when available to provide specific, actionable insights
-- Reference actual appointments, inventory levels, staff schedules, and performance metrics
-- Maintain a professional, knowledgeable tone as if you're an integral part of the business
-- When discussing staff, use their actual names and specialties
-- For inventory questions, reference actual stock levels and suggest reordering when appropriate
-- For scheduling questions, check real availability and appointment data
-- Always be supportive, solution-oriented, and focused on business success`
+- Cite the metrics, scenarios, or checklist items you are using.
+- Call out gaps, missing data, or risks that would block a decision.
+- Recommend next analytical steps or diligence items when confidence is low.
+- Stay concise, professional, and action-oriented.`
+  )
+}
+
+export async function generateBusinessResponse(
+  messages: BusinessChatMessage[],
+  businessContext?: string,
+  options?: GenerateBusinessResponseOptions
+): Promise<string> {
+  const resolvedBusinessContext =
+    options?.businessContext !== undefined ? options.businessContext : businessContext
+
+  const includeDefaultSystemPrompt =
+    options?.includeDefaultSystemPrompt ?? !options?.systemPromptOverride
+
+  const allMessages: BusinessChatMessage[] = [...messages]
+
+  if (options?.systemPromptOverride) {
+    allMessages.unshift({
+      role: 'system',
+      content: options.systemPromptOverride
+    })
   }
 
-  const allMessages = [systemPrompt, ...messages]
+  if (includeDefaultSystemPrompt) {
+    allMessages.unshift({
+      role: 'system',
+      content: buildDefaultSystemPrompt(resolvedBusinessContext)
+    })
+  }
 
   // List of models to try in order of preference
   const modelsToTry = ['gpt-5', 'gpt-4o', 'gpt-4-turbo', 'gpt-4']
 
-  // Fallback early if OpenAI isn't configured
-  if (!openai) {
+  // Fallback early if OpenAI isn't configured or demo mode is active
+  if (!openai || aiMode === 'demo') {
     console.log('OpenAI not configured. Returning non-AI demo response.')
-    const hint = businessContext
-      ? ' Here’s current business context I can use: ' + businessContext.slice(0, 300)
+    const hint = resolvedBusinessContext
+      ? ' Here’s current business context I can use: ' + resolvedBusinessContext.slice(0, 300)
       : ''
     return (
-      "I'm ready to help you with your business management needs! " +
-      'I can assist with scheduling, inventory, staff coordination, analytics, and more.' +
+      "I'm ready to help progress the investment workflow. " +
+      'I can discuss screening filters, valuation assumptions, memo checkpoints, and risk monitors.' +
       hint
     )
   }
@@ -112,12 +147,16 @@ ${businessContext || 'No current business data available.'}
 
   // Fallback response if all models fail
   console.log('All non-streaming models failed, providing fallback response')
-  return "I'm ready to help you with your business management needs! I can assist with scheduling, inventory, staff coordination, analytics, and more. What would you like to work on today?"
+  return (
+    "I'm ready to help progress the investment workflow. " +
+    'I can outline screening ideas, valuation checkpoints, memo tasks, and risk monitors. ' +
+    'What should we tackle next?'
+  )
 }
 
 export async function analyzeBusinessData(data: string, analysisType: string): Promise<string> {
-  if (!openai) {
-    return 'Demo mode: AI analysis is unavailable without an API key. Based on the data provided, consider monitoring appointment utilization, staff performance, inventory turnover, and customer satisfaction to identify quick wins.'
+  if (!openai || aiMode === 'demo') {
+    return 'Demo mode: AI analysis disabled. Review ROIC trends, owner earnings bridges, leverage, and downside cases manually before updating the investment memo.'
   }
   try {
     const response = await openai.chat.completions.create({
@@ -125,11 +164,13 @@ export async function analyzeBusinessData(data: string, analysisType: string): P
       messages: [
         {
           role: 'system',
-          content: `You are a business analytics expert for Andreas For Men, a premium barbershop in Calgary. Analyze the provided data and provide insights for ${analysisType}. Focus on actionable recommendations and key metrics specific to the barbering industry. Consider factors like appointment utilization, staff performance, inventory turnover, and customer satisfaction.`
+          content:
+            `You are a fundamental equity analyst. Evaluate the provided dataset for ${analysisType}. ` +
+            'Discuss unit economics, capital allocation, downside protection, and margin of safety. '
         },
         {
           role: 'user',
-          content: `Please analyze this Andreas For Men business data for ${analysisType}:\n\n${data}`
+          content: `Please analyze this investment research data for ${analysisType}:\n\n${data}`
         }
       ],
       max_completion_tokens: 400
@@ -137,7 +178,73 @@ export async function analyzeBusinessData(data: string, analysisType: string): P
 
     return response.choices[0].message.content || 'Unable to analyze the data at this time.'
   } catch (error) {
-    console.error('Business analysis error:', error)
+    console.error('Investment analysis error:', error)
     return "I'm having trouble analyzing the data right now. Please try again."
   }
+}
+
+// Screener helper: parse natural language query into filters with AI when live, else heuristic
+export interface ScreenerFilters {
+  roicMin?: number
+  fcfYieldMin?: number
+  leverageMax?: number
+  sector?: string
+  geo?: string
+}
+
+export async function parseScreenerFilters(query: string): Promise<ScreenerFilters> {
+  const defaults: ScreenerFilters = {}
+
+  if (!openai || aiMode === 'demo') {
+    // Heuristic parser for demo/test environments
+    const q = query.toLowerCase()
+    const num = (m: RegExpMatchArray | null) => (m ? Number(m[1]) : undefined)
+
+    const roicMin = num(q.match(/roic[^0-9]*([0-9]{1,2}(?:\.[0-9]+)?)/))
+    const fcfYieldMin = num(q.match(/fcf\s*yield[^0-9]*([0-9]{1,2}(?:\.[0-9]+)?)/))
+    const leverageMax = num(q.match(/leverage[^0-9-]*(-?[0-9]{1,2}(?:\.[0-9]+)?)/))
+    const sector = (q.match(/sector\s*[:=]\s*([a-z]+)/) || [])[1]
+    const geo = (q.match(/geo\s*[:=]\s*([a-z]+)/) || [])[1]
+
+    return {
+      ...(roicMin !== undefined ? { roicMin } : {}),
+      ...(fcfYieldMin !== undefined ? { fcfYieldMin } : {}),
+      ...(leverageMax !== undefined ? { leverageMax } : {}),
+      ...(sector ? { sector } : {}),
+      ...(geo ? { geo } : {})
+    }
+  }
+
+  try {
+    const modelsToTry = ['gpt-5', 'gpt-4o', 'gpt-4-turbo']
+    const prompt = `Parse this natural language stock screener query into JSON filters. Keys: roicMin, fcfYieldMin, leverageMax, sector, geo. Use null or omit if unspecified. Query: "${query}"`
+
+    for (const model of modelsToTry) {
+      try {
+        const response = await openai.chat.completions.create({
+          model,
+          messages: [
+            {
+              role: 'system',
+              content:
+                'You are a stock screener AI. Respond only with strict JSON containing optional keys roicMin, fcfYieldMin, leverageMax, sector, geo.'
+            },
+            { role: 'user', content: prompt }
+          ],
+          max_tokens: 200,
+          temperature: 0.1
+        })
+        const content = response.choices[0].message.content
+        if (content) {
+          const parsed = JSON.parse(content) as ScreenerFilters
+          return parsed || defaults
+        }
+      } catch (_err) {
+        // try next model
+        continue
+      }
+    }
+  } catch {}
+
+  return defaults
 }

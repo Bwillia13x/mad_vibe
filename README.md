@@ -1,10 +1,12 @@
+# MAD Vibe - Value Investment IDE
+
+**Professional multi-workspace IDE for value investors**
+
+A modern, AI-powered platform that transforms investment analysis with automated data fetching, conversation memory, and advanced editing tools.
+
 [![CI](https://github.com/Bwillia13x/AndreasVibe/actions/workflows/ci.yml/badge.svg)](https://github.com/Bwillia13x/AndreasVibe/actions/workflows/ci.yml)
 
-Andreas Vibe – Business Management Platform
-
-A demo-ready Express + Vite React application with seeded in-memory data for scheduling, inventory, staff, and analytics. Optional AI assistant integrates with OpenAI when an API key is configured; otherwise, it gracefully falls back to demo responses.
-
-Quick Start
+A production-ready Express + Vite React application for collaborative financial analysis and valuation workflows. Integrates AI-powered research assistance with comprehensive workflow tools for data normalization, owner earnings analysis, valuation modeling, memo composition, scenario planning, and monitoring dashboards.
 
 - Requirements: Node.js 18+ (recommended 20+), npm
 
@@ -22,29 +24,57 @@ Environment Variables
 
 Copy `.env.example` to `.env` and fill as needed:
 
-- `DATABASE_URL` – PostgreSQL connection used for persisting workflow research log entries (e.g., `postgres://valor_user:valorpass@localhost:5432/valor_vibe`). If unset the workflow UI will fall back to local-memory logging only for the current session.
-- `SESSION_SECRET` – required for production-grade session security.
-- `PORT` (optional) – server port (default `5000`).
-- `OPENAI_API_KEY` (optional) – enables live AI responses; without it the assistant stays in demo mode.
+- `PORT` – server port (default `5000`).
+- `SESSION_SECRET` – required for production-grade session security (min length 32 in production).
+- `ADMIN_TOKEN` – required for protected routes. Must be alphanumeric, min 32 chars (production).
+- `DATABASE_URL` or `POSTGRES_URL` – PostgreSQL connection. Required in production; if unset, demo features use in-memory state only.
+- `SESSION_STORAGE` – `postgres` in production to persist sessions (uses connect-pg-simple).
+- `CORS_ORIGIN` – allowed browser origin (e.g., `http://localhost:5173`).
+- `AI_MODE` – `demo` (no external calls) or `live` (requires `OPENAI_API_KEY`).
+- `OPENAI_API_KEY` – only needed when `AI_MODE=live`.
+- `MARKET_DATA_PROVIDER` – `yahoo` (default) or `polygon`.
+- `POLYGON_API_KEY` – required when `MARKET_DATA_PROVIDER=polygon`.
+- Resource thresholds (optional; tune dev noise):
+  - `RM_HEAP_ALERT_THRESHOLD` (percent, default 90)
+  - `RM_MEMORY_THRESHOLD_MB` (MB, default 512)
+
+### Local Postgres for Analyst Data
+
+The screener and workflow APIs expect a Postgres database when you want durable storage.
+
+1. Start Postgres (includes Atlas Precision seed data):
+   ```bash
+   docker compose up -d db
+   ```
+2. Point the app at that instance and seed the research dataset:
+   ```bash
+   export DATABASE_URL=postgres://valor_user:valorpass@localhost:5432/valor_vibe
+   npm run db:seed
+   ```
+3. Launch the application (`npm run dev` or `npm run build && npm start`).
+
+Without `DATABASE_URL`, the API falls back to an in-memory dataset so the IDE remains navigable, but data will reset on restart.
 
 What’s Included
 
 - Server: Express with `/api` routes and structured logging.
 - Client: Vite + React + Tailwind UI (shadcn based components).
-- Data: In-memory store with seeded demo data (services, staff, customers, appointments, inventory, analytics).
-- Workflow research log entries are pre-seeded in Postgres so the new IDE shell renders recent activity on startup.
-- AI Assistant: Optional OpenAI integration with streaming (SSE). Falls back to informative demo responses when no API key is set.
-- Business Tools: Chat, Scheduling, Inventory, Staff, Analytics plus custom POS, Marketing, Loyalty pages.
-- Workflow IDE: Data normalization, owner earnings bridge, valuation workbench, memo composer (Markdown + styled PDF/HTML export with exhibits and reviewer threads), scenario lab, monitoring dashboard.
-- Collaboration niceties: live stage presence indicators and per-stage history timelines for memo work.
+- Data: PostgreSQL for persistent workflow state and research logs; in-memory fallback for development.
+- Market data providers: pluggable architecture with in-memory caching (default 60s) and rate limiting (4 req/s).
+- Workflow research log entries are pre-seeded in Postgres so the IDE shell renders recent activity on startup.
+- AI Assistant: OpenAI integration with streaming (SSE) for research assistance and analysis guidance.
+- Financial Analysis Tools: Data normalization, owner earnings bridge, valuation workbench, memo composer (Markdown + styled PDF/HTML export with exhibits and reviewer threads), scenario lab, monitoring dashboard.
+- Collaboration features: Live stage presence indicators and per-stage history timelines for memo work.
 
-Demo Pages
+Core Workflow Pages
 
-- `/` Chat (AI business assistant)
-- `/pos` POS — checkout with cart, discount/tax presets, printable receipt
-- `/marketing` Campaigns — create/activate/pause, performance charts and metrics
-- `/loyalty` Rewards — add rewards/points, entries, top customers
-- `/scheduling`, `/inventory`, `/staff`, `/analytics`
+- `/` Idea Intake — Research log and initial analysis setup
+- `/normalization` Data Normalization — Financial statement adjustments
+- `/owner-earnings` Owner Earnings Bridge — Calculate normalized cash flows
+- `/valuation` Valuation Workbench — DCF modeling and scenario analysis
+- `/memo` Memo Composer — Structured investment memo with exhibits
+- `/scenario-lab` Scenario Lab — What-if analysis and sensitivity testing
+- `/monitoring` Monitoring Dashboard — Post-investment tracking
 
 Key API Endpoints (demo)
 
@@ -53,6 +83,8 @@ Key API Endpoints (demo)
 - Loyalty: `GET /api/loyalty/entries[?customerId]`, `POST /api/loyalty/entries`
 - Workflow (session-scoped): `GET/PUT /api/workflow/memo-state`, `GET/PUT /api/workflow/normalization-state`, `GET/PUT /api/workflow/valuation-state`, `GET/PUT /api/workflow/monitoring-state`
   - Include the `x-session-key` header on all requests to persist/fetch session state.
+- Workflow research log: `GET/POST /api/workflow/research-log`
+  - Hydrates the Idea Intake “Research Log” card. Requires `ADMIN_TOKEN`; when `DATABASE_URL` is missing the router falls back to in-memory storage (logged at startup) so activity still loads for demos.
 
 Testing
 
@@ -92,7 +124,14 @@ Docker
 - Build image: `docker build -t andreas-vibe .`
 - Run (demo mode): `docker run --rm -p 5000:5000 andreas-vibe`
   - Open `http://localhost:5000`
-- Optional AI: pass `-e OPENAI_API_KEY=...` to enable live AI responses
+- Optional AI: pass `-e AI_MODE=live -e OPENAI_API_KEY=...` to enable live AI responses
+
+Docker Compose
+
+- Start app + Postgres: `docker compose up -d --build`
+  - App: `http://localhost:5000`
+  - DB: `localhost:5432` (user: `valor_user` / pass: `valorpass` / db: `valor_vibe`)
+- The compose file sets `SESSION_STORAGE=postgres` and wires `POSTGRES_URL` to the `db` service for session persistence.
 
 Notes
 
@@ -109,7 +148,7 @@ Browserslist
 
 You may see a `caniuse-lite` “browsers data is old” warning during build. To refresh locally:
 
-```
+```bash
 npm run browserslist:update
 ```
 

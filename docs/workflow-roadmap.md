@@ -14,7 +14,7 @@
 - **Memo Composer**: Section editor, review checklist
 - **Monitoring Dashboard**: Thesis deltas, lessons, alert acknowledgements
 
-## Milestone 3 – Remaining IDE Modules 🔜
+## Milestone 3 – Remaining IDE Modules ✅
 
 1. **IC Memo Export** – polish ✅
    - Rich PDF/HTML template with IC header, exhibit appendix, reviewer thread timeline
@@ -33,11 +33,14 @@
 ## Milestone 4 – Persistence & Collaboration
 
 - Replace browser storage with API endpoints for normalization, valuation, memo, monitoring state
-  - Memo composer state (sections, exhibits, reviewer threads) now persisted via `/api/workflow/memo-state` ✅
-  - Data normalization reconciliation state now persisted via `/api/workflow/normalization-state` ✅
-  - Valuation selections and overrides now persisted via `/api/workflow/valuation-state` ✅
-  - Monitoring acknowledgements and delta overrides now persisted via `/api/workflow/monitoring-state` ✅
-- Multi-user session support with audit history
+- Memo composer state (sections, exhibits, reviewer threads) now persisted via `/api/workflow/memo-state` ✅
+- Data normalization reconciliation state now persisted via `/api/workflow/normalization-state` ✅
+- Valuation selections and overrides now persisted via `/api/workflow/valuation-state` ✅
+- Monitoring acknowledgements and delta overrides now persisted via `/api/workflow/monitoring-state` ✅
+- Multi-user session support with audit history 🔜
+- Shared presence indicators and optimistic locking for concurrent analysts 🔜
+- Reviewer assignment workflow with notification hooks 🔜
+- Audit timeline surfacing persisted activity (workflow edits, exports, approvals) 🔜
 
 ## Milestone 5 – Testing & Deployment
 
@@ -45,10 +48,11 @@
 - CI workflow running `npm run test:workflow`, smoke, lint, typecheck
 - Production database migration scripts, seed/rollback plan
 
-> **Current focus**: Milestone 3 – IC memo export + scenario lab enhancements, then move into persistence and collaboration.
+> **Current focus**: Milestone 4 – Persistence & Collaboration (sessions, audit timeline, reviewer workflow).
 
-### Remaining focus after current update
+### Next phase priorities
 
-- Milestone 3 complete: memo export, scenario lab enhancements, execution automation, and quality governance scorecard.
-- Milestone 4: Next migrate valuation and monitoring contexts to the API layer and introduce shared audit history.
-- Milestone 4+: Extend collaboration stories (multi-user sessions, reviewer assignments) once API groundwork lands.
+- Stand up real-time session presence, optimistic locking, and conflict notifications across memo and valuation workbenches.
+- Implement workspace-level audit timeline with filters, export, and reviewer acknowledgment trail.
+- Ship reviewer assignment workflow, including notifications and status tracking for outstanding reviews.
+- Prepare integration tests and monitoring dashboards needed to graduate Milestone 4 deliverables into Milestone 5 QA.

@@ -1,6 +1,11 @@
 #!/usr/bin/env tsx
 
-import { startTestServer, TestHttpClient, TestDataManager, type TestEnvironment } from '../test/utils/test-environment'
+import {
+  startTestServer,
+  TestHttpClient,
+  TestDataManager,
+  type TestEnvironment
+} from '../test/utils/test-environment'
 import { TestReporter } from '../test/reporting/test-reporter'
 import { SecurityTestSuite } from '../test/security/security-test-suite'
 import { loadTestConfig } from '../test/config/test-config'

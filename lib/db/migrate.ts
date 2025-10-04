@@ -1,11 +1,10 @@
+import 'dotenv/config'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { db, pool } from './index'
 import { log } from '../log'
 
 async function runMigration() {
   try {
-    log('Starting database migration...', { timestamp: new Date().toISOString() })
-
     if (!db || !pool) {
       throw new Error('Database connection is not configured; cannot run migrations.')
     }

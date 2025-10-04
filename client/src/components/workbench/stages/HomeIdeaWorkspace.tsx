@@ -1,5 +1,16 @@
 import { useState, useMemo } from 'react'
-import { TrendingUp, TrendingDown, Calendar, FileText, Newspaper, Sparkles, X, ChevronRight, RefreshCw } from 'lucide-react'
+import { Link, useLocation } from 'wouter'
+import {
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  FileText,
+  Newspaper,
+  Sparkles,
+  X,
+  ChevronRight,
+  RefreshCw
+} from 'lucide-react'
 import { useHomeDashboard } from '@/hooks/useDataStreams'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -9,7 +20,11 @@ import type { IdeaSpark } from '@/services/data-streams'
 
 const cardClasses = 'bg-slate-900/60 border-slate-800 transition-all hover:bg-slate-900/80'
 
-function IdeaSparkCard({ spark, onDismiss, onExplore }: { 
+function IdeaSparkCard({
+  spark,
+  onDismiss,
+  onExplore
+}: {
   spark: IdeaSpark
   onDismiss: () => void
   onExplore: () => void
@@ -21,27 +36,37 @@ function IdeaSparkCard({ spark, onDismiss, onExplore }: {
   }
 
   return (
-    <div className={cn(
-      'relative rounded-lg border border-slate-800 border-l-2 p-4',
-      priorityColors[spark.priority]
-    )}>
+    <div
+      className={cn(
+        'relative rounded-lg border border-slate-800 border-l-2 p-4',
+        priorityColors[spark.priority]
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-violet-400 flex-shrink-0" />
             <h4 className="font-semibold text-slate-100 text-sm">{spark.title}</h4>
           </div>
-          
+
           <p className="text-xs text-slate-400 leading-relaxed">{spark.description}</p>
-          
+
           <div className="flex flex-wrap items-center gap-2">
-            {spark.tickers.map(ticker => (
-              <Badge key={ticker} variant="outline" className="text-xs border-violet-600/50 text-violet-300">
+            {spark.tickers.map((ticker) => (
+              <Badge
+                key={ticker}
+                variant="outline"
+                className="text-xs border-violet-600/50 text-violet-300"
+              >
                 {ticker}
               </Badge>
             ))}
-            {spark.tags.slice(0, 2).map(tag => (
-              <Badge key={tag} variant="outline" className="text-xs border-slate-700 text-slate-400">
+            {spark.tags.slice(0, 2).map((tag) => (
+              <Badge
+                key={tag}
+                variant="outline"
+                className="text-xs border-slate-700 text-slate-400"
+              >
                 {tag}
               </Badge>
             ))}
@@ -76,23 +101,28 @@ function IdeaSparkCard({ spark, onDismiss, onExplore }: {
 }
 
 export function HomeIdeaWorkspace() {
-  const {
-    marketMovers,
-    earnings,
-    filings,
-    news,
-    ideaSparks,
-    refreshAll
-  } = useHomeDashboard()
+  const { marketMovers, earnings, filings, news, ideaSparks, refreshAll } = useHomeDashboard()
 
-  const [selectedView, setSelectedView] = useState<'sparks' | 'movers' | 'calendar' | 'filings' | 'news'>('sparks')
+  const [selectedView, setSelectedView] = useState<
+    'sparks' | 'movers' | 'calendar' | 'filings' | 'news'
+  >('sparks')
+  const [location] = useLocation()
 
   const highPrioritySparks = useMemo(
-    () => ideaSparks.sparks.filter(s => s.priority === 'high'),
+    () => ideaSparks.sparks.filter((s) => s.priority === 'high'),
     [ideaSparks.sparks]
   )
 
-  const isLoading = marketMovers.loading || earnings.loading || filings.loading || news.loading || ideaSparks.loading
+  const isLoading =
+    marketMovers.loading ||
+    earnings.loading ||
+    filings.loading ||
+    news.loading ||
+    ideaSparks.loading
+
+  const isOverviewActive = location.startsWith('/workspace-overview')
+  const isSnapshotsActive = location.includes('#snapshots')
+  const isAuditActive = location.includes('#audit')
 
   return (
     <div className="space-y-6">
@@ -104,16 +134,56 @@ export function HomeIdeaWorkspace() {
             Real-time market signals and investment opportunities
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={refreshAll}
-          disabled={isLoading}
-          className="border-slate-700 text-slate-300"
-        >
-          <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Link href="/workspace-overview">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                'text-xs hover:text-violet-200 transition-colors',
+                isOverviewActive && !isSnapshotsActive && !isAuditActive
+                  ? 'text-violet-200 bg-violet-600/20 border border-violet-500/40'
+                  : 'text-violet-300'
+              )}
+            >
+              View overview
+            </Button>
+          </Link>
+          <Link href="/workspace-overview#snapshots">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                'text-xs text-slate-300 hover:text-slate-200 transition-colors',
+                isSnapshotsActive && 'text-violet-200 bg-violet-600/10 border border-violet-500/20'
+              )}
+            >
+              Snapshots
+            </Button>
+          </Link>
+          <Link href="/workspace-overview#audit">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                'text-xs text-slate-300 hover:text-slate-200 transition-colors',
+                isAuditActive && 'text-violet-200 bg-violet-600/10 border border-violet-500/20'
+              )}
+            >
+              Audit activity
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshAll}
+            disabled={isLoading}
+            className="border-slate-700 text-slate-300"
+          >
+            <RefreshCw className={cn('h-4 w-4 mr-2', isLoading && 'animate-spin')} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -207,7 +277,7 @@ export function HomeIdeaWorkspace() {
                 </CardContent>
               </Card>
             ) : (
-              ideaSparks.sparks.map(spark => (
+              ideaSparks.sparks.map((spark) => (
                 <IdeaSparkCard
                   key={spark.id}
                   spark={spark}
@@ -228,8 +298,11 @@ export function HomeIdeaWorkspace() {
               <CardTitle className="text-sm text-slate-200">Top Market Movers</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {marketMovers.data.map(mover => (
-                <div key={mover.ticker} className="flex items-center justify-between p-3 rounded-lg bg-slate-950/50 border border-slate-800">
+              {marketMovers.data.map((mover) => (
+                <div
+                  key={mover.ticker}
+                  className="flex items-center justify-between p-3 rounded-lg bg-slate-950/50 border border-slate-800"
+                >
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-slate-100">{mover.ticker}</span>
@@ -240,11 +313,15 @@ export function HomeIdeaWorkspace() {
                     <p className="text-xs text-slate-400 mt-1">{mover.reason}</p>
                   </div>
                   <div className="text-right ml-4">
-                    <div className="text-lg font-bold text-slate-100">${mover.price.toFixed(2)}</div>
-                    <div className={cn(
-                      "flex items-center gap-1 text-sm font-semibold",
-                      mover.changePercent > 0 ? "text-emerald-400" : "text-rose-400"
-                    )}>
+                    <div className="text-lg font-bold text-slate-100">
+                      ${mover.price.toFixed(2)}
+                    </div>
+                    <div
+                      className={cn(
+                        'flex items-center gap-1 text-sm font-semibold',
+                        mover.changePercent > 0 ? 'text-emerald-400' : 'text-rose-400'
+                      )}
+                    >
                       {mover.changePercent > 0 ? (
                         <TrendingUp className="h-3 w-3" />
                       ) : (
@@ -265,8 +342,11 @@ export function HomeIdeaWorkspace() {
               <CardTitle className="text-sm text-slate-200">Upcoming Earnings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {earnings.data.map(event => (
-                <div key={event.ticker} className="p-3 rounded-lg bg-slate-950/50 border border-slate-800">
+              {earnings.data.map((event) => (
+                <div
+                  key={event.ticker}
+                  className="p-3 rounded-lg bg-slate-950/50 border border-slate-800"
+                >
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2">
@@ -277,7 +357,8 @@ export function HomeIdeaWorkspace() {
                       </div>
                       <p className="text-xs text-slate-400 mt-1">{event.company}</p>
                       <div className="mt-2 text-xs text-slate-500">
-                        Consensus: ${event.consensus.eps} EPS • ${(event.consensus.revenue / 1e9).toFixed(1)}B Rev
+                        Consensus: ${event.consensus.eps} EPS • $
+                        {(event.consensus.revenue / 1e9).toFixed(1)}B Rev
                       </div>
                     </div>
                     <div className="text-xs text-slate-400">
@@ -296,8 +377,11 @@ export function HomeIdeaWorkspace() {
               <CardTitle className="text-sm text-slate-200">Recent SEC Filings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {filings.data.map(filing => (
-                <div key={`${filing.ticker}-${filing.formType}`} className="p-3 rounded-lg bg-slate-950/50 border border-slate-800">
+              {filings.data.map((filing) => (
+                <div
+                  key={`${filing.ticker}-${filing.formType}`}
+                  className="p-3 rounded-lg bg-slate-950/50 border border-slate-800"
+                >
                   <div className="flex items-start gap-3">
                     <FileText className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
@@ -330,8 +414,11 @@ export function HomeIdeaWorkspace() {
               <CardTitle className="text-sm text-slate-200">Market News</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {news.data.map(item => (
-                <div key={item.id} className="p-3 rounded-lg bg-slate-950/50 border border-slate-800">
+              {news.data.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3 rounded-lg bg-slate-950/50 border border-slate-800"
+                >
                   <div className="flex items-start gap-3">
                     <Newspaper className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
@@ -339,18 +426,19 @@ export function HomeIdeaWorkspace() {
                       <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.summary}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="text-xs text-slate-500">{item.source}</span>
-                        {item.tickers.map(ticker => (
+                        {item.tickers.map((ticker) => (
                           <Badge key={ticker} variant="outline" className="text-xs">
                             {ticker}
                           </Badge>
                         ))}
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={cn(
-                            "text-xs",
-                            item.sentiment === 'positive' && "border-emerald-600/50 text-emerald-400",
-                            item.sentiment === 'negative' && "border-rose-600/50 text-rose-400",
-                            item.sentiment === 'neutral' && "border-slate-700 text-slate-400"
+                            'text-xs',
+                            item.sentiment === 'positive' &&
+                              'border-emerald-600/50 text-emerald-400',
+                            item.sentiment === 'negative' && 'border-rose-600/50 text-rose-400',
+                            item.sentiment === 'neutral' && 'border-slate-700 text-slate-400'
                           )}
                         >
                           {item.sentiment}

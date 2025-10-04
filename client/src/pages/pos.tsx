@@ -221,7 +221,7 @@ export default function POSPage() {
                     <div className="text-left">
                       <div className="font-medium">{s.name}</div>
                       <div className="text-xs text-gray-500">
-                        ${parseFloat(s.price).toFixed(2)} · {s.duration} min
+                        ${parseFloat(String(s.price)).toFixed(2)} · {s.duration} min
                       </div>
                     </div>
                   </Button>

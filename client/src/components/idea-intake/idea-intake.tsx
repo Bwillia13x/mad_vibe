@@ -1,6 +1,8 @@
 import React from 'react'
+import { useLocation } from 'wouter'
 import { useIdeaIntake } from '@/hooks/useIdeaIntake'
 import { InputsSection } from './inputs-section'
+import type { IntakeQuickAction } from './quick-actions'
 import { DisqualifiersSection } from './disqualifiers-section'
 import { WorkSection } from './work-section'
 import { OutputsSection } from './outputs-section'
@@ -10,6 +12,7 @@ import { QUALITY_HINTS } from '@/lib/idea-intake-constants'
 import { IdeaIntakeCard } from '@/components/ui/idea-intake-card'
 
 export function IdeaIntake() {
+  const [, navigate] = useLocation()
   const {
     // State
     prompt,
@@ -25,6 +28,12 @@ export function IdeaIntake() {
     whiteboardNotes,
     currentTime,
     gatePassed,
+    aiDraft,
+    isGenerating,
+    aiError,
+    runQuickAction,
+    insertCopilotDraftIntoThesis,
+    recentLog,
 
     // Actions
     setPrompt,
@@ -45,7 +54,10 @@ export function IdeaIntake() {
         prompt={prompt}
         currentTime={currentTime}
         onPromptChange={setPrompt}
-        onPromptSubmit={submitPrompt}
+        onPromptSubmit={(event) => {
+          event.preventDefault()
+          void submitPrompt()
+        }}
         onKeyDown={handleKeyDown}
       />
 
@@ -62,6 +74,9 @@ export function IdeaIntake() {
             onSourceChange={setSource}
             onWhyNowChange={setWhyNow}
             onThesisChange={setThesis}
+            quickActions={quickActions}
+            onQuickActionSelect={(prompt) => void runQuickAction(prompt)}
+            isGenerating={isGenerating}
           />
 
           <DisqualifiersSection
@@ -80,7 +95,13 @@ export function IdeaIntake() {
 
         {/* Center: Work */}
         <div className="col-span-12 xl:col-span-5">
-          <WorkSection whiteboardNotes={whiteboardNotes} />
+          <WorkSection
+            whiteboardNotes={whiteboardNotes}
+            aiDraft={aiDraft}
+            isGenerating={isGenerating}
+            aiError={aiError}
+            onInsertDraft={insertCopilotDraftIntoThesis}
+          />
         </div>
 
         {/* Right: Outputs */}
@@ -92,6 +113,8 @@ export function IdeaIntake() {
             onNext={submitNext}
             disqualifiers={disqualifiers}
             ticker={ticker}
+            recentLog={recentLog}
+            onViewFullLog={() => navigate('/workbench/intake')}
           />
         </div>
       </div>
@@ -113,3 +136,29 @@ export function IdeaIntake() {
     </div>
   )
 }
+
+const quickActions: IntakeQuickAction[] = [
+  {
+    id: 'triage-summary',
+    label: 'Summarize key factors',
+    prompt:
+      'Provide a concise summary of the idea intake fields (ticker, why now, thesis stub) and list the top 3 factors to confirm before advancing.'
+  },
+  {
+    id: 'risks',
+    label: 'Surface blind spots',
+    prompt:
+      'Given the current idea intake details, identify the top 3 potential blind spots or disqualifiers we should investigate.'
+  },
+  {
+    id: 'diligence',
+    label: 'Suggest diligence next',
+    prompt: 'Recommend the next three diligence tasks, citing why each task matters for this idea.'
+  },
+  {
+    id: 'compare',
+    label: 'Compare to watchlist',
+    prompt:
+      'Compare this idea to the existing watchlist and note whether it should be prioritized, deferred, or dropped.'
+  }
+]

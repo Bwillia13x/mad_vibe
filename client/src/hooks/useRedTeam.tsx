@@ -155,14 +155,33 @@ export function useRedTeam(): UseRedTeamReturn {
     const items: VulnerabilityItem[] = []
     activePlaybooks.forEach((playbook) => {
       if (playbook === 'Attack assumptions') {
-        items.push({ id: 'vuln-assump-margin', label: 'Stress test margin assumptions', completed: false, playbook })
-        items.push({ id: 'vuln-assump-growth', label: 'Validate growth deceleration', completed: false, playbook })
+        items.push({
+          id: 'vuln-assump-margin',
+          label: 'Stress test margin assumptions',
+          completed: false,
+          playbook
+        })
+        items.push({
+          id: 'vuln-assump-growth',
+          label: 'Validate growth deceleration',
+          completed: false,
+          playbook
+        })
       }
       if (playbook === 'Scenario adversary') {
-        items.push({ id: 'vuln-scenario-tail', label: 'Simulate tail risk scenarios', completed: false, playbook })
+        items.push({
+          id: 'vuln-scenario-tail',
+          label: 'Simulate tail risk scenarios',
+          completed: false,
+          playbook
+        })
       }
       if (scope.includes('Accounting')) {
-        items.push({ id: 'vuln-accounting', label: 'Check for aggressive revenue recognition', completed: false })
+        items.push({
+          id: 'vuln-accounting',
+          label: 'Check for aggressive revenue recognition',
+          completed: false
+        })
       }
     })
     setVulnerabilityChecklist(items)
@@ -186,7 +205,10 @@ export function useRedTeam(): UseRedTeamReturn {
   }, [coverage, highOpen])
 
   // Helper simulateValue from useScenarioLab (inline for now)
-  interface ScenarioStateLike { driverValues: Record<string, number>; iterations: number }
+  interface ScenarioStateLike {
+    driverValues: Record<string, number>
+    iterations: number
+  }
   const simulateValue = useCallback((state: ScenarioStateLike): number[] => {
     const { driverValues, iterations } = state
     const results: number[] = []
@@ -232,20 +254,25 @@ export function useRedTeam(): UseRedTeamReturn {
     }
   }, [])
 
-  const togglePlaybook = useCallback(async (playbook: string) => {
-    try {
-      if (!playbook || typeof playbook !== 'string') {
-        throw new Error('Invalid playbook value')
+  const togglePlaybook = useCallback(
+    async (playbook: string) => {
+      try {
+        if (!playbook || typeof playbook !== 'string') {
+          throw new Error('Invalid playbook value')
+        }
+        const newPlaybooks = activePlaybooks.includes(playbook)
+          ? activePlaybooks.filter((p) => p !== playbook)
+          : [...activePlaybooks, playbook]
+        setActivePlaybooks(newPlaybooks)
+        setError(null)
+        setVersion((v) => v + 1)
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Unknown error occurred'
+        setError(message)
       }
-      const newPlaybooks = activePlaybooks.includes(playbook) ? activePlaybooks.filter((p) => p !== playbook) : [...activePlaybooks, playbook]
-      setActivePlaybooks(newPlaybooks)
-      setError(null)
-      setVersion((v) => v + 1)
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unknown error occurred'
-      setError(message)
-    }
-  }, [activePlaybooks])
+    },
+    [activePlaybooks]
+  )
 
   const decideCritique = useCallback((id: number, decision: boolean) => {
     try {
@@ -303,8 +330,6 @@ export function useRedTeam(): UseRedTeamReturn {
   const clearError = useCallback(() => {
     setError(null)
   }, [])
-
-  
 
   return {
     artifact,

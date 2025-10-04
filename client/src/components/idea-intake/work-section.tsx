@@ -6,32 +6,73 @@ import type { WhiteboardNote } from '@/types/idea-intake'
 
 interface WorkSectionProps {
   whiteboardNotes: WhiteboardNote[]
+  aiDraft: string
+  isGenerating: boolean
+  aiError: string | null
+  onInsertDraft: () => void
 }
 
-export const WorkSection = memo(function WorkSection({ whiteboardNotes }: WorkSectionProps) {
+export const WorkSection = memo(function WorkSection({
+  whiteboardNotes,
+  aiDraft,
+  isGenerating,
+  aiError,
+  onInsertDraft
+}: WorkSectionProps) {
   return (
     <div className="space-y-4">
       <IdeaIntakeCard
-        title="Auto‑Draft One‑Pager (preview)"
-        subtitle="AI summary from filings/transcripts; you can edit later"
-        right={<IdeaIntakeTag tone="violet">Draft</IdeaIntakeTag>}
+        title="Draft One‑Pager Snapshot"
+        subtitle="Copilot generated summary from the latest prompt"
+        right={<IdeaIntakeTag tone="violet">Copilot</IdeaIntakeTag>}
       >
-        <div className="text-sm text-slate-300">
-          <p className="mb-2">
-            Business gist, drivers, quick flags, and a rough EPV will appear here. Use the prompt to
-            refine sections or request citations.
-          </p>
-          <div className="grid sm:grid-cols-3 gap-3">
-            {[
-              { k: 'ROIC (10y)', v: '18%' },
-              { k: 'FCF Yield', v: '7.2%' },
-              { k: 'Leverage', v: 'Net cash' }
-            ].map(({ k, v }, i) => (
-              <div key={k} className="bg-slate-950/50 rounded-xl p-3 border border-slate-800">
-                <div className="text-xs text-slate-400 mb-1">{k}</div>
-                <div className="text-lg text-slate-100">{v}</div>
+        <div className="text-sm text-slate-300 space-y-3">
+          {aiError ? (
+            <div className="rounded-lg border border-rose-700 bg-rose-900/20 px-3 py-2 text-rose-200">
+              {aiError}
+            </div>
+          ) : (
+            <div className="min-h-[140px] rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 whitespace-pre-wrap">
+              {isGenerating
+                ? 'Generating updated summary…'
+                : aiDraft ||
+                  'Use the Omni-Prompt to generate a summary of filings, key drivers, and diligence gaps.'}
+            </div>
+          )}
+          <div className="grid sm:grid-cols-3 gap-3 text-xs text-slate-400">
+            <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2">
+              <div className="text-[11px] uppercase text-slate-500">Status</div>
+              <div className="text-sm text-slate-200">
+                {isGenerating
+                  ? 'Working…'
+                  : aiDraft
+                    ? 'Updated from latest prompt'
+                    : 'Awaiting prompt'}
               </div>
-            ))}
+            </div>
+            <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2">
+              <div className="text-[11px] uppercase text-slate-500">Recommended use</div>
+              <div className="text-sm text-slate-200">Paste into memo draft / dossier intro</div>
+            </div>
+            <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2">
+              <div className="text-[11px] uppercase text-slate-500">Tip</div>
+              <div className="text-sm text-slate-200">
+                Ask for gaps, risks, or follow-up diligence
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={isGenerating || !aiDraft.trim()}
+              onClick={() => void onInsertDraft()}
+              className="px-3 py-1.5 rounded-lg border border-violet-500 text-xs text-violet-200 bg-violet-500/10 hover:bg-violet-500/20 transition-colors disabled:opacity-50"
+            >
+              Insert into thesis stub
+            </button>
+            <span className="text-[11px] uppercase text-slate-500 self-center">
+              Adds the draft below the existing thesis field
+            </span>
           </div>
         </div>
       </IdeaIntakeCard>

@@ -7,7 +7,7 @@ import React, { useCallback, useState } from 'react'
 import { ScreenerCompany } from '@/hooks/useScreener'
 import { MemoizedCard, MemoizedTag, ProgressBar, cls } from '@/lib/workbench-ui'
 import type { PaletteKey } from '@/lib/workbench-ui'
-import { useScreener } from '@/hooks/useScreener'  // Use the updated hook
+import { useScreener } from '@/hooks/useScreener' // Use the updated hook
 
 const ChipScore = React.memo<{ n?: number; label?: string; tone?: PaletteKey }>(
   ({ n = 0, label = '', tone = 'slate' }) => {
@@ -124,7 +124,12 @@ export function MadLab_UniverseScreener_Prod() {
   } = useScreener()
 
   const selectedCount = selectedCompanies.length
-  const parsedQuery = queryResults || { companies: results, averageROIC: 0, averageFCFYield: 0, averageLeverage: 0 }
+  const parsedQuery = queryResults || {
+    companies: results,
+    averageROIC: 0,
+    averageFCFYield: 0,
+    averageLeverage: 0
+  }
 
   // Define filter types
   interface Filters {
@@ -138,26 +143,40 @@ export function MadLab_UniverseScreener_Prod() {
   }
 
   // Mock filters for UI (integrate with real filters from workflow if needed)
-  const [filters, setFilters] = useState<Filters>({ capMin: 0, capMax: 0, advMin: 0, roicMin: 0, fcfyMin: 0, ndMax: 0, include: { TSX: true, TSXV: true, OTC: true } })
-  const updateFilter = useCallback((key: keyof Filters, value: Filters[keyof Filters]) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
-    // Trigger re-query on filter change
-    executeNLQuery(query)
-  }, [query, executeNLQuery])
+  const [filters, setFilters] = useState<Filters>({
+    capMin: 0,
+    capMax: 0,
+    advMin: 0,
+    roicMin: 0,
+    fcfyMin: 0,
+    ndMax: 0,
+    include: { TSX: true, TSXV: true, OTC: true }
+  })
+  const updateFilter = useCallback(
+    (key: keyof Filters, value: Filters[keyof Filters]) => {
+      setFilters((prev) => ({ ...prev, [key]: value }))
+      // Trigger re-query on filter change
+      executeNLQuery(query)
+    },
+    [query, executeNLQuery]
+  )
 
-  const presetsOpen = false  // Stub; add state if needed
+  const presetsOpen = false // Stub; add state if needed
   const togglePreset = useCallback(() => {}, [])
-  const applyPreset = useCallback((preset: string) => {
-    // Apply preset filters
-    const presets: Record<string, Partial<Filters>> = {
-      'Small Value': { capMin: 50, capMax: 500, roicMin: 10, fcfyMin: 5 },
-      // Add more
-    }
-    const presetFilters = presets[preset] || {}
-    Object.entries(presetFilters).forEach(([k, v]) => {
-      updateFilter(k as keyof Filters, v as Filters[keyof Filters])
-    })
-  }, [updateFilter])
+  const applyPreset = useCallback(
+    (preset: string) => {
+      // Apply preset filters
+      const presets: Record<string, Partial<Filters>> = {
+        'Small Value': { capMin: 50, capMax: 500, roicMin: 10, fcfyMin: 5 }
+        // Add more
+      }
+      const presetFilters = presets[preset] || {}
+      Object.entries(presetFilters).forEach(([k, v]) => {
+        updateFilter(k as keyof Filters, v as Filters[keyof Filters])
+      })
+    },
+    [updateFilter]
+  )
 
   const gradeOf = (x: { quality?: number; moat?: number; neglect?: boolean }) => {
     const quality = x.quality || 0
@@ -170,7 +189,7 @@ export function MadLab_UniverseScreener_Prod() {
 
   // Promotion handler
   const promote = useCallback(() => {
-    saveScreener()  // Save to workflow
+    saveScreener() // Save to workflow
     const selectedTickers = selectedCompanies
     alert(`Promoted ${selectedCount} tickers to Quick Briefs: ` + selectedTickers.join(', '))
     // In real app, navigate to workflow stage with selected
@@ -192,8 +211,8 @@ export function MadLab_UniverseScreener_Prod() {
               'Ask in English… e.g., "wide‑moat" small caps with ROIC≥12%, net cash, FCF yield≥6%'
             }
             className={cls(
-              "bg-transparent outline-none text-sm text-slate-100 placeholder-slate-500 w-full",
-              isLoading && "opacity-50 cursor-wait"
+              'bg-transparent outline-none text-sm text-slate-100 placeholder-slate-500 w-full',
+              isLoading && 'opacity-50 cursor-wait'
             )}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -296,7 +315,10 @@ export function MadLab_UniverseScreener_Prod() {
                       className="accent-violet-500"
                       checked={filters.include[k as keyof typeof filters.include]}
                       onChange={() =>
-                        updateFilter('include', { ...filters.include, [k]: !filters.include[k as keyof typeof filters.include] })
+                        updateFilter('include', {
+                          ...filters.include,
+                          [k]: !filters.include[k as keyof typeof filters.include]
+                        })
                       }
                     />{' '}
                     {k}
@@ -360,7 +382,15 @@ export function MadLab_UniverseScreener_Prod() {
               <div className="overflow-auto">
                 {results.length > 50 && (
                   <div className="mb-2 text-xs text-slate-400 text-center">
-                    Showing first 50 results. <button onClick={() => { /* toggle full */ }} className="underline">Show all</button>
+                    Showing first 50 results.{' '}
+                    <button
+                      onClick={() => {
+                        /* toggle full */
+                      }}
+                      className="underline"
+                    >
+                      Show all
+                    </button>
                   </div>
                 )}
                 <table className="w-full text-sm" role="table" aria-label="Screener results">
@@ -403,9 +433,11 @@ export function MadLab_UniverseScreener_Prod() {
                           />
                         </td>
                         <td className="px-2 py-1 font-medium text-slate-100">{x.ticker}</td>
-                        <td className="px-2 py-1 text-slate-200 truncate max-w-[180px]">{x.name}</td>
+                        <td className="px-2 py-1 text-slate-200 truncate max-w-[180px]">
+                          {x.name}
+                        </td>
                         <td className="px-2 py-1 text-slate-300">{x.geo}</td>
-                        <td className="px-2 py-1">{x.sector}</td>  // Adjust columns to match data
+                        <td className="px-2 py-1">{x.sector}</td> // Adjust columns to match data
                         <td className="px-2 py-1">{x.roic.toFixed(1)}</td>
                         <td className="px-2 py-1">{x.fcfYield.toFixed(1)}</td>
                         <td className="px-2 py-1">{x.leverage.toFixed(1)}</td>
@@ -423,7 +455,11 @@ export function MadLab_UniverseScreener_Prod() {
                         <td className="px-2 py-1">
                           <MemoizedTag
                             tone={
-                              x.qualityScore >= 80 ? 'emerald' : x.qualityScore >= 60 ? 'violet' : 'rose'
+                              x.qualityScore >= 80
+                                ? 'emerald'
+                                : x.qualityScore >= 60
+                                  ? 'violet'
+                                  : 'rose'
                             }
                           >
                             {x.qualityScore >= 80 ? 'A' : x.qualityScore >= 60 ? 'B' : 'C'}

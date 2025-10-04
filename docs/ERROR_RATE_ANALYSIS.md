@@ -175,6 +175,7 @@ Under concurrent load, the server exhibits:
 The 4.5% error rate was primarily caused by authentication issues in the load testing framework (100% of errors were HTTP 401). This was a configuration issue rather than a fundamental performance problem.
 
 **Resolution Summary:**
+
 - Updated TestHttpClient in load-testing-framework.ts to use ADMIN_TOKEN from env or fallback 'test-admin-token-12345-secure'.
 - Modified startTestServer in test/utils/test-environment.ts to set ADMIN_TOKEN in server env, ensuring token match for validation.
 - Added logging in TestHttpClient.post and auth middleware to confirm header presence and validation success.
@@ -182,6 +183,7 @@ The 4.5% error rate was primarily caused by authentication issues in the load te
 - Secondary: Added HTTP keep-alive and connection pooling in server/index.ts for stability under load.
 
 **Test Results (after fixes):**
+
 - Error rate: 0% (no 401s observed in successful runs).
 - Success rate: 100% (>99% target met).
 - Throughput: 25+ RPS with 50 concurrent users.

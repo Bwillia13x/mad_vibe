@@ -18,49 +18,57 @@ export function ContextualHelp({ stageName }: { stageName: string }) {
       {
         icon: <Lightbulb className="w-4 h-4" />,
         title: 'Idea Workspace',
-        description: 'View real-time market data, news, and AI-generated investment opportunities synthesized from multiple data streams.'
+        description:
+          'View real-time market data, news, and AI-generated investment opportunities synthesized from multiple data streams.'
       },
       {
         icon: <Keyboard className="w-4 h-4" />,
         title: 'Quick Navigation',
-        description: 'Press Cmd/Ctrl + K to open the command palette and jump to any stage instantly.'
+        description:
+          'Press Cmd/Ctrl + K to open the command palette and jump to any stage instantly.'
       }
     ],
     screener: [
       {
         icon: <Lightbulb className="w-4 h-4" />,
         title: 'Natural Language Screening',
-        description: 'Use plain English to describe what you\'re looking for: "tech companies with ROIC > 15%, low debt, and growing revenue"',
+        description:
+          'Use plain English to describe what you\'re looking for: "tech companies with ROIC > 15%, low debt, and growing revenue"',
         shortcuts: ['⌘K', 'Enter']
       },
       {
         icon: <BookOpen className="w-4 h-4" />,
         title: 'Factor Analysis',
-        description: 'Switch to the Factor Analysis tab to backtest different screening criteria and see historical performance.'
+        description:
+          'Switch to the Factor Analysis tab to backtest different screening criteria and see historical performance.'
       }
     ],
     financials: [
       {
         icon: <Lightbulb className="w-4 h-4" />,
         title: 'Owner Earnings Bridge',
-        description: 'Normalize reported earnings by adjusting for one-time items, stock-based comp, and maintenance capex.'
+        description:
+          'Normalize reported earnings by adjusting for one-time items, stock-based comp, and maintenance capex.'
       },
       {
         icon: <BookOpen className="w-4 h-4" />,
         title: 'Ask AI for Help',
-        description: 'Click the AI assistant to get help identifying unusual items or validating your normalization adjustments.'
+        description:
+          'Click the AI assistant to get help identifying unusual items or validating your normalization adjustments.'
       }
     ],
     valuation: [
       {
         icon: <Lightbulb className="w-4 h-4" />,
         title: 'Multiple Methods',
-        description: 'Use EPV for asset-light businesses, DCF for growth stories, and Relative for market context. The Aggregate view combines all three.'
+        description:
+          'Use EPV for asset-light businesses, DCF for growth stories, and Relative for market context. The Aggregate view combines all three.'
       },
       {
         icon: <BookOpen className="w-4 h-4" />,
         title: 'Sensitivity Analysis',
-        description: 'Switch to the Scenario Lab to stress-test your assumptions and see how valuation changes under different conditions.'
+        description:
+          'Switch to the Scenario Lab to stress-test your assumptions and see how valuation changes under different conditions.'
       }
     ]
   }
@@ -72,13 +80,13 @@ export function ContextualHelp({ stageName }: { stageName: string }) {
       <button
         onClick={() => setIsOpen(true)}
         className={cn(
-          "fixed top-20 right-6 z-40",
-          "w-10 h-10 rounded-full",
-          "bg-slate-800 border border-slate-700",
-          "hover:bg-slate-700 hover:border-violet-500",
-          "transition-all duration-200",
-          "flex items-center justify-center",
-          "group"
+          'fixed top-20 right-6 z-40',
+          'w-10 h-10 rounded-full',
+          'bg-slate-800 border border-slate-700',
+          'hover:bg-slate-700 hover:border-violet-500',
+          'transition-all duration-200',
+          'flex items-center justify-center',
+          'group'
         )}
         aria-label="Show contextual help"
       >
@@ -90,9 +98,9 @@ export function ContextualHelp({ stageName }: { stageName: string }) {
   return (
     <div
       className={cn(
-        "fixed top-20 right-6 z-40",
-        "w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl",
-        "animate-in fade-in slide-in-from-right-4 duration-300"
+        'fixed top-20 right-6 z-40',
+        'w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl',
+        'animate-in fade-in slide-in-from-right-4 duration-300'
       )}
     >
       <div className="flex items-center justify-between p-4 border-b border-slate-800">
@@ -119,9 +127,7 @@ export function ContextualHelp({ stageName }: { stageName: string }) {
                 </div>
                 <h4 className="text-sm font-semibold text-slate-100">{item.title}</h4>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed pl-10">
-                {item.description}
-              </p>
+              <p className="text-xs text-slate-400 leading-relaxed pl-10">{item.description}</p>
               {item.shortcuts && (
                 <div className="flex gap-2 pl-10">
                   {item.shortcuts.map((shortcut, i) => (

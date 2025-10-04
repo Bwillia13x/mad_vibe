@@ -23,3 +23,9 @@ Use Conventional Commits such as `feat:`, `fix:`, or `chore:` with optional scop
 ## Security & Configuration Tips
 
 Copy `.env.example` to `.env`, populate `PORT`, `SESSION_SECRET`, and the Drizzle database URL, then load values through `lib/env-security.ts`. After adjusting tables or enums in `lib/db`, run `npm run db:push` and verify the migration locally.
+
+## Roadmap Snapshot – October 2025
+
+- **Current focus**: Milestone 4 – Persistence & Collaboration (sessions, audit timeline, reviewer workflow).
+- **In flight**: Real-time session presence, optimistic locking, and conflict notifications across memo/valuation workbenches.
+- **Up next**: Workspace audit timeline with filters/export, reviewer assignment workflow + notifications, and integration-test coverage to prep Milestone 5 QA.

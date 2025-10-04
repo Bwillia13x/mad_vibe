@@ -1,0 +1,64 @@
+name: AI Audit Warehouse Sync
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write BigQuery credentials
+        run: |
+          echo "${AI_AUDIT_BQ_CREDENTIALS_JSON}" > $RUNNER_TEMP/ai-audit-bigquery.json
+        env:
+          AI_AUDIT_BQ_CREDENTIALS_JSON: ${{ secrets.AI_AUDIT_BQ_CREDENTIALS_JSON }}
+
+      - name: Hourly delta sync
+        if: github.event.schedule == '*/30 * * * *'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          AI_AUDIT_WAREHOUSE_DESTINATION: bigquery
+          AI_AUDIT_BQ_PROJECT: mad-vibe-prod
+          AI_AUDIT_BQ_DATASET: analytics
+          AI_AUDIT_BQ_AUDIT_TABLE: raw_ai_audit_logs
+          AI_AUDIT_BQ_WORKSPACE_TABLE: raw_workspace_snapshots
+          AI_AUDIT_BQ_MARKET_TABLE: raw_market_snapshots
+          AI_AUDIT_BQ_CREDENTIALS: ${{ runner.temp }}/ai-audit-bigquery.json
+        run: |
+          npm run sync:ai-audit-logs -- --mode=delta --since="$(date -u -d '-1 hour' +%FT%TZ)"
+
+      - name: Nightly full sync
+        if: github.event.schedule == '0 9 * * *'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          AI_AUDIT_WAREHOUSE_DESTINATION: bigquery
+          AI_AUDIT_BQ_PROJECT: mad-vibe-prod
+          AI_AUDIT_BQ_DATASET: analytics
+          AI_AUDIT_BQ_AUDIT_TABLE: raw_ai_audit_logs
+          AI_AUDIT_BQ_WORKSPACE_TABLE: raw_workspace_snapshots
+          AI_AUDIT_BQ_MARKET_TABLE: raw_market_snapshots
+          AI_AUDIT_BQ_CREDENTIALS: ${{ runner.temp }}/ai-audit-bigquery.json
+        run: |
+          npm run sync:ai-audit-logs -- --mode=full --lookback=24h
+
+      - name: Upload sync logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-audit-sync-logs
+          path: ${{ runner.temp }}/ai-audit-bigquery.json
+          retention-days: 7

@@ -30,6 +30,122 @@ export interface MemoCommentThread {
   comments: MemoComment[]
 }
 
+export type PresenceTelemetryEventType = 'heartbeat' | 'failure'
+
+export interface PresenceTelemetryEvent {
+  actorId: string | null
+  stageSlug: string
+  event: PresenceTelemetryEventType
+  latencyMs?: number | null
+  failureCount?: number
+  timestamp: string
+}
+
+export type PresenceConflictType = 'lock_denied' | 'stale_revision' | 'explicit'
+
+export interface PresenceConflictPayload {
+  type: PresenceConflictType
+  detectedAt: string
+  message?: string
+  latestRevision?: number | null
+  blockingSessionId?: string
+  blockingActorId?: string | null
+}
+
+export type ReviewerAssignmentStatus =
+  | 'pending'
+  | 'in_review'
+  | 'approved'
+  | 'rejected'
+  | 'cancelled'
+
+export interface ReviewerAssignment {
+  id: number
+  workflowId: number
+  stageSlug: string
+  reviewerId: number | null
+  reviewerEmail: string | null
+  reviewerName: string | null
+  status: ReviewerAssignmentStatus
+  assignedBy: number | null
+  assignedByName: string | null
+  assignedAt: string | null
+  dueAt: string | null
+  acknowledgedAt: string | null
+  acknowledgedBy: number | null
+  completedAt: string | null
+  reminderCount: number
+  lastReminderAt: string | null
+  notes: string | null
+  metadata: Record<string, unknown>
+}
+
+export interface ReviewerAssignmentInput {
+  stageSlug: string
+  reviewerId?: number | null
+  reviewerEmail?: string | null
+  reviewerName?: string | null
+  status?: ReviewerAssignmentStatus
+  dueAt?: string | null
+  notes?: string | null
+  metadata?: Record<string, unknown>
+  assignedBy?: number | null
+  assignedByName?: string | null
+}
+
+export interface ReviewerAssignmentUpdateInput {
+  status?: ReviewerAssignmentStatus
+  reviewerId?: number | null
+  reviewerEmail?: string | null
+  reviewerName?: string | null
+  dueAt?: string | null
+  notes?: string | null
+  metadata?: Record<string, unknown>
+  acknowledged?: boolean
+  actorId?: number | null
+  actorName?: string | null
+  sendReminder?: boolean
+}
+
+export interface AuditTimelineEvent {
+  id: number
+  workflowId: number
+  stageSlug: string | null
+  eventType: string
+  actorId: number | null
+  actorName: string | null
+  actorRole: string | null
+  payload: Record<string, unknown>
+  reviewerAssignmentId: number | null
+  createdAt: string | null
+  acknowledgedAt: string | null
+  acknowledgedBy: number | null
+  acknowledgementNote: string | null
+  metadata: Record<string, unknown>
+}
+
+export interface AuditEventInput {
+  eventType: string
+  stageSlug?: string
+  actorId?: number | null
+  actorName?: string | null
+  actorRole?: string | null
+  payload?: Record<string, unknown>
+  reviewerAssignmentId?: number | null
+  metadata?: Record<string, unknown>
+}
+
+export interface AuditEventFilters {
+  stageSlug?: string
+  eventType?: string
+  reviewerAssignmentId?: number
+  acknowledged?: boolean
+  createdAfter?: string
+  createdBefore?: string
+  limit?: number
+  offset?: number
+}
+
 export interface MemoAttachmentState {
   include: boolean
   caption?: string
@@ -98,6 +214,167 @@ export interface ScenarioLabStatePayload {
 }
 
 export type ScenarioLabStateInput = Omit<ScenarioLabStatePayload, 'updatedAt'>
+
+// Workspace / IdeaWorkspace types
+export interface IdeaWorkspace {
+  id: number
+  userId: number
+  name: string
+  ticker?: string | null
+  companyName?: string | null
+  description?: string | null
+  status: 'active' | 'archived' | 'completed'
+  lastActiveStage: string
+  stageCompletions: Record<string, string> // { stageSlug: ISO timestamp }
+  settings: WorkspaceSettings
+  tags: string[]
+  createdAt: string
+  updatedAt: string
+  lastAccessedAt: string
+}
+
+export interface WorkspaceSettings {
+  defaultWACC?: number
+  taxRate?: number
+  discountRate?: number
+  terminalGrowthRate?: number
+  customFields?: Record<string, unknown>
+  // Market data enrichment (optional)
+  currentPrice?: number
+  marketCap?: number
+  peRatio?: number | null
+  debtToEquity?: number | null
+  sector?: string
+  industry?: string
+  latestFilings?: {
+    tenK: string | null
+    tenQ: string | null
+  }
+  lastDataRefresh?: string
+  // Studio preferences
+  preferredTargetApp?: 'excel' | 'sheets'
+}
+
+export interface CreateWorkspaceInput {
+  name: string
+  ticker?: string
+  companyName?: string
+  description?: string
+  tags?: string[]
+}
+
+export interface UpdateWorkspaceInput {
+  name?: string
+  ticker?: string
+  companyName?: string
+  description?: string
+  status?: 'active' | 'archived' | 'completed'
+  lastActiveStage?: string
+  stageCompletions?: Record<string, string>
+  settings?: Partial<WorkspaceSettings>
+  tags?: string[]
+}
+
+// Artifact types
+export interface WorkspaceArtifact {
+  id: number
+  workflowId: number
+  stageSlug: string
+  type: 'note' | 'model' | 'memo' | 'screener' | 'chart' | 'analysis' | 'other'
+  name: string
+  data: unknown
+  metadata: Record<string, unknown>
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateArtifactInput {
+  workflowId: number
+  stageSlug: string
+  type: string
+  name: string
+  data: unknown
+  metadata?: Record<string, unknown>
+}
+
+// Market data + AI provenance types
+export interface MarketSnapshot {
+  id: number
+  ticker: string
+  provider: string
+  capturedAt: string
+  rawPayload: Record<string, unknown>
+  normalizedMetrics: Record<string, unknown>
+  sourceMetadata: Record<string, unknown>
+}
+
+export interface FinancialStatement {
+  id: number
+  ticker: string
+  statementType: 'income' | 'balance' | 'cashflow'
+  fiscalYear?: number | null
+  fiscalQuarter?: number | null
+  periodStart?: string | null
+  periodEnd?: string | null
+  currency?: string | null
+  data: Record<string, unknown>
+  metadata: Record<string, unknown>
+  capturedAt: string
+}
+
+export interface WorkspaceDataSnapshot {
+  id: number
+  workflowId: number
+  snapshotType: string
+  marketSnapshotId?: number | null
+  financialStatementId?: number | null
+  artifactId?: number | null
+  data: Record<string, unknown>
+  metadata: Record<string, unknown>
+  createdAt: string
+}
+
+export interface AiAuditLogEntry {
+  id: number
+  workflowId: number
+  userId?: number | null
+  provider: string
+  capability?: string | null
+  prompt: Record<string, unknown>
+  response: Record<string, unknown>
+  verification: Record<string, unknown>
+  createdAt: string
+}
+
+export interface AiAuditSummary {
+  totalInteractions: number
+  uniqueWorkspaces: number
+  lastInteractionAt: string | null
+  capabilityBreakdown: Record<string, number>
+  dailyCounts: Array<{ date: string; count: number }>
+}
+
+// AI Conversation types
+export interface ConversationMessage {
+  id: number
+  workflowId: number
+  role: 'user' | 'assistant'
+  content: string
+  context: {
+    stageSlug?: string
+    stageTitle?: string
+    activeTab?: string
+    [key: string]: unknown
+  }
+  createdAt: string
+}
+
+export interface CreateMessageInput {
+  workflowId: number
+  role: 'user' | 'assistant'
+  content: string
+  context?: Record<string, unknown>
+}
 
 export interface ExecutionPlannerStatePayload {
   rows: Row[]

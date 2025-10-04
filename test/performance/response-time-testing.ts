@@ -112,7 +112,10 @@ export interface StreamingChunk {
 export class ResponseTimeTester {
   private httpClient: TestHttpClient
 
-  constructor(private baseUrl: string, authToken?: string) {
+  constructor(
+    private baseUrl: string,
+    authToken?: string
+  ) {
     this.httpClient = new TestHttpClient(baseUrl)
     if (authToken) {
       this.httpClient.setAuthToken(authToken)

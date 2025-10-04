@@ -102,13 +102,17 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
 
     // TEMP LOG for debugging auth issues in load tests
     const adminTokenSet = !!getEnvVar('ADMIN_TOKEN')
-    console.log(`[AuthMiddleware] Received token for ${req.path} (hashed: ${hashToken(token)}), ADMIN_TOKEN set: ${adminTokenSet}`)
-    
+    console.log(
+      `[AuthMiddleware] Received token for ${req.path} (hashed: ${hashToken(token)}), ADMIN_TOKEN set: ${adminTokenSet}`
+    )
+
     // Validate the token
     const isValid = validateAdminToken(token)
-    
+
     if (!isValid) {
-      console.log(`[AuthMiddleware] Token validation FAILED for ${req.path}: expected valid ADMIN_TOKEN match`)
+      console.log(
+        `[AuthMiddleware] Token validation FAILED for ${req.path}: expected valid ADMIN_TOKEN match`
+      )
       log('Authentication failed: Invalid token provided', {
         path: req.path,
         method: req.method,
@@ -121,7 +125,7 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
       })
       return
     }
-    
+
     console.log(`[AuthMiddleware] Token validation SUCCEEDED for ${req.path}`)
 
     // Set user context for authenticated requests with session tracking

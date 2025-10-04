@@ -141,7 +141,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
             )}
           </div>
         </div>
- 
+
         {/* Business Tools */}
         <div className="flex-1 p-2 overflow-x-auto sm:overflow-x-hidden">
           {businessTools.map((tool) => (
@@ -175,7 +175,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
             </Link>
           ))}
         </div>
- 
+
         {/* System Status */}
         {isBusinessPanelOpen && (
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">

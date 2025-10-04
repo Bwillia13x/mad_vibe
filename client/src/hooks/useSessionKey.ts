@@ -3,7 +3,11 @@ import { useEffect, useMemo, useState } from 'react'
 const STORAGE_KEY = 'valor-session-key'
 
 function generateKey(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto && typeof crypto.randomUUID === 'function') {
+  if (
+    typeof crypto !== 'undefined' &&
+    'randomUUID' in crypto &&
+    typeof crypto.randomUUID === 'function'
+  ) {
     return crypto.randomUUID()
   }
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`

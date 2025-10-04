@@ -8,26 +8,46 @@ import type {
   ValuationStatePayload,
   ValuationStateInput,
   MonitoringStatePayload,
-  MonitoringStateInput
+  MonitoringStateInput,
+  ResearchLogEntry,
+  ResearchLogInput,
+  PresenceTelemetryEvent,
+  PresenceConflictPayload,
+  ReviewerAssignment,
+  ReviewerAssignmentInput,
+  ReviewerAssignmentUpdateInput,
+  ReviewerAssignmentStatus,
+  AuditTimelineEvent,
+  AuditEventInput,
+  AuditEventFilters
 } from '@shared/types'
 
 export interface PresencePeerPayload {
   actorId: string
   stageSlug: string
   updatedAt: string
+  sessionId?: string
+  revision?: number | null
+  locked?: boolean
 }
 
 export interface PresenceHeartbeatResponse {
   actorId: string
+  sessionId: string | null
   stageSlug: string
   peers: PresencePeerPayload[]
+  revision: number | null
+  lockOwner: string | null
+  lockExpiresAt: string | null
+  conflict: PresenceConflictPayload | null
 }
 
 const BASE_URL = '/api/workflow'
 
 const resolveAdminToken = (): string | undefined => {
   try {
-    const viteToken = (import.meta as unknown as { env?: Record<string, unknown> })?.env?.VITE_ADMIN_TOKEN
+    const viteToken = (import.meta as unknown as { env?: Record<string, unknown> })?.env
+      ?.VITE_ADMIN_TOKEN
     if (typeof viteToken === 'string' && viteToken.trim().length > 0) {
       return viteToken.trim()
     }
@@ -35,7 +55,9 @@ const resolveAdminToken = (): string | undefined => {
     // ignore
   }
 
-  const globalToken = (typeof globalThis !== 'undefined' && (globalThis as { __ADMIN_TOKEN__?: unknown }).__ADMIN_TOKEN__)
+  const globalToken =
+    typeof globalThis !== 'undefined' &&
+    (globalThis as { __ADMIN_TOKEN__?: unknown }).__ADMIN_TOKEN__
   if (typeof globalToken === 'string' && globalToken.trim().length > 0) {
     return globalToken.trim()
   }
@@ -181,20 +203,59 @@ export async function persistMonitoringState(
   return await handleResponse<MonitoringStatePayload>(res)
 }
 
+export async function fetchResearchLog(): Promise<ResearchLogEntry[]> {
+  const res = await fetch(`${BASE_URL}/research-log`, {
+    credentials: 'include',
+    headers: buildAdminHeaders(undefined)
+  })
+  return await handleResponse<ResearchLogEntry[]>(res)
+}
+
+export async function persistResearchLogEntry(
+  entry: ResearchLogInput & { timestamp?: string }
+): Promise<ResearchLogEntry> {
+  const res = await fetch(`${BASE_URL}/research-log`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildAdminHeaders(undefined, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(entry)
+  })
+  return await handleResponse<ResearchLogEntry>(res)
+}
+
+type PresenceHeartbeatOptions = {
+  actorId?: string
+  revision?: number
+  lock?: boolean
+}
+
 export async function sendPresenceHeartbeat(
   sessionKey: string,
   stageSlug: string,
-  actorId?: string
+  options?: string | PresenceHeartbeatOptions
 ): Promise<PresenceHeartbeatResponse> {
+  const actorId = typeof options === 'string' ? options : options?.actorId
+  const revision = typeof options === 'object' && options ? options.revision : undefined
+  const lockRequest = typeof options === 'object' && options ? options.lock === true : false
+
   const headers = buildHeaders(sessionKey, {
     'Content-Type': 'application/json',
     ...(actorId ? { 'x-actor-id': actorId } : {})
   })
+
+  const body: Record<string, unknown> = { stageSlug }
+  if (typeof revision === 'number' && Number.isFinite(revision)) {
+    body.revision = revision
+  }
+  if (lockRequest) {
+    body.lockRequest = true
+  }
+
   const res = await fetch(`${BASE_URL}/presence/heartbeat`, {
     method: 'POST',
     credentials: 'include',
     headers,
-    body: JSON.stringify({ stageSlug })
+    body: JSON.stringify(body)
   })
   return await handleResponse<PresenceHeartbeatResponse>(res)
 }
@@ -208,4 +269,194 @@ export async function fetchPresencePeers(
     headers: buildHeaders(sessionKey)
   })
   return await handleResponse<PresencePeerPayload[]>(res)
+}
+
+export async function sendPresenceTelemetry(
+  sessionKey: string,
+  event: PresenceTelemetryEvent
+): Promise<boolean> {
+  const res = await fetch(`${BASE_URL}/presence/telemetry`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildHeaders(sessionKey, {
+      'Content-Type': 'application/json'
+    }),
+    body: JSON.stringify(event)
+  })
+  const result = await handleResponse<{ success: boolean }>(res)
+  return Boolean(result?.success)
+}
+
+export interface ReviewerAssignmentQuery {
+  stageSlug?: string
+  status?: ReviewerAssignmentStatus | ReviewerAssignmentStatus[]
+  reviewerId?: number
+  includeCancelled?: boolean
+  limit?: number
+  offset?: number
+  dueBefore?: string
+  dueAfter?: string
+}
+
+const ADMIN_HEADERS = ADMIN_BEARER ? { Authorization: `Bearer ${ADMIN_BEARER}` } : undefined
+
+const buildAdminHeaders = (sessionKey?: string, extra?: Record<string, string>): HeadersInit => {
+  if (sessionKey) {
+    return buildHeaders(sessionKey, extra)
+  }
+  return {
+    ...(extra ?? {}),
+    ...(ADMIN_HEADERS ?? {})
+  }
+}
+
+export async function fetchReviewerAssignments(
+  workflowId: number,
+  params?: ReviewerAssignmentQuery,
+  sessionKey?: string
+): Promise<{ assignments: ReviewerAssignment[]; limit: number; offset: number }> {
+  const search = new URLSearchParams()
+  if (params?.stageSlug) search.set('stageSlug', params.stageSlug)
+  if (params?.status) {
+    const statusParam = Array.isArray(params.status) ? params.status.join(',') : params.status
+    search.set('status', statusParam)
+  }
+  if (params?.reviewerId) search.set('reviewerId', String(params.reviewerId))
+  if (params?.includeCancelled) search.set('includeCancelled', 'true')
+  if (params?.limit) search.set('limit', String(params.limit))
+  if (params?.offset) search.set('offset', String(params.offset))
+  if (params?.dueBefore) search.set('dueBefore', params.dueBefore)
+  if (params?.dueAfter) search.set('dueAfter', params.dueAfter)
+
+  const query = search.toString()
+  const res = await fetch(
+    `${BASE_URL}/${workflowId}/reviewer-assignments${query ? `?${query}` : ''}`,
+    {
+      credentials: 'include',
+      headers: buildAdminHeaders(sessionKey)
+    }
+  )
+  if (!res.ok) throw new Error('Failed to fetch reviewer assignments')
+  return await handleResponse<{ assignments: ReviewerAssignment[]; limit: number; offset: number }>(res)
+}
+
+export async function createReviewerAssignment(
+  workflowId: number,
+  input: ReviewerAssignmentInput,
+  sessionKey?: string
+): Promise<ReviewerAssignment> {
+  const res = await fetch(`${BASE_URL}/${workflowId}/reviewer-assignments`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(input)
+  })
+  if (!res.ok) throw new Error('Failed to create reviewer assignment')
+  const data = await handleResponse<{ assignment: ReviewerAssignment }>(res)
+  return data.assignment
+}
+
+export async function updateReviewerAssignment(
+  workflowId: number,
+  assignmentId: number,
+  input: ReviewerAssignmentUpdateInput,
+  sessionKey?: string
+): Promise<ReviewerAssignment> {
+  const res = await fetch(`${BASE_URL}/${workflowId}/reviewer-assignments/${assignmentId}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(input)
+  })
+  if (!res.ok) throw new Error('Failed to update reviewer assignment')
+  const data = await handleResponse<{ assignment: ReviewerAssignment }>(res)
+  return data.assignment
+}
+
+export async function fetchAuditTimeline(
+  workflowId: number,
+  filters?: AuditEventFilters,
+  sessionKey?: string
+): Promise<{ events: AuditTimelineEvent[]; limit: number; offset: number }> {
+  const search = new URLSearchParams()
+  if (filters?.stageSlug) search.set('stageSlug', filters.stageSlug)
+  if (filters?.eventType) search.set('eventType', filters.eventType)
+  if (filters?.reviewerAssignmentId)
+    search.set('reviewerAssignmentId', String(filters.reviewerAssignmentId))
+  if (typeof filters?.acknowledged === 'boolean')
+    search.set('acknowledged', filters.acknowledged ? 'true' : 'false')
+  if (filters?.createdAfter) search.set('createdAfter', filters.createdAfter)
+  if (filters?.createdBefore) search.set('createdBefore', filters.createdBefore)
+  if (filters?.limit) search.set('limit', String(filters.limit))
+  if (filters?.offset) search.set('offset', String(filters.offset))
+
+  const res = await fetch(
+    `${BASE_URL}/${workflowId}/audit/events${search.toString() ? `?${search}` : ''}`,
+    {
+      credentials: 'include',
+      headers: buildAdminHeaders(sessionKey)
+    }
+  )
+  if (!res.ok) throw new Error('Failed to fetch audit events')
+  return await handleResponse<{ events: AuditTimelineEvent[]; limit: number; offset: number }>(res)
+}
+
+export async function exportAuditTimelineCsv(
+  workflowId: number,
+  filters?: AuditEventFilters,
+  sessionKey?: string
+): Promise<string> {
+  const search = new URLSearchParams()
+  if (filters?.stageSlug) search.set('stageSlug', filters.stageSlug)
+  if (filters?.eventType) search.set('eventType', filters.eventType)
+  if (filters?.reviewerAssignmentId)
+    search.set('reviewerAssignmentId', String(filters.reviewerAssignmentId))
+  if (typeof filters?.acknowledged === 'boolean')
+    search.set('acknowledged', filters.acknowledged ? 'true' : 'false')
+  if (filters?.createdAfter) search.set('createdAfter', filters.createdAfter)
+  if (filters?.createdBefore) search.set('createdBefore', filters.createdBefore)
+  search.set('export', 'csv')
+
+  const res = await fetch(
+    `${BASE_URL}/${workflowId}/audit/events?${search.toString()}`,
+    {
+      credentials: 'include',
+      headers: buildAdminHeaders(sessionKey)
+    }
+  )
+  if (!res.ok) throw new Error('Failed to export audit events')
+  return await res.text()
+}
+
+export async function createAuditEvent(
+  workflowId: number,
+  input: AuditEventInput,
+  sessionKey?: string
+): Promise<AuditTimelineEvent> {
+  const res = await fetch(`${BASE_URL}/${workflowId}/audit/events`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(input)
+  })
+  if (!res.ok) throw new Error('Failed to create audit event')
+  const data = await handleResponse<{ event: AuditTimelineEvent }>(res)
+  return data.event
+}
+
+export async function acknowledgeAuditEvent(
+  workflowId: number,
+  eventId: number,
+  input: { actorId?: number | null; actorName?: string | null; acknowledgementNote?: string | null },
+  sessionKey?: string
+): Promise<AuditTimelineEvent> {
+  const res = await fetch(`${BASE_URL}/${workflowId}/audit/events/${eventId}/acknowledge`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(input)
+  })
+  if (!res.ok) throw new Error('Failed to acknowledge audit event')
+  const data = await handleResponse<{ event: AuditTimelineEvent }>(res)
+  return data.event
 }

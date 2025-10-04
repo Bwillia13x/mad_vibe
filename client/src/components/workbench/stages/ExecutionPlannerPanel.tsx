@@ -419,9 +419,7 @@ function ExecutionPlannerPanel() {
     plan.length > 0
       ? plan.every(
           (p) =>
-            p.days <= daysHorizon &&
-            p.participation <= maxPart * 1.1 &&
-            p.tgtW <= riskCap * 100
+            p.days <= daysHorizon && p.participation <= maxPart * 1.1 && p.tgtW <= riskCap * 100
         )
       : true
   const gateReady = baseGateReady && planConstraintsMet && readinessComplete && noAlerts
@@ -551,16 +549,28 @@ function ExecutionPlannerPanel() {
             toggleChecklistItem={handleToggleChecklist}
           />
           {/* New Route Suggestions Card */}
-          <Card title="Route Suggestions" subtitle="Algo & TIF based on risk" right={<Tag tone="blue">Auto</Tag>}>
+          <Card
+            title="Route Suggestions"
+            subtitle="Algo & TIF based on risk"
+            right={<Tag tone="blue">Auto</Tag>}
+          >
             <ul className="text-sm text-slate-300 space-y-1">
               {routeSuggestions.map((suggestion, i) => (
-                <li key={i} className="text-xs">{suggestion}</li>
+                <li key={i} className="text-xs">
+                  {suggestion}
+                </li>
               ))}
             </ul>
-            <div className="text-xs text-slate-500 mt-1">Suggestions update with alerts/downside.</div>
+            <div className="text-xs text-slate-500 mt-1">
+              Suggestions update with alerts/downside.
+            </div>
           </Card>
           {/* New Risk Budget Panel */}
-          <Card title="Risk Budget" subtitle="Downside & caps" right={<Tag tone="rose">{riskBudgetData.downside}% downside</Tag>}>
+          <Card
+            title="Risk Budget"
+            subtitle="Downside & caps"
+            right={<Tag tone="rose">{riskBudgetData.downside}% downside</Tag>}
+          >
             <div className="text-sm space-y-2">
               <div className="flex justify-between">
                 <span>Suggested cap:</span>
@@ -828,3 +838,5 @@ function ExecutionPlannerPanel() {
     </div>
   )
 }
+
+export { ExecutionPlannerPanel }

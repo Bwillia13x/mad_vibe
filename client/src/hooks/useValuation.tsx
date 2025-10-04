@@ -1,5 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { epvAssumptions, dcfScenarioOutputs, BASE_VALUATION, type ValuationAssumption, type ScenarioBand } from '@/lib/workflow-data'
+import {
+  epvAssumptions,
+  dcfScenarioOutputs,
+  BASE_VALUATION,
+  type ValuationAssumption,
+  type ScenarioBand
+} from '@/lib/workflow-data'
 import { fetchValuationState, persistValuationState } from '@/lib/workflow-api'
 import { useSessionKey } from './useSessionKey'
 

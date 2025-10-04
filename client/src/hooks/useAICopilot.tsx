@@ -1,5 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
-import { aiCopilot, type AIContext, type AISuggestion, type AIPromptTemplate } from '@/services/ai-copilot'
+import {
+  aiCopilot,
+  type AIContext,
+  type AISuggestion,
+  type AIPromptTemplate
+} from '@/services/ai-copilot'
 
 /**
  * Hook for AI Copilot integration

@@ -25,7 +25,7 @@ export function KeyboardShortcutsOverlay() {
     const handleKeyPress = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === '/') {
         e.preventDefault()
-        setIsOpen(prev => !prev)
+        setIsOpen((prev) => !prev)
       }
       if (e.key === 'Escape') {
         setIsOpen(false)
@@ -38,7 +38,7 @@ export function KeyboardShortcutsOverlay() {
 
   if (!isOpen) return null
 
-  const categories = Array.from(new Set(shortcuts.map(s => s.category)))
+  const categories = Array.from(new Set(shortcuts.map((s) => s.category)))
 
   return (
     <div
@@ -71,14 +71,14 @@ export function KeyboardShortcutsOverlay() {
 
         {/* Content */}
         <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(80vh-120px)]">
-          {categories.map(category => (
+          {categories.map((category) => (
             <div key={category}>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
                 {category}
               </h3>
               <div className="space-y-2">
                 {shortcuts
-                  .filter(s => s.category === category)
+                  .filter((s) => s.category === category)
                   .map((shortcut, idx) => (
                     <div
                       key={idx}
@@ -90,8 +90,8 @@ export function KeyboardShortcutsOverlay() {
                           <kbd
                             key={i}
                             className={cn(
-                              "min-w-[2rem] px-2 py-1 bg-slate-900 border border-slate-700 rounded text-xs font-semibold text-center",
-                              "shadow-sm text-slate-300"
+                              'min-w-[2rem] px-2 py-1 bg-slate-900 border border-slate-700 rounded text-xs font-semibold text-center',
+                              'shadow-sm text-slate-300'
                             )}
                           >
                             {key}
@@ -108,7 +108,15 @@ export function KeyboardShortcutsOverlay() {
         {/* Footer */}
         <div className="p-4 border-t border-slate-800 bg-slate-900/50">
           <div className="text-xs text-center text-slate-500">
-            Press <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">⌘</kbd> + <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">/</kbd> to toggle this overlay
+            Press{' '}
+            <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">
+              ⌘
+            </kbd>{' '}
+            +{' '}
+            <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">
+              /
+            </kbd>{' '}
+            to toggle this overlay
           </div>
         </div>
       </div>

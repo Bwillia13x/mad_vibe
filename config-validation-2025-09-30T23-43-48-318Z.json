@@ -1,0 +1,30 @@
+{
+  "timestamp": "2025-09-30T23:43:48.316Z",
+  "environment": "development",
+  "overallStatus": "PASS",
+  "basicValidation": {
+    "isValid": true,
+    "errors": []
+  },
+  "advancedValidation": {
+    "valid": true,
+    "errors": []
+  },
+  "securityAudit": {
+    "configuredKeys": ["PORT", "NODE_ENV", "OPERATIONS_WS_PORT"],
+    "sensitiveKeys": [],
+    "missingRecommended": [],
+    "weakConfigurations": []
+  },
+  "configurationSummary": {
+    "totalKeys": 3,
+    "validatedKeys": 5,
+    "rotatingSecrets": 0,
+    "lastValidation": "2025-09-30T23:43:48.315Z",
+    "validationStatus": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  "recommendations": []
+}

@@ -1,6 +1,6 @@
 # Security Headers Middleware
 
-This document describes the security headers middleware implementation for the Andreas Vibe business management platform.
+This document describes the security headers middleware implementation for the MAD Vibe financial analysis platform.
 
 ## Overview
 

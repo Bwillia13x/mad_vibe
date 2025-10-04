@@ -272,10 +272,7 @@ export class PerformanceTestSuite {
     responseTimeConfig.streamingTest.enabled = this.suiteConfig.responseTimeTest.includeStreaming
 
     // Create and execute response time tester
-    const responseTester = new ResponseTimeTester(
-      this.testEnvironment!.baseUrl,
-      this.adminToken
-    )
+    const responseTester = new ResponseTimeTester(this.testEnvironment!.baseUrl, this.adminToken)
     const results = await responseTester.executeTests(responseTimeConfig)
 
     return results

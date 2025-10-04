@@ -249,9 +249,7 @@ async function main() {
 
     // Individual service endpoint
     if (services.length > 0) {
-      const firstService = await getJson<ServiceSummary>(
-        `${base}/api/services/${services[0].id}`
-      )
+      const firstService = await getJson<ServiceSummary>(`${base}/api/services/${services[0].id}`)
       if (!firstService || firstService.id !== services[0].id)
         throw new Error('Individual service endpoint failed')
     }
@@ -269,9 +267,7 @@ async function main() {
 
     // Individual appointment endpoint (if appointments exist)
     if (appts.length > 0) {
-      const firstAppt = await getJson<AppointmentSummary>(
-        `${base}/api/appointments/${appts[0].id}`
-      )
+      const firstAppt = await getJson<AppointmentSummary>(`${base}/api/appointments/${appts[0].id}`)
       if (!firstAppt || firstAppt.id !== appts[0].id)
         throw new Error('Individual appointment endpoint failed')
     }
@@ -281,9 +277,7 @@ async function main() {
     if (!Array.isArray(inventory)) throw new Error('Inventory not array')
 
     if (inventory.length > 0) {
-      const firstItem = await getJson<InventoryItem>(
-        `${base}/api/inventory/${inventory[0].id}`
-      )
+      const firstItem = await getJson<InventoryItem>(`${base}/api/inventory/${inventory[0].id}`)
       if (!firstItem || firstItem.id !== inventory[0].id)
         throw new Error('Individual inventory item endpoint failed')
     }
@@ -301,18 +295,21 @@ async function main() {
     const sales = await getJson<PosSale[]>(`${base}/api/pos/sales`)
     if (!Array.isArray(sales)) throw new Error('POS sales not array')
 
-    // Test POS sale creation (use existing service)
+    // Test POS sale creation (use new schema)
+    const servicePrice = (services[0] as any)?.price || 45.0
     const newSale = await postJson<PosSale>(`${base}/api/pos/sales`, {
-      items: [
+      staffId: staff[0]?.id || 'default-staff-id',
+      paymentMethod: 'cash',
+      customerId: undefined,
+      lineItems: [
         {
-          kind: 'service',
-          id: services[0]?.id,
           name: services[0]?.name || 'Executive Cut',
-          quantity: 1
+          quantity: 1,
+          price: servicePrice
         }
       ],
-      discountPct: 10,
-      taxPct: 8.5
+      total: servicePrice,
+      completedAt: new Date()
     })
     if (!newSale || !newSale.id) throw new Error('POS sale creation failed')
 
@@ -327,12 +324,15 @@ async function main() {
     const campaigns = await getJson<CampaignResponse[]>(`${base}/api/marketing/campaigns`)
     if (!Array.isArray(campaigns)) throw new Error('Marketing campaigns not array')
 
-    // Test marketing campaign creation
+    // Test marketing campaign creation (use new schema)
     const newCampaign = await postJson<CampaignResponse>(`${base}/api/marketing/campaigns`, {
       name: 'Test Campaign',
       description: 'Test Description',
-      channel: 'email',
-      status: 'draft'
+      type: 'email',
+      status: 'draft',
+      startDate: new Date(),
+      endDate: undefined,
+      targetAudience: 'All customers'
     })
     if (!newCampaign || !newCampaign.id) throw new Error('Marketing campaign creation failed')
 
@@ -345,9 +345,7 @@ async function main() {
     if (!updatedCampaign.ok) throw new Error('Marketing campaign update failed')
 
     // Marketing performance endpoint
-    const performance = await getJson<MarketingPerformance>(
-      `${base}/api/marketing/performance`
-    )
+    const performance = await getJson<MarketingPerformance>(`${base}/api/marketing/performance`)
     if (!performance || !performance.summary || !Array.isArray(performance.campaigns)) {
       throw new Error('Marketing performance endpoint failed')
     }
@@ -356,13 +354,12 @@ async function main() {
     const loyaltyEntries = await getJson<LoyaltyEntry[]>(`${base}/api/loyalty/entries`)
     if (!Array.isArray(loyaltyEntries)) throw new Error('Loyalty entries not array')
 
-    // Test loyalty entry creation (if customers exist)
+    // Test loyalty entry creation (if customers exist) - use new schema
     if (customers.length > 0) {
       const newLoyaltyEntry = await postJson<LoyaltyEntry>(`${base}/api/loyalty/entries`, {
         customerId: customers[0].id,
-        type: 'earned',
         points: 100,
-        note: 'Test loyalty points'
+        reason: 'Test loyalty points earned'
       })
       if (!newLoyaltyEntry || !newLoyaltyEntry.id) throw new Error('Loyalty entry creation failed')
     }
@@ -390,7 +387,7 @@ async function main() {
     const posCtype = posCsvRes.headers.get('content-type') || ''
     if (!posCtype.includes('text/csv')) throw new Error('POS CSV export wrong content-type')
     const posCsvText = await posCsvRes.text()
-    if (!posCsvText.includes('id,createdAt'))
+    if (!posCsvText.includes('id,completedAt'))
       throw new Error('POS CSV export content missing headers')
 
     // Loyalty CSV export

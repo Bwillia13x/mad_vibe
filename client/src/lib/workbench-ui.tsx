@@ -44,7 +44,10 @@ export const cls = (...s: (string | boolean | undefined)[]): string => s.filter(
 export function Card({ title, subtitle, right, children, className }: CardProps) {
   return (
     <div
-      className={cn('bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-sm backdrop-blur-md', className)}
+      className={cn(
+        'bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-sm backdrop-blur-md',
+        className
+      )}
     >
       <div className="flex items-start justify-between mb-3">
         <div>

@@ -562,7 +562,11 @@ export function createDefaultLoadTestConfig(baseUrl: string): LoadTestConfig {
           name: 'Load Test Campaign',
           description: 'Generated during load test',
           channel: 'email',
-          status: 'draft'
+          type: 'retention',
+          status: 'draft',
+          startDate: new Date().toISOString(),
+          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          targetAudience: 'Load test segment'
         }
       }
     ],
@@ -595,14 +599,15 @@ export async function createDynamicLoadTestConfig(baseUrl: string): Promise<Load
           method: 'POST',
           weight: 2,
           body: {
-            items: [
+            lineItems: [
               {
-                kind: 'service',
-                id: services[0].id,
                 name: services[0].name,
-                quantity: 1
+                quantity: 1,
+                price: typeof services[0].price === 'number' ? services[0].price : 100
               }
             ],
+            paymentMethod: 'cash',
+            staffId: 'load-test-staff',
             discountPct: 0,
             taxPct: 8.5
           }

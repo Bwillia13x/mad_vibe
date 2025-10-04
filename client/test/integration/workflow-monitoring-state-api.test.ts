@@ -149,15 +149,9 @@ describe('Workflow monitoring state API', () => {
     const from = vi.fn().mockReturnValue({ where })
     selectMock.mockReturnValue({ from })
 
-    const response = await performRequest(
-      app,
-      'GET',
-      '/api/workflow/monitoring-state',
-      undefined,
-      {
-        'x-session-key': 'monitor-session'
-      }
-    )
+    const response = await performRequest(app, 'GET', '/api/workflow/monitoring-state', undefined, {
+      'x-session-key': 'monitor-session'
+    })
 
     expect(response.status).toBe(500)
     expect(response.body).toMatchObject({ message: 'Failed to load monitoring state' })

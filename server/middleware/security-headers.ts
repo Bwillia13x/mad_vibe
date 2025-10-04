@@ -67,7 +67,12 @@ const DEFAULT_CONFIG: SecurityHeadersConfig = {
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://replit.com'],
-      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com'],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        'https://fonts.googleapis.com',
+        'https://cdnjs.cloudflare.com'
+      ],
       imgSrc: ["'self'", 'data:', 'https:'],
       fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
       connectSrc: ["'self'", 'ws:', 'wss:'],
@@ -124,7 +129,10 @@ function getEnvironmentConfig(): SecurityHeadersConfig {
         ...DEFAULT_CONFIG.csp?.directives,
         ...envConfig.csp?.directives,
         // In development, disable upgrade-insecure-requests to allow HTTP
-        upgradeInsecureRequests: isProduction ? (envConfig.csp?.directives?.upgradeInsecureRequests ?? DEFAULT_CONFIG.csp?.directives?.upgradeInsecureRequests) : false
+        upgradeInsecureRequests: isProduction
+          ? (envConfig.csp?.directives?.upgradeInsecureRequests ??
+            DEFAULT_CONFIG.csp?.directives?.upgradeInsecureRequests)
+          : false
       }
     }
   }

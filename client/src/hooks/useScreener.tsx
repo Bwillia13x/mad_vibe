@@ -172,20 +172,25 @@ export function ScreenerProvider({ children }: { children: ReactNode }) {
 
   const companies = companiesQuery.data ?? []
 
-  const toggleCompany = useCallback((companyId: string) => {
-    setSelectedCompanies((prev) =>
-      prev.includes(companyId) ? prev.filter((id) => id !== companyId) : [...prev, companyId]
-    )
-
-    // Optimistically update selected in companies if data is available
-    if (companiesQuery.data) {
-      queryClient.setQueryData(['screener', 'companies'], (old: ScreenerCompany[] | undefined) =>
-        old?.map((company) =>
-          company.id === companyId ? { ...company, selected: !company.selected } : company
-        ) ?? []
+  const toggleCompany = useCallback(
+    (companyId: string) => {
+      setSelectedCompanies((prev) =>
+        prev.includes(companyId) ? prev.filter((id) => id !== companyId) : [...prev, companyId]
       )
-    }
-  }, [companiesQuery.data, queryClient])
+
+      // Optimistically update selected in companies if data is available
+      if (companiesQuery.data) {
+        queryClient.setQueryData(
+          ['screener', 'companies'],
+          (old: ScreenerCompany[] | undefined) =>
+            old?.map((company) =>
+              company.id === companyId ? { ...company, selected: !company.selected } : company
+            ) ?? []
+        )
+      }
+    },
+    [companiesQuery.data, queryClient]
+  )
 
   const saveScreener = useCallback(() => {
     const selectedCount = selectedCompanies.length
@@ -300,5 +305,3 @@ export function useScreener(): ScreenerContextValue {
   }
   return context
 }
-
-    

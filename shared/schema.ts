@@ -1,4 +1,3 @@
-
 import { sql } from 'drizzle-orm'
 import {
   pgTable,
@@ -86,7 +85,9 @@ export const scenarioLabStates = pgTable('scenario_lab_states', {
 })
 
 export const scenarioLabStateEvents = pgTable('scenario_lab_state_events', {
-  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   sessionId: varchar('session_id', { length: 255 }).notNull(),
   actorId: varchar('actor_id', { length: 255 }).notNull(),
   version: integer('version').notNull(),
@@ -102,7 +103,9 @@ export const executionPlannerStates = pgTable('execution_planner_states', {
 })
 
 export const executionPlannerStateEvents = pgTable('execution_planner_state_events', {
-  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   sessionId: varchar('session_id', { length: 255 }).notNull(),
   actorId: varchar('actor_id', { length: 255 }).notNull(),
   version: integer('version').notNull(),
@@ -118,7 +121,9 @@ export const redTeamStates = pgTable('red_team_states', {
 })
 
 export const redTeamStateEvents = pgTable('red_team_state_events', {
-  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   sessionId: varchar('session_id', { length: 255 }).notNull(),
   actorId: varchar('actor_id', { length: 255 }).notNull(),
   version: integer('version').notNull(),
@@ -157,6 +162,7 @@ export type Service = {
   duration: number
   price: number
   category?: string
+  isActive?: boolean
 }
 
 export type InsertService = Omit<Service, 'id'>
@@ -243,6 +249,25 @@ export type AnalyticsSnapshot = {
 
 export type InsertAnalyticsSnapshot = Omit<AnalyticsSnapshot, 'id'>
 
+export type PosLineItem = {
+  id: string
+  name: string
+  quantity: number
+  price: number
+  kind?: 'service' | 'product'
+  sourceId?: string
+}
+
+export type PosSaleItem = {
+  kind: 'service' | 'product'
+  id?: string
+  name: string
+  quantity: number
+  unitPrice?: number
+  subtotal?: number
+  total?: number
+}
+
 export type PosSale = {
   id: string
   customerId?: string
@@ -251,16 +276,17 @@ export type PosSale = {
   paymentMethod: string
   completedAt: Date
   lineItems: PosLineItem[]
+  items?: PosSaleItem[]
+  subtotal?: number
+  discount?: number
+  discountPct?: number
+  tax?: number
+  taxPct?: number
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export type InsertPosSale = Omit<PosSale, 'id'>
-
-export type PosLineItem = {
-  id: string
-  name: string
-  quantity: number
-  price: number
-}
 
 export type Campaign = {
   id: string

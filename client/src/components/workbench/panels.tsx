@@ -66,7 +66,7 @@ export function TopBar({
 }: TopBarProps) {
   const [value, setValue] = useState('')
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!value.trim()) return
     onSubmitPrompt(value)
@@ -378,11 +378,13 @@ export function Workbench({ tabs, activeTab, onTabChange, stageTitle, stageGoal 
               id={`tabpanel-${active.id}`}
               aria-labelledby={`tab-${active.id}`}
             >
-              <Suspense fallback={
-                <div className="flex items-center justify-center py-12">
-                  <div className="text-sm text-slate-400">Loading...</div>
-                </div>
-              }>
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-sm text-slate-400">Loading...</div>
+                  </div>
+                }
+              >
                 {active.content}
               </Suspense>
             </div>
@@ -460,11 +462,7 @@ export function Inspector({
           </div>
         </section>
 
-        {aiAssistantPanel && (
-          <section className="space-y-3">
-            {aiAssistantPanel}
-          </section>
-        )}
+        {aiAssistantPanel && <section className="space-y-3">{aiAssistantPanel}</section>}
 
         <section className="space-y-3">
           <div className={labelClasses}>Gating Checklist</div>

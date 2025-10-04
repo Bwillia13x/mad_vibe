@@ -3,7 +3,7 @@
  * Aggregates real-time market data, news, filings, and signals for idea generation
  */
 
-export type DataStreamType = 
+export type DataStreamType =
   | 'market-movers'
   | 'earnings-calendar'
   | 'sec-filings'
@@ -126,7 +126,7 @@ class DataStreamManager {
   private publish(stream: DataStreamType, data: unknown): void {
     const subs = this.subscribers.get(stream)
     if (subs) {
-      subs.forEach(callback => callback(data))
+      subs.forEach((callback) => callback(data))
     }
   }
 
@@ -153,7 +153,7 @@ class DataStreamManager {
       {
         ticker: 'NVDA',
         company: 'NVIDIA Corporation',
-        price: 495.20,
+        price: 495.2,
         change: 12.45,
         changePercent: 2.58,
         volume: 45000000,
@@ -163,9 +163,9 @@ class DataStreamManager {
       {
         ticker: 'META',
         company: 'Meta Platforms Inc',
-        price: 505.30,
-        change: -8.20,
-        changePercent: -1.60,
+        price: 505.3,
+        change: -8.2,
+        changePercent: -1.6,
         volume: 18000000,
         reason: 'Regulatory concerns in EU',
         sector: 'Technology'
@@ -173,8 +173,8 @@ class DataStreamManager {
       {
         ticker: 'JPM',
         company: 'JPMorgan Chase & Co',
-        price: 168.50,
-        change: 5.30,
+        price: 168.5,
+        change: 5.3,
         changePercent: 3.25,
         volume: 12000000,
         reason: 'Better than expected earnings',
@@ -307,23 +307,25 @@ class DataStreamManager {
     const sparks: IdeaSpark[] = []
 
     // Generate sparks from market movers
-    movers.filter(m => Math.abs(m.changePercent) > 2).forEach(mover => {
-      sparks.push({
-        id: `mover-${mover.ticker}`,
-        source: 'market-movers',
-        priority: Math.abs(mover.changePercent) > 5 ? 'high' : 'medium',
-        title: `${mover.ticker} ${mover.changePercent > 0 ? 'surges' : 'drops'} ${Math.abs(mover.changePercent).toFixed(1)}%`,
-        description: mover.reason,
-        tickers: [mover.ticker],
-        timestamp: new Date().toISOString(),
-        confidence: 0.8,
-        tags: [mover.sector, mover.changePercent > 0 ? 'momentum' : 'dip-buying'],
-        data: mover
+    movers
+      .filter((m) => Math.abs(m.changePercent) > 2)
+      .forEach((mover) => {
+        sparks.push({
+          id: `mover-${mover.ticker}`,
+          source: 'market-movers',
+          priority: Math.abs(mover.changePercent) > 5 ? 'high' : 'medium',
+          title: `${mover.ticker} ${mover.changePercent > 0 ? 'surges' : 'drops'} ${Math.abs(mover.changePercent).toFixed(1)}%`,
+          description: mover.reason,
+          tickers: [mover.ticker],
+          timestamp: new Date().toISOString(),
+          confidence: 0.8,
+          tags: [mover.sector, mover.changePercent > 0 ? 'momentum' : 'dip-buying'],
+          data: mover
+        })
       })
-    })
 
     // Generate sparks from upcoming earnings
-    earnings.slice(0, 3).forEach(event => {
+    earnings.slice(0, 3).forEach((event) => {
       sparks.push({
         id: `earnings-${event.ticker}`,
         source: 'earnings-calendar',
@@ -339,36 +341,40 @@ class DataStreamManager {
     })
 
     // Generate sparks from significant filings
-    filings.filter(f => f.significance === 'high').forEach(filing => {
-      sparks.push({
-        id: `filing-${filing.ticker}-${filing.formType}`,
-        source: 'sec-filings',
-        priority: 'high',
-        title: `${filing.ticker} files ${filing.formType}`,
-        description: filing.description,
-        tickers: [filing.ticker],
-        timestamp: filing.filedDate,
-        confidence: 0.85,
-        tags: ['sec-filing', 'corporate-action'],
-        data: filing
+    filings
+      .filter((f) => f.significance === 'high')
+      .forEach((filing) => {
+        sparks.push({
+          id: `filing-${filing.ticker}-${filing.formType}`,
+          source: 'sec-filings',
+          priority: 'high',
+          title: `${filing.ticker} files ${filing.formType}`,
+          description: filing.description,
+          tickers: [filing.ticker],
+          timestamp: filing.filedDate,
+          confidence: 0.85,
+          tags: ['sec-filing', 'corporate-action'],
+          data: filing
+        })
       })
-    })
 
     // Generate sparks from high-relevance news
-    news.filter(n => n.relevance > 0.8).forEach(item => {
-      sparks.push({
-        id: item.id,
-        source: 'news-feed',
-        priority: item.sentiment === 'positive' ? 'medium' : 'low',
-        title: item.headline,
-        description: item.summary,
-        tickers: item.tickers,
-        timestamp: item.timestamp,
-        confidence: item.relevance,
-        tags: [item.sentiment, 'news'],
-        data: item
+    news
+      .filter((n) => n.relevance > 0.8)
+      .forEach((item) => {
+        sparks.push({
+          id: item.id,
+          source: 'news-feed',
+          priority: item.sentiment === 'positive' ? 'medium' : 'low',
+          title: item.headline,
+          description: item.summary,
+          tickers: item.tickers,
+          timestamp: item.timestamp,
+          confidence: item.relevance,
+          tags: [item.sentiment, 'news'],
+          data: item
+        })
       })
-    })
 
     return sparks.sort((a, b) => {
       const priorityOrder = { high: 0, medium: 1, low: 2 }

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { type StageGateChecklistItem, type WorkflowStage, workflowStages } from '@/lib/workflow'
 import type { ResearchLogEntry, ResearchLogInput } from '@shared/types'
+import { fetchResearchLog, persistResearchLogEntry } from '@/lib/workflow-api'
 
 export type StageStatus = 'locked' | 'in-progress' | 'complete'
 export type { WorkflowStage } from '@/lib/workflow'
@@ -53,35 +54,70 @@ const loadState = (): StageChecklistState => {
   }
 }
 
+const MAX_RESEARCH_LOG_ENTRIES = 100
+
+const normalizeLogEntry = (entry: ResearchLogEntry): ResearchLogEntry => ({
+  ...entry,
+  timestamp: new Date(entry.timestamp).toISOString()
+})
+
+const buildEntryKey = (entry: ResearchLogEntry) =>
+  `${entry.stageSlug}|${entry.action}|${entry.details ?? ''}|${entry.timestamp}`
+
+const mergeLogEntries = (entries: ResearchLogEntry[]): ResearchLogEntry[] => {
+  const seen = new Set<string>()
+  const merged: ResearchLogEntry[] = []
+  for (const entry of entries) {
+    const normalized = normalizeLogEntry(entry)
+    const key = buildEntryKey(normalized)
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push(normalized)
+  }
+  return merged
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, MAX_RESEARCH_LOG_ENTRIES)
+}
+
 export function WorkflowProvider({ children }: { children: React.ReactNode }) {
   const [checklists, setChecklists] = useState<StageChecklistState>(() => loadState())
   const [activeSlug, setActiveSlug] = useState<string>(workflowStages[0]?.slug ?? 'home')
   const [researchLog, setResearchLog] = useState<ResearchLogEntry[]>([])
 
   const appendLogEntry = useCallback((entry: ResearchLogEntry) => {
-    setResearchLog((prev) => {
-      const merged = [entry]
-      for (const item of prev) {
-        if (item.id !== entry.id) merged.push(item)
-      }
-      return merged
-    })
+    setResearchLog((prev) => mergeLogEntries([entry, ...prev]))
   }, [])
 
   const logEvent = useCallback(
     async (entry: ResearchLogInput) => {
       // Local-only logging now that server endpoints were removed
+      const timestamp = entry.timestamp ?? new Date().toISOString()
+      const localId =
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+
       appendLogEntry({
-        id:
-          typeof crypto !== 'undefined' && crypto.randomUUID
-            ? crypto.randomUUID()
-            : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        id: localId,
         stageSlug: entry.stageSlug,
         stageTitle: entry.stageTitle,
         action: entry.action,
         details: entry.details,
-        timestamp: entry.timestamp ?? new Date().toISOString()
+        timestamp
       })
+
+      try {
+        const persisted = await persistResearchLogEntry({
+          stageSlug: entry.stageSlug,
+          stageTitle: entry.stageTitle,
+          action: entry.action,
+          details: entry.details,
+          timestamp
+        })
+        appendLogEntry(persisted)
+      } catch (error) {
+        console.warn('Failed to persist research log entry', error)
+      }
     },
     [appendLogEntry]
   )
@@ -95,7 +131,26 @@ export function WorkflowProvider({ children }: { children: React.ReactNode }) {
     }
   }, [checklists])
 
-  // Remote research log removed; start with empty log (still persisted in-memory for session)
+  useEffect(() => {
+    let cancelled = false
+
+    const loadLog = async () => {
+      try {
+        const entries = await fetchResearchLog()
+        if (!cancelled && Array.isArray(entries)) {
+          setResearchLog((prev) => mergeLogEntries([...entries, ...prev]))
+        }
+      } catch (error) {
+        console.warn('Failed to load research log', error)
+      }
+    }
+
+    void loadLog()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const stageStatuses = useMemo(() => {
     const statuses: Record<string, StageStatus> = {}

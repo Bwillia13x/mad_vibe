@@ -194,17 +194,13 @@ export class MemStorage implements IStorage {
 
   async createService(service: InsertService): Promise<Service> {
     const id = randomUUID()
-    const now = new Date()
     const newService: Service = {
       name: service.name,
       description: service.description,
       duration: service.duration,
       price: service.price,
       category: service.category,
-      isActive: service.isActive ?? true,
-      id,
-      createdAt: now,
-      updatedAt: now
+      id
     }
     this.services.set(id, newService)
     return newService
@@ -216,8 +212,7 @@ export class MemStorage implements IStorage {
 
     const updated: Service = {
       ...existing,
-      ...service,
-      updatedAt: new Date()
+      ...service
     }
     this.services.set(id, updated)
     return updated
@@ -238,7 +233,7 @@ export class MemStorage implements IStorage {
 
   async createStaff(staff: InsertStaff): Promise<Staff> {
     const id = randomUUID()
-    const now = new Date()
+    const staffWithStatus = staff as InsertStaff & { isActive?: boolean }
     const newStaff: Staff = {
       name: staff.name,
       email: staff.email,
@@ -249,10 +244,8 @@ export class MemStorage implements IStorage {
       bio: staff.bio ?? null,
       avatar: staff.avatar ?? null,
       availability: staff.availability ?? null,
-      isActive: staff.isActive ?? true,
-      id,
-      createdAt: now,
-      updatedAt: now
+      isActive: staffWithStatus.isActive ?? true,
+      id
     }
     this.staff.set(id, newStaff)
     return newStaff
@@ -262,10 +255,11 @@ export class MemStorage implements IStorage {
     const existing = this.staff.get(id)
     if (!existing) return undefined
 
+    const staffWithStatus = staff as Partial<InsertStaff & { isActive?: boolean }>
     const updated: Staff = {
       ...existing,
       ...staff,
-      updatedAt: new Date()
+      ...(staffWithStatus.isActive !== undefined ? { isActive: staffWithStatus.isActive } : {})
     }
     this.staff.set(id, updated)
     return updated
@@ -343,7 +337,6 @@ export class MemStorage implements IStorage {
 
   async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
     const id = randomUUID()
-    const now = new Date()
     const newAppointment: Appointment = {
       customerId: appointment.customerId,
       staffId: appointment.staffId,
@@ -351,10 +344,8 @@ export class MemStorage implements IStorage {
       scheduledStart: appointment.scheduledStart,
       scheduledEnd: appointment.scheduledEnd,
       status: appointment.status ?? 'scheduled',
-      notes: appointment.notes ?? null,
-      id,
-      createdAt: now,
-      updatedAt: now
+      notes: appointment.notes ?? undefined,
+      id
     }
     this.appointments.set(id, newAppointment)
     return newAppointment
@@ -369,8 +360,7 @@ export class MemStorage implements IStorage {
 
     const updated: Appointment = {
       ...existing,
-      ...appointment,
-      updatedAt: new Date()
+      ...appointment
     }
     this.appointments.set(id, updated)
     return updated
@@ -391,7 +381,6 @@ export class MemStorage implements IStorage {
 
   async createInventoryItem(item: InsertInventoryItem): Promise<InventoryItem> {
     const id = randomUUID()
-    const now = new Date()
     const stock = item.currentStock ?? 0
     const min = item.minStock ?? 0
     let computedStatus: InventoryItem['status'] = 'in-stock'
@@ -401,18 +390,17 @@ export class MemStorage implements IStorage {
       name: item.name,
       sku: item.sku,
       category: item.category,
-      brand: item.brand,
       supplier: item.supplier,
+      quantity: item.quantity ?? 0,
       currentStock: item.currentStock ?? 0,
       minStock: item.minStock ?? 0,
-      maxStock: item.maxStock ?? 100,
+      reorderLevel: item.reorderLevel,
       unitCost: item.unitCost,
-      retailPrice: item.retailPrice ?? null,
+      sellPrice: item.sellPrice,
+      retailPrice: item.retailPrice,
       status: computedStatus,
-      description: item.description ?? null,
-      id,
-      createdAt: now,
-      updatedAt: now
+      description: item.description,
+      id
     }
     this.inventoryItems.set(id, newItem)
     return newItem
@@ -427,8 +415,7 @@ export class MemStorage implements IStorage {
 
     const updated: InventoryItem = {
       ...existing,
-      ...item,
-      updatedAt: new Date()
+      ...item
     }
     this.inventoryItems.set(id, updated)
     return updated
@@ -451,7 +438,6 @@ export class MemStorage implements IStorage {
 
   async createAnalytics(analytics: InsertAnalyticsSnapshot): Promise<AnalyticsSnapshot> {
     const id = randomUUID()
-    const now = new Date()
     const newAnalytics: AnalyticsSnapshot = {
       date: analytics.date,
       totalRevenue: analytics.totalRevenue,
@@ -465,8 +451,11 @@ export class MemStorage implements IStorage {
       averageServiceDuration: analytics.averageServiceDuration,
       topServices: analytics.topServices ?? [],
       staffPerformance: analytics.staffPerformance ?? [],
-      id,
-      createdAt: now
+      revenue: analytics.revenue,
+      appointments: analytics.appointments,
+      newCustomers: analytics.newCustomers,
+      avgTicket: analytics.avgTicket,
+      id
     }
     this.analytics.set(id, newAnalytics)
     return newAnalytics
@@ -474,117 +463,95 @@ export class MemStorage implements IStorage {
 
   // POS methods
   async getAllSales(): Promise<PosSale[]> {
-    return Array.from(this.sales.values()).sort((a, b) => +b.createdAt - +a.createdAt)
+    return Array.from(this.sales.values()).sort((a, b) => +b.completedAt - +a.completedAt)
   }
 
   async createSale(sale: InsertPosSale): Promise<PosSale> {
     const id = randomUUID()
-    const createdAt = new Date()
-    const items: import('@shared/schema').PosLineItem[] = []
-    let subtotalNum = 0
+    const now = new Date()
+    const completedAt = sale.completedAt ? new Date(sale.completedAt) : now
+    const lineItems: import('@shared/schema').PosLineItem[] = (sale.lineItems ?? []).map(
+      (item) => ({
+        id: item.id || randomUUID(),
+        name: item.name,
+        quantity: item.quantity ?? 1,
+        price: item.price ?? 0,
+        kind: item.kind,
+        sourceId: item.sourceId
+      })
+    )
 
-    for (const it of sale.items || []) {
-      if (!it || (it.kind !== 'service' && it.kind !== 'product')) {
-        throw new Error('Invalid line item')
-      }
-      const qty = Math.max(1, Math.floor(it.quantity || 1))
-      if (it.kind === 'service') {
-        const svc = await this.getService(it.id)
-        if (!svc) throw new Error('Service not found')
-        const unit = parseFloat(String(svc.price))
-        const subtotal = unit * qty
-        items.push({
-          kind: 'service',
-          id: svc.id,
-          name: svc.name,
-          quantity: qty,
-          unitPrice: unit.toFixed(2),
-          subtotal: subtotal.toFixed(2)
-        })
-        subtotalNum += subtotal
-      } else {
-        const prod = await this.getInventoryItem(it.id)
-        if (!prod) throw new Error('Product not found')
-        const unit = parseFloat(String(prod.retailPrice ?? prod.unitCost))
-        const subtotal = unit * qty
-        items.push({
-          kind: 'product',
-          id: prod.id,
-          name: prod.name,
-          quantity: qty,
-          unitPrice: unit.toFixed(2),
-          subtotal: subtotal.toFixed(2)
-        })
-        subtotalNum += subtotal
-        // decrement stock and update status
-        const newStock = Math.max(0, (prod.currentStock ?? 0) - qty)
-        let status: InventoryItem['status'] = 'in-stock'
-        if (newStock === 0) status = 'out-of-stock'
-        else if (newStock <= (prod.minStock ?? 0)) status = 'low'
-        await this.updateInventoryItem(prod.id, {
-          currentStock: newStock,
-          status
-        })
-      }
-    }
+    const lineSubtotal = lineItems.reduce(
+      (sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0),
+      0
+    )
 
-    const discountPct = typeof sale.discountPct === 'number' ? Math.max(0, sale.discountPct) : 0
-    const taxPct = typeof sale.taxPct === 'number' ? Math.max(0, sale.taxPct) : 0
-    const discountAmt = subtotalNum * (discountPct / 100)
-    const taxableBase = subtotalNum - discountAmt
-    const taxAmt = taxableBase * (taxPct / 100)
-    const totalNum = taxableBase + taxAmt
+    const subtotal = sale.subtotal ?? lineSubtotal
+    const discount = sale.discount ?? 0
+    const tax = sale.tax ?? 0
+
+    const computedTotal = subtotal - discount + tax
+    const total = sale.total ?? computedTotal
+
+    const createdAt = sale.createdAt ? new Date(sale.createdAt) : now
+    const updatedAt = sale.updatedAt ? new Date(sale.updatedAt) : createdAt
+
+    const items = sale.items
+      ? sale.items.map((item) => ({ ...item }))
+      : lineItems.map((item) => {
+          const itemSubtotal = (Number(item.price) || 0) * (Number(item.quantity) || 0)
+          return {
+            kind: item.kind ?? 'service',
+            id: item.sourceId,
+            name: item.name,
+            quantity: item.quantity,
+            unitPrice: item.price,
+            subtotal: itemSubtotal,
+            total: itemSubtotal
+          }
+        })
+
     const record: PosSale = {
       id,
+      customerId: sale.customerId,
+      staffId: sale.staffId,
+      total,
+      paymentMethod: sale.paymentMethod,
+      completedAt,
+      lineItems,
       items,
-      subtotal: subtotalNum.toFixed(2),
-      discount: discountAmt.toFixed(2),
-      tax: taxAmt.toFixed(2),
-      total: totalNum.toFixed(2),
-      createdAt
+      subtotal,
+      discount,
+      discountPct: sale.discountPct,
+      tax,
+      taxPct: sale.taxPct,
+      createdAt,
+      updatedAt
     }
     this.sales.set(id, record)
     return record
   }
 
   async deleteSale(id: string): Promise<boolean> {
-    const existing = this.sales.get(id)
-    if (!existing) return false
-    // Restock products
-    for (const li of existing.items) {
-      if (li.kind === 'product') {
-        const prod = await this.getInventoryItem(li.id)
-        if (prod) {
-          const newStock = (prod.currentStock ?? 0) + (li.quantity || 0)
-          let status: InventoryItem['status'] = 'in-stock'
-          if (newStock === 0) status = 'out-of-stock'
-          else if (newStock <= (prod.minStock ?? 0)) status = 'low'
-          await this.updateInventoryItem(prod.id, {
-            currentStock: newStock,
-            status
-          })
-        }
-      }
-    }
-    this.sales.delete(id)
-    return true
+    return this.sales.delete(id)
   }
 
   // Marketing methods
   async getAllCampaigns(): Promise<Campaign[]> {
-    return Array.from(this.campaigns.values()).sort((a, b) => +b.createdAt - +a.createdAt)
+    return Array.from(this.campaigns.values()).sort((a, b) => +b.startDate - +a.startDate)
   }
 
   async createCampaign(campaign: InsertCampaign): Promise<Campaign> {
     const id = randomUUID()
-    const createdAt = new Date()
     const rec: Campaign = {
       id,
       name: campaign.name,
-      description: campaign.description ?? null,
-      channel: campaign.channel ?? 'email',
-      status: campaign.status ?? 'draft',
-      createdAt
+      description: campaign.description,
+      type: campaign.type,
+      status: campaign.status,
+      startDate: campaign.startDate,
+      endDate: campaign.endDate,
+      targetAudience: campaign.targetAudience
     }
     this.campaigns.set(id, rec)
     return rec
@@ -615,9 +582,8 @@ export class MemStorage implements IStorage {
     const rec: LoyaltyEntry = {
       id,
       customerId: entry.customerId,
-      type: entry.type,
-      points: typeof entry.points === 'number' ? entry.points : null,
-      note: entry.note ?? null,
+      points: entry.points,
+      reason: entry.reason,
       createdAt
     }
     this.loyaltyEntries.set(id, rec)

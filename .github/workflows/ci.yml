@@ -9,6 +9,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      AI_MODE: demo
+      SMOKE_MODE: '1'
+      PORT: '0'
+      CORS_ORIGIN: http://localhost:5173
 
     strategy:
       matrix:
@@ -38,6 +43,9 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Run market ingestion integration tests
+        run: npm run test:integration:market-ingestion
+
       - name: Run comprehensive tests
         run: npm run test:comprehensive
 
@@ -46,6 +54,15 @@ jobs:
 
       - name: Run performance validation
         run: npm run validate:performance
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test-results/
+            .local/performance-baseline.json
 
   build:
     runs-on: ubuntu-latest

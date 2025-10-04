@@ -14,6 +14,9 @@ vi.mock('../../../lib/db', () => ({
   db: {}
 }))
 
+const presenceModule = await import('../../../lib/agents/session-presence')
+const { sessionPresenceService, SessionPresenceService } = presenceModule
+
 const workflowModule = await import(
   new URL('../../../server/routes/workflow.ts', import.meta.url).pathname
 )
@@ -62,7 +65,7 @@ const performRequest = async (
   })
 }
 
-describe.skip('Workflow presence API (legacy)', () => {
+describe('Workflow presence API', () => {
   let app: express.Express
 
   beforeEach(() => {
@@ -74,11 +77,13 @@ describe.skip('Workflow presence API (legacy)', () => {
     app = express()
     app.use(express.json())
     app.use('/api/workflow', createWorkflowRouter(mockDb as any))
+    sessionPresenceService.reset()
   })
 
   afterEach(() => {
     vi.clearAllMocks()
     vi.useRealTimers()
+    sessionPresenceService.reset()
   })
 
   it('registers a heartbeat and lists active peers for the stage', async () => {
@@ -98,24 +103,19 @@ describe.skip('Workflow presence API (legacy)', () => {
     expect(heartbeat.status).toBe(200)
     expect(heartbeat.body).toMatchObject({
       actorId: 'analyst-1',
+      sessionId: 'presence-session-1',
       stageSlug,
-      peers: [
-        {
-          actorId: 'analyst-1',
-          stageSlug
-        }
-      ]
+      lockOwner: null,
+      conflict: null
     })
-
-    const fetchPresence = await performRequest(
-      app,
-      'GET',
-      `/api/workflow/presence?stage=${encodeURIComponent(stageSlug)}`
-    )
-
-    expect(fetchPresence.status).toBe(200)
-    expect(fetchPresence.body).toEqual(
-      expect.arrayContaining([expect.objectContaining({ actorId: 'analyst-1', stageSlug })])
+    expect(heartbeat.body.peers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actorId: 'analyst-1',
+          sessionId: 'presence-session-1',
+          stageSlug
+        })
+      ])
     )
 
     const secondHeartbeat = await performRequest(
@@ -130,21 +130,13 @@ describe.skip('Workflow presence API (legacy)', () => {
     )
 
     expect(secondHeartbeat.status).toBe(200)
+    expect(secondHeartbeat.body.actorId).toBe('analyst-2')
     expect(secondHeartbeat.body.peers).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ actorId: 'analyst-1' }),
-        expect.objectContaining({ actorId: 'analyst-2' })
+        expect.objectContaining({ actorId: 'analyst-2', sessionId: 'presence-session-2' })
       ])
     )
-
-    const updatedPeers = await performRequest(
-      app,
-      'GET',
-      `/api/workflow/presence?stage=${encodeURIComponent(stageSlug)}`
-    )
-
-    const peerIds = (updatedPeers.body as Array<{ actorId: string }>).map((peer) => peer.actorId)
-    expect(peerIds).toEqual(expect.arrayContaining(['analyst-1', 'analyst-2']))
+    expect(secondHeartbeat.body.conflict).toBeNull()
   })
 
   it('treats missing or blank stage slugs as invalid', async () => {
@@ -178,6 +170,7 @@ describe.skip('Workflow presence API (legacy)', () => {
 
     expect(heartbeat.status).toBe(200)
     expect(heartbeat.body.actorId).toBe('session-actor-fallback')
+    expect(heartbeat.body.sessionId).toBe('session-actor-fallback')
   })
 
   it('prunes stale presence entries after the max age window', async () => {
@@ -200,7 +193,7 @@ describe.skip('Workflow presence API (legacy)', () => {
 
     expect(heartbeat.status).toBe(200)
 
-    vi.setSystemTime(new Date(baseTime.getTime() + 60_000))
+    vi.setSystemTime(new Date(baseTime.getTime() + 61_000))
 
     const peers = await performRequest(
       app,
@@ -210,5 +203,43 @@ describe.skip('Workflow presence API (legacy)', () => {
 
     expect(peers.status).toBe(200)
     expect(peers.body).toEqual([])
+  })
+
+  it('delivers service-registered conflicts to clients', () => {
+    const stageSlug = `presence-conflict-${Date.now()}`
+
+    const service = new SessionPresenceService()
+
+    const ownerHeartbeat = service.heartbeat({
+      stageSlug,
+      sessionId: 'conflict-owner',
+      actorId: 'owner',
+      lockRequest: true
+    })
+
+    expect(ownerHeartbeat.lockOwner).toBe('conflict-owner')
+
+    service.registerConflict({
+      stageSlug,
+      sessionId: 'conflict-guest',
+      actorId: 'guest',
+      type: 'lock_denied',
+      message: 'Stage is locked',
+      blockingSessionId: 'conflict-owner',
+      blockingActorId: 'owner'
+    })
+
+    const guestHeartbeat = service.heartbeat({
+      stageSlug,
+      sessionId: 'conflict-guest',
+      actorId: 'guest',
+      lockRequest: false
+    })
+
+    expect(guestHeartbeat.conflict).toMatchObject({
+      type: 'lock_denied',
+      blockingSessionId: 'conflict-owner',
+      blockingActorId: 'owner'
+    })
   })
 })

@@ -195,7 +195,10 @@ export function WorkbenchLayout({
 
   const statusLabel = stageStatusesBySlug[activeStage.slug]
   const checklist = getChecklist(activeStage.slug)
-  const checklistStateForStage = checklistState[activeStage.slug] ?? {}
+  const checklistStateForStage = useMemo(
+    () => checklistState[activeStage.slug] ?? {},
+    [checklistState, activeStage.slug]
+  )
 
   const hasChecklist = checklist.length > 0
   const allTasksComplete = useMemo(
@@ -254,17 +257,35 @@ export function WorkbenchLayout({
     return result
   }, [stages, getChecklist, checklistState])
 
-  const { actorId, peers } = usePresence(activeStage.slug)
+  const { actorId, peers, isFocused, lastHeartbeatAt } = usePresence(activeStage.slug)
   const otherPeers = useMemo(
     () => peers.filter((peer) => peer.actorId !== actorId),
     [actorId, peers]
   )
 
   const presenceSummary = useMemo(() => {
-    if (otherPeers.length === 0) return 'Solo analyst'
-    const noun = otherPeers.length === 1 ? 'analyst' : 'analysts'
-    return `Collaborating with ${otherPeers.length} ${noun}`
-  }, [otherPeers.length])
+    if (otherPeers.length === 0) {
+      return isFocused ? 'No collaborators right now' : 'You are marked away'
+    }
+    const names = otherPeers
+      .slice(0, 2)
+      .map((peer) => peer.actorId)
+      .join(', ')
+    const remainder = otherPeers.length > 2 ? ` +${otherPeers.length - 2}` : ''
+    return `Collaborating with ${names}${remainder}`
+  }, [otherPeers, isFocused])
+
+  const presenceDetail = useMemo(() => {
+    if (!lastHeartbeatAt) return 'Awaiting first heartbeat'
+    const diffSeconds = Math.max(
+      0,
+      Math.round((Date.now() - new Date(lastHeartbeatAt).getTime()) / 1000)
+    )
+    if (diffSeconds <= 10) return 'Live in stage'
+    if (diffSeconds <= 60) return `Synced ${diffSeconds}s ago`
+    const minutes = Math.round(diffSeconds / 60)
+    return `Last sync ${minutes}m ago`
+  }, [lastHeartbeatAt])
 
   const handlePromptSubmit = useCallback(
     (value: string) => {
@@ -326,7 +347,8 @@ export function WorkbenchLayout({
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
-              Welcome to the Workbench! Use the sidebar to navigate stages, the top bar for prompts, and drawers for explorer/inspector. Dismiss to hide.
+              Welcome to the Workbench! Use the sidebar to navigate stages, the top bar for prompts,
+              and drawers for explorer/inspector. Dismiss to hide.
             </TooltipContent>
           </Tooltip>
         </div>
@@ -336,7 +358,7 @@ export function WorkbenchLayout({
         stageGoal={activeStage.goal}
         stageIndex={stageNumber}
         totalStages={stages.length}
-        presenceLabel={presenceSummary}
+        presenceLabel={`${presenceSummary} • ${presenceDetail}`}
         onSubmitPrompt={handlePromptSubmit}
         onOpenPrompt={onOpenPrompt}
         onNext={handleNextStage}
@@ -350,7 +372,7 @@ export function WorkbenchLayout({
         onToggleConsoleCollapsed={() => setConsoleCollapsed((v) => !v)}
         consoleCollapsed={consoleCollapsed}
       />
- 
+
       <div className="flex flex-col lg:flex-row min-h-0 flex-1 border-t border-slate-900 transition-all duration-300 ease-in-out">
         {!explorerCollapsed && (
           <div className="transition-all duration-300 ease-in-out lg:w-64">
@@ -364,7 +386,7 @@ export function WorkbenchLayout({
             />
           </div>
         )}
- 
+
         <div className="flex-1 transition-all duration-300 ease-in-out">
           <ErrorBoundary>
             <Workbench
@@ -376,7 +398,7 @@ export function WorkbenchLayout({
             />
           </ErrorBoundary>
         </div>
- 
+
         {!inspectorCollapsed && (
           <div className="transition-all duration-300 ease-in-out lg:w-80">
             <Inspector
@@ -386,7 +408,7 @@ export function WorkbenchLayout({
               onToggle={(itemId) => toggleChecklistItem(activeStage.slug, itemId)}
               stageLog={stageLog}
               lastPrompt={lastPrompt}
-              presenceLabel={presenceSummary}
+              presenceLabel={`${presenceSummary} • ${presenceDetail}`}
               inspectorExtras={combinedInspectorExtras}
               aiModes={activeStage.aiModes ?? []}
               aiAssistantPanel={

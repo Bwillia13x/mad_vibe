@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "node",
+      "react",
+      "react-dom",
+      "vitest",
+      "@testing-library/jest-dom",
+      "@playwright/test"
+    ]
+  },
+  "include": [
+    "../src/**/*",
+    "./**/*",
+    "../../shared/**/*",
+    "../../lib/**/*",
+    "../../server/**/*"
+  ]
+}

@@ -94,9 +94,10 @@ class MemoryOptimizer {
 
     // Force garbage collection multiple times
     if (global.gc) {
-      for (let i = 0; i < 5; i++) {  // Increase to 5 for more thorough GC
+      for (let i = 0; i < 5; i++) {
+        // Increase to 5 for more thorough GC
         global.gc()
-        await this.sleep(50)  // Shorter sleep for faster cycles
+        await this.sleep(50) // Shorter sleep for faster cycles
       }
     }
 

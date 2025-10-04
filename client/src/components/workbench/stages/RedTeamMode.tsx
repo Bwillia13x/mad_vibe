@@ -342,7 +342,10 @@ export const MadLab_RedTeam_Prod = React.memo(() => {
           >
             <ul className="text-sm text-slate-300 space-y-2">
               {vulnerabilityChecklist.map((item) => (
-                <li key={item.id} className="flex items-center justify-between bg-slate-950/50 border border-slate-800 rounded-md p-2">
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between bg-slate-950/50 border border-slate-800 rounded-md p-2"
+                >
                   <span className="truncate">{item.label}</span>
                   <label className="inline-flex items-center gap-1 text-xs">
                     <input
@@ -356,7 +359,9 @@ export const MadLab_RedTeam_Prod = React.memo(() => {
                 </li>
               ))}
               {vulnerabilityChecklist.length === 0 && (
-                <li className="text-xs text-slate-500 italic">Activate playbooks to generate items.</li>
+                <li className="text-xs text-slate-500 italic">
+                  Activate playbooks to generate items.
+                </li>
               )}
             </ul>
           </MemoizedCard>
@@ -371,11 +376,15 @@ export const MadLab_RedTeam_Prod = React.memo(() => {
               <div className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span>Downside extreme (P5):</span>
-                  <span className="font-semibold text-rose-300">${adversarialSim.extremeDownside}</span>
+                  <span className="font-semibold text-rose-300">
+                    ${adversarialSim.extremeDownside}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Upside extreme (P95):</span>
-                  <span className="font-semibold text-emerald-300">${adversarialSim.extremeUpside}</span>
+                  <span className="font-semibold text-emerald-300">
+                    ${adversarialSim.extremeUpside}
+                  </span>
                 </div>
                 <div className="text-xs text-slate-500 mt-1">{adversarialSim.biasShift}</div>
               </div>

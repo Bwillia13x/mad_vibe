@@ -73,9 +73,8 @@ export const servicesData: Array<
     description:
       'Precision haircut with consultation, wash, cut, style, and hot towel finish. Perfect for the professional gentleman.',
     duration: 45,
-    price: '65.00',
-    category: 'haircuts',
-    isActive: true
+    price: 65.0,
+    category: 'haircuts'
   },
   {
     tempId: SERVICE_IDS.skinFade,
@@ -83,9 +82,8 @@ export const servicesData: Array<
     description:
       'Modern skin fade with scissors on top. Includes wash, cut, style, and styling product application.',
     duration: 50,
-    price: '70.00',
-    category: 'haircuts',
-    isActive: true
+    price: 70.0,
+    category: 'haircuts'
   },
   {
     tempId: SERVICE_IDS.beardSculpt,
@@ -93,9 +91,8 @@ export const servicesData: Array<
     description:
       'Precision beard trimming and shaping with hot towel treatment and beard oil application.',
     duration: 30,
-    price: '45.00',
-    category: 'grooming',
-    isActive: true
+    price: 45.0,
+    category: 'grooming'
   },
   {
     tempId: SERVICE_IDS.hotTowelShave,
@@ -103,9 +100,8 @@ export const servicesData: Array<
     description:
       'Classic straight razor shave with multiple hot towel applications and premium shaving cream.',
     duration: 40,
-    price: '55.00',
-    category: 'shaving',
-    isActive: true
+    price: 55.0,
+    category: 'shaving'
   },
   {
     tempId: SERVICE_IDS.deluxePackage,
@@ -113,27 +109,24 @@ export const servicesData: Array<
     description:
       'Complete makeover: Executive cut, beard trim, hot towel shave, eyebrow trim, and styling.',
     duration: 90,
-    price: '120.00',
-    category: 'packages',
-    isActive: true
+    price: 120.0,
+    category: 'packages'
   },
   {
     tempId: SERVICE_IDS.colorHighlights,
     name: 'Color & Highlights',
     description: 'Professional hair coloring service with consultation and premium color products.',
     duration: 75,
-    price: '95.00',
-    category: 'coloring',
-    isActive: true
+    price: 95.0,
+    category: 'coloring'
   },
   {
     tempId: SERVICE_IDS.quickTrim,
     name: 'Quick Trim',
     description: 'Fast precision trim for maintenance between full cuts. No wash included.',
     duration: 20,
-    price: '35.00',
-    category: 'maintenance',
-    isActive: true
+    price: 35.0,
+    category: 'maintenance'
   }
 ]
 
@@ -434,13 +427,14 @@ export const inventoryData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'
     name: 'Feather Artist Club SS Blade',
     sku: 'FEATH-AC-SS',
     category: 'Blades & Razors',
-    brand: 'Feather',
     supplier: 'Professional Beauty Supply Co.',
+    quantity: 5,
     currentStock: 5,
     minStock: 10,
-    maxStock: 50,
-    unitCost: '8.50',
-    retailPrice: '12.99',
+    reorderLevel: 15,
+    unitCost: 8.5,
+    sellPrice: 12.99,
+    retailPrice: 12.99,
     status: 'low-stock',
     description: 'Premium Japanese razor blades for professional straight razor shaving'
   },
@@ -448,13 +442,14 @@ export const inventoryData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'
     name: 'Proraso Pre-Shave Cream - Eucalyptus',
     sku: 'PROR-PSC-EUC',
     category: 'Shaving Products',
-    brand: 'Proraso',
     supplier: 'Italian Barber Supplies',
+    quantity: 12,
     currentStock: 12,
     minStock: 8,
-    maxStock: 25,
-    unitCost: '6.25',
-    retailPrice: '9.99',
+    reorderLevel: 12,
+    unitCost: 6.25,
+    sellPrice: 9.99,
+    retailPrice: 9.99,
     status: 'in-stock',
     description: 'Professional pre-shave cream with eucalyptus and menthol'
   },
@@ -462,13 +457,14 @@ export const inventoryData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'
     name: 'Schwarzkopf Professional IGORA Royal Hair Color',
     sku: 'SCHW-IGOR-5-0',
     category: 'Hair Color',
-    brand: 'Schwarzkopf Professional',
     supplier: 'Sally Beauty Professional',
+    quantity: 8,
     currentStock: 8,
     minStock: 5,
-    maxStock: 20,
-    unitCost: '12.75',
-    retailPrice: '18.99',
+    reorderLevel: 8,
+    unitCost: 12.75,
+    sellPrice: 18.99,
+    retailPrice: 18.99,
     status: 'in-stock',
     description: 'Professional permanent hair color - Light Brown 5-0'
   },
@@ -476,13 +472,14 @@ export const inventoryData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'
     name: 'Barbicide Disinfectant Concentrate',
     sku: 'BARB-DISINF-473',
     category: 'Sanitation',
-    brand: 'Barbicide',
     supplier: 'Professional Beauty Supply Co.',
+    quantity: 0,
     currentStock: 0,
     minStock: 3,
-    maxStock: 12,
-    unitCost: '15.50',
-    retailPrice: '22.99',
+    reorderLevel: 5,
+    unitCost: 15.5,
+    sellPrice: 22.99,
+    retailPrice: 22.99,
     status: 'out-of-stock',
     description: 'EPA registered hospital-grade disinfectant for tools and surfaces'
   },
@@ -490,13 +487,14 @@ export const inventoryData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'
     name: 'Wahl Professional Magic Clip',
     sku: 'WAHL-MAGIC-CLIP',
     category: 'Clippers',
-    brand: 'Wahl',
     supplier: 'Barber Depot Canada',
+    quantity: 2,
     currentStock: 2,
     minStock: 1,
-    maxStock: 4,
-    unitCost: '125.00',
-    retailPrice: '179.99',
+    reorderLevel: 2,
+    unitCost: 125.0,
+    sellPrice: 179.99,
+    retailPrice: 179.99,
     status: 'in-stock',
     description: 'Professional cordless clipper with 90-minute run time'
   },
@@ -504,13 +502,14 @@ export const inventoryData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'
     name: 'Layrite Original Pomade',
     sku: 'LAYR-ORIG-4OZ',
     category: 'Styling Products',
-    brand: 'Layrite',
     supplier: 'Modern Barber Supply',
+    quantity: 15,
     currentStock: 15,
     minStock: 10,
-    maxStock: 30,
-    unitCost: '8.75',
-    retailPrice: '14.99',
+    reorderLevel: 15,
+    unitCost: 8.75,
+    sellPrice: 14.99,
+    retailPrice: 14.99,
     status: 'in-stock',
     description: 'Water-based pomade with strong hold and high shine'
   },
@@ -518,13 +517,14 @@ export const inventoryData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'
     name: 'Hot Towel Cabinet - Professional',
     sku: 'HTC-PRO-18',
     category: 'Equipment',
-    brand: 'Elite Spa Equipment',
     supplier: 'Spa & Salon Equipment Ltd.',
+    quantity: 1,
     currentStock: 1,
     minStock: 1,
-    maxStock: 2,
-    unitCost: '450.00',
-    retailPrice: '649.99',
+    reorderLevel: 1,
+    unitCost: 450.0,
+    sellPrice: 649.99,
+    retailPrice: 649.99,
     status: 'in-stock',
     description: '18-towel capacity hot towel cabinet with UV sterilization'
   },
@@ -532,13 +532,14 @@ export const inventoryData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'
     name: 'Kamisori Shear - 6 inch',
     sku: 'KAMI-SHEAR-6',
     category: 'Scissors & Shears',
-    brand: 'Kamisori',
     supplier: 'Japanese Steel Imports',
+    quantity: 3,
     currentStock: 3,
     minStock: 2,
-    maxStock: 6,
-    unitCost: '220.00',
-    retailPrice: '329.99',
+    reorderLevel: 3,
+    unitCost: 220.0,
+    sellPrice: 329.99,
+    retailPrice: 329.99,
     status: 'in-stock',
     description: 'Premium Japanese steel cutting shears with ergonomic design'
   },
@@ -546,13 +547,14 @@ export const inventoryData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'
     name: 'Clubman Pinaud Bay Rum Aftershave',
     sku: 'CLUB-BAYRUM-177',
     category: 'Aftercare',
-    brand: 'Clubman Pinaud',
     supplier: 'Classic Barber Products',
+    quantity: 6,
     currentStock: 6,
     minStock: 8,
-    maxStock: 20,
-    unitCost: '4.50',
-    retailPrice: '7.99',
+    reorderLevel: 10,
+    unitCost: 4.5,
+    sellPrice: 7.99,
+    retailPrice: 7.99,
     status: 'low-stock',
     description: 'Classic bay rum aftershave lotion with traditional scent'
   },
@@ -560,13 +562,14 @@ export const inventoryData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'
     name: 'Disposable Neck Strips - 100ct',
     sku: 'DISP-NECK-100',
     category: 'Sanitation',
-    brand: 'Professional Disposables',
     supplier: 'Hygiene Supplies Canada',
+    quantity: 25,
     currentStock: 25,
     minStock: 15,
-    maxStock: 50,
-    unitCost: '3.25',
-    retailPrice: '5.99',
+    reorderLevel: 20,
+    unitCost: 3.25,
+    sellPrice: 5.99,
+    retailPrice: 5.99,
     status: 'in-stock',
     description: 'Hygienic disposable neck strips for professional use'
   }
@@ -577,6 +580,10 @@ export const analyticsData: Omit<AnalyticsSnapshot, 'id' | 'createdAt'>[] = [
   // Last 6 months of business analytics
   {
     date: new Date('2025-09-01'),
+    revenue: 28500.0,
+    appointments: 485,
+    newCustomers: 45,
+    avgTicket: 58.76,
     totalRevenue: '28500.00',
     totalAppointments: 485,
     totalCustomers: 312,
@@ -599,6 +606,10 @@ export const analyticsData: Omit<AnalyticsSnapshot, 'id' | 'createdAt'>[] = [
   },
   {
     date: new Date('2025-08-01'),
+    revenue: 26750.0,
+    appointments: 456,
+    newCustomers: 38,
+    avgTicket: 58.66,
     totalRevenue: '26750.00',
     totalAppointments: 456,
     totalCustomers: 298,
@@ -621,6 +632,10 @@ export const analyticsData: Omit<AnalyticsSnapshot, 'id' | 'createdAt'>[] = [
   },
   {
     date: new Date('2025-07-01'),
+    revenue: 25200.0,
+    appointments: 428,
+    newCustomers: 34,
+    avgTicket: 58.88,
     totalRevenue: '25200.00',
     totalAppointments: 428,
     totalCustomers: 285,

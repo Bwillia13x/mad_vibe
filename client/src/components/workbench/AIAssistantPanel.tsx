@@ -49,7 +49,7 @@ export function AIAssistantPanel({
   const [expandedSuggestions, setExpandedSuggestions] = useState<Set<string>>(new Set())
 
   const toggleSuggestion = (id: string) => {
-    setExpandedSuggestions(prev => {
+    setExpandedSuggestions((prev) => {
       const next = new Set(prev)
       if (next.has(id)) {
         next.delete(id)
@@ -71,7 +71,7 @@ export function AIAssistantPanel({
       {/* Active Suggestions */}
       {suggestions.length > 0 && (
         <div className="space-y-2">
-          {suggestions.map(suggestion => (
+          {suggestions.map((suggestion) => (
             <div
               key={suggestion.id}
               className={cn(
@@ -132,7 +132,7 @@ export function AIAssistantPanel({
       <div className="space-y-2">
         <div className={labelClasses}>Quick Actions</div>
         <div className={cn(cardClasses, 'space-y-1.5')}>
-          {availablePrompts.slice(0, 3).map(prompt => (
+          {availablePrompts.slice(0, 3).map((prompt) => (
             <button
               key={prompt.id}
               onClick={() => {
@@ -151,9 +151,7 @@ export function AIAssistantPanel({
       {suggestions.length === 0 && (
         <div className={cn(cardClasses, 'text-center py-4')}>
           <Bot className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-          <div className="text-xs text-slate-500">
-            AI copilot is monitoring your work
-          </div>
+          <div className="text-xs text-slate-500">AI copilot is monitoring your work</div>
         </div>
       )}
     </div>

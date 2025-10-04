@@ -4,6 +4,7 @@
  */
 
 import { log } from './log'
+import { getEnvVar } from './env-security'
 
 export interface ResourceConfig {
   // Memory monitoring
@@ -49,7 +50,7 @@ export interface ResourceMetrics {
 }
 
 interface CacheEntry {
-  data: any
+  data: unknown
   timestamp: number
   accessCount: number
   lastAccess: number
@@ -71,12 +72,19 @@ export class ResourceManager {
   private lastCpuUsage: NodeJS.CpuUsage
 
   constructor(config: Partial<ResourceConfig> = {}) {
+    const heapAlertPercent = getEnvVar('RM_HEAP_ALERT_THRESHOLD') as number | undefined // e.g. 90
+    const memThresholdMB = getEnvVar('RM_MEMORY_THRESHOLD_MB') as number | undefined // e.g. 512
+
     this.config = {
-      memoryThresholdMB: 512,
+      memoryThresholdMB: memThresholdMB ?? 512,
       memoryCheckInterval: 10000, // 10 seconds
       enableGCOptimization: true,
       gcInterval: 30000, // 30 seconds
-      forceGCThreshold: 0.85, // 85% heap utilization
+      // convert percent to fraction for GC threshold (clamped 0.5-0.99)
+      forceGCThreshold:
+        heapAlertPercent !== undefined
+          ? Math.min(0.99, Math.max(0.5, heapAlertPercent / 100))
+          : 0.9, // default to 90% to reduce noise in dev
       enableResourceCleanup: true,
       cleanupInterval: 60000, // 1 minute
       maxCacheAge: 300000, // 5 minutes
@@ -125,9 +133,9 @@ export class ResourceManager {
     // Monitor garbage collection if available
     if (global.gc && typeof global.gc === 'function') {
       const originalGC = global.gc
-      global.gc = async (...args: any[]) => {
+      global.gc = async () => {
         const start = Date.now()
-        const result = originalGC.call(global, args[0])
+        const result = originalGC()
         const duration = Date.now() - start
 
         this.gcStats.totalCollections++
@@ -225,17 +233,25 @@ export class ResourceManager {
     this.lastCpuUsage = process.cpuUsage()
 
     // Update resource counts (approximations)
+    const getActiveHandlesFn = (
+      process as unknown as {
+        _getActiveHandles?: () => unknown[]
+      }
+    )._getActiveHandles
+    const rawHandles =
+      typeof getActiveHandlesFn === 'function' ? getActiveHandlesFn.call(process) : []
+    const handles = Array.isArray(rawHandles)
+      ? (rawHandles as Array<{ constructor: { name?: string } | undefined }>)
+      : []
     this.metrics.resources = {
-      activeTimers:
-        (process as any)._getActiveHandles?.()?.filter((h: any) => h.constructor.name === 'Timeout')
-          .length || 0,
-      activeHandles: (process as any)._getActiveHandles?.()?.length || 0,
+      activeTimers: handles.filter((h) => h?.constructor?.name === 'Timeout').length,
+      activeHandles: handles.length,
       openFileDescriptors: 0 // Would need platform-specific implementation
     }
   }
 
   private checkResourceHealth(): void {
-    const { memory, gc, resources } = this.metrics
+    const { memory, resources } = this.metrics
 
     // Check memory usage
     if (memory.heapUsed > this.config.memoryThresholdMB) {
@@ -246,8 +262,9 @@ export class ResourceManager {
       })
     }
 
-    // Check heap utilization
-    if (memory.heapUtilization > 80) {
+    // Check heap utilization using configurable threshold (percent)
+    const heapAlertPercent = (getEnvVar('RM_HEAP_ALERT_THRESHOLD') as number | undefined) ?? 90
+    if (memory.heapUtilization > heapAlertPercent) {
       log('High heap utilization detected', {
         heapUtilization: memory.heapUtilization.toFixed(2),
         heapUsed: memory.heapUsed,
@@ -292,8 +309,9 @@ export class ResourceManager {
     let totalSize = 0
 
     for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp > this.config.maxCacheAge || entry.accessCount === 0) {  // Also clear unused
-        totalSize += JSON.stringify(entry.data).length  // Approximate size
+      if (now - entry.timestamp > this.config.maxCacheAge || entry.accessCount === 0) {
+        // Also clear unused
+        totalSize += JSON.stringify(entry.data).length // Approximate size
         this.cache.delete(key)
         cleanedCount++
       }
@@ -328,7 +346,7 @@ export class ResourceManager {
   /**
    * Cache management methods
    */
-  setCache(key: string, data: any, ttl?: number): void {
+  setCache(key: string, data: unknown, ttl?: number): void {
     const now = Date.now()
     this.cache.set(key, {
       data,
@@ -345,7 +363,7 @@ export class ResourceManager {
     }
   }
 
-  getCache(key: string): any {
+  getCache(key: string): unknown {
     const entry = this.cache.get(key)
     if (!entry) return null
 
@@ -389,9 +407,11 @@ export class ResourceManager {
     cacheSize: number
   } {
     const metrics = this.getMetrics()
+    // Use the same configurable alert threshold for health as for logging
+    const heapAlertPercent = (getEnvVar('RM_HEAP_ALERT_THRESHOLD') as number | undefined) ?? 90
     return {
       healthy:
-        metrics.memory.heapUtilization < 85 &&
+        metrics.memory.heapUtilization < heapAlertPercent &&
         metrics.memory.heapUsed < this.config.memoryThresholdMB &&
         metrics.resources.activeHandles < 1000,
       memoryUsage: metrics.memory.heapUsed,

@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { Route, Switch, useLocation } from 'wouter'
 import { queryClient } from '@/lib/queryClient'
 import { Toaster } from '@/components/ui/toaster'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { WorkflowProvider } from '@/hooks/useWorkflow'
+import { WorkspaceProvider } from '@/hooks/useWorkspaceContext'
 import { ScreenerProvider } from '@/hooks/useScreener'
 import { WorkflowStageView } from '@/pages/workflow-stage'
 import HomePage from '@/pages/home'
@@ -17,11 +18,19 @@ import SchedulingPage from '@/pages/scheduling'
 import PosPage from '@/pages/pos'
 import PerformanceDashboardPage from '@/pages/performance-dashboard'
 import NotFoundPage from '@/pages/not-found'
+import StudioPage from '@/pages/studio'
+import WorkspaceOverviewPage from '@/pages/workspace-overview'
+import AgentMetricsPage from '@/pages/agent-metrics'
+import AgentSearchPage from '@/pages/agent-search'
+import AgentResultsPage from '@/pages/agent-results'
+import AuditTimelinePage from '@/pages/audit-timeline'
 import { AppShell } from '@/components/layout/AppShell'
 import { workflowStages } from '@/lib/workflow'
 import { useWorkflow } from '@/hooks/useWorkflow'
 import { FloatingAIAssistant } from '@/components/ai/FloatingAIAssistant'
 import { KeyboardShortcutsOverlay } from '@/components/ui/KeyboardShortcutsOverlay'
+import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher'
+import { NewWorkspaceDialog } from '@/components/workspace/NewWorkspaceDialog'
 
 function RedirectToHome() {
   const [, navigate] = useLocation()
@@ -54,6 +63,13 @@ function Router() {
   return (
     <Switch>
       <Route path="/home" component={HomePage} />
+      <Route path="/workspace" component={WorkspaceOverviewPage} />
+      <Route path="/agent-metrics" component={AgentMetricsPage} />
+      <Route path="/agent-search" component={AgentSearchPage} />
+      <Route path="/agent-results" component={AgentResultsPage} />
+      <Route path="/agent-results/:taskId" component={AgentResultsPage} />
+      <Route path="/audit-timeline" component={AuditTimelinePage} />
+      <Route path="/studio" component={StudioPage} />
       <Route path="/analytics" component={AnalyticsPage} />
       <Route path="/inventory" component={InventoryPage} />
       <Route path="/loyalty" component={LoyaltyPage} />
@@ -72,10 +88,18 @@ function Router() {
 
 function AppContent() {
   const { activeStage, setActiveStage } = useWorkflow()
-  const [, navigate] = useLocation()
+  const [location, navigate] = useLocation()
+  const [showNewWorkspaceDialog, setShowNewWorkspaceDialog] = useState(false)
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Cmd+T for new workspace
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 't') {
+        e.preventDefault()
+        setShowNewWorkspaceDialog(true)
+        return
+      }
+
       const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'
       if (isCmdK) {
         e.preventDefault()
@@ -102,10 +126,19 @@ function AppContent() {
   return (
     <ScreenerProvider>
       <TooltipProvider>
-        <AppShell>
-          <Router />
-        </AppShell>
-        <FloatingAIAssistant />
+        <div className="flex flex-col h-screen">
+          <WorkspaceSwitcher onCreateNew={() => setShowNewWorkspaceDialog(true)} />
+          <div className="flex-1 overflow-hidden">
+            <AppShell>
+              <Router />
+            </AppShell>
+          </div>
+        </div>
+        <NewWorkspaceDialog
+          open={showNewWorkspaceDialog}
+          onOpenChange={setShowNewWorkspaceDialog}
+        />
+        {location !== '/studio' && <FloatingAIAssistant />}
         <KeyboardShortcutsOverlay />
         <Toaster />
       </TooltipProvider>
@@ -116,9 +149,11 @@ function AppContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <WorkflowProvider>
-        <AppContent />
-      </WorkflowProvider>
+      <WorkspaceProvider>
+        <WorkflowProvider>
+          <AppContent />
+        </WorkflowProvider>
+      </WorkspaceProvider>
     </QueryClientProvider>
   )
 }

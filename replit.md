@@ -1,8 +1,8 @@
-# Andreas Vibe - Business Management Platform
+# MAD Vibe - Human/AI Pairing Financial Analysis Platform
 
 ## Overview
 
-Andreas Vibe is a production-ready business management platform designed for service-based businesses, particularly salons and similar establishments. The application combines modern web technologies with AI-powered features to provide comprehensive scheduling, inventory management, staff coordination, and business analytics. Built with a hybrid Next.js/Vite architecture, the platform offers both server-side rendering for admin interfaces and client-side interactivity for operational workflows.
+MAD Vibe is a production-ready financial analysis platform designed for collaborative investment research and valuation workflows. The application combines modern web technologies with AI-powered research assistance to provide comprehensive tools for data normalization, owner earnings analysis, DCF valuation modeling, memo composition, scenario planning, and portfolio monitoring. Built with an Express + Vite React architecture, the platform offers real-time collaboration features and session-scoped workflow state management.
 
 ## User Preferences
 

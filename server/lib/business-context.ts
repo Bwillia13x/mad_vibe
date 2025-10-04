@@ -116,10 +116,10 @@ ${
   latestAnalytics
     ? `- Monthly Revenue: $${latestAnalytics.totalRevenue}
 - Total Appointments: ${latestAnalytics.totalAppointments}
-- Customer Satisfaction: ${(parseFloat(latestAnalytics.customerSatisfaction) * 100).toFixed(1)}%
+- Customer Satisfaction: ${(parseFloat(String(latestAnalytics.customerSatisfaction ?? '0')) * 100).toFixed(1)}%
 - Average Rating: ${latestAnalytics.averageRating}/5.0
-- Staff Utilization: ${(parseFloat(latestAnalytics.utilizationRate) * 100).toFixed(1)}%
-- No-Show Rate: ${(parseFloat(latestAnalytics.noShowRate) * 100).toFixed(1)}%`
+- Staff Utilization: ${(parseFloat(String(latestAnalytics.utilizationRate ?? '0')) * 100).toFixed(1)}%
+- No-Show Rate: ${(parseFloat(String(latestAnalytics.noShowRate ?? '0')) * 100).toFixed(1)}%`
     : 'No recent analytics available'
 }
 

@@ -884,7 +884,7 @@ export class FinalAcceptanceValidation {
     <div class="container">
         <div class="header">
             <h1 class="title">Final Acceptance Report</h1>
-            <p class="subtitle">Andreas Vibe Business Management Platform</p>
+            <p class="subtitle">MAD Vibe – Human/AI Pairing Financial Analysis Platform</p>
             <div class="status">${statusText}</div>
             <div class="score">${result.acceptanceScore}%</div>
             <p class="subtitle">Generated on ${new Date(result.timestamp).toLocaleString()}</p>

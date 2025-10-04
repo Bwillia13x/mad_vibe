@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import { Bot, X, Minimize2, Maximize2, Send, Sparkles, ChevronDown } from 'lucide-react'
+import { Bot, X, Minimize2, Maximize2, Send, Sparkles, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useWorkflow } from '@/hooks/useWorkflow'
+import { useWorkspaceContext } from '@/hooks/useWorkspaceContext'
+import { fetchConversations, createMessage } from '@/lib/workspace-api'
+import type { ConversationMessage } from '@shared/types'
 
 interface Message {
   id: string
@@ -14,18 +17,60 @@ interface Message {
 export function FloatingAIAssistant() {
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: "Hi! I'm your AI analyst copilot. I can help you with valuation analysis, screening criteria, memo writing, and more. What would you like to explore?",
-      timestamp: Date.now()
-    }
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { activeStage } = useWorkflow()
+  const { currentWorkspace } = useWorkspaceContext()
+
+  // Load conversation history when workspace changes
+  useEffect(() => {
+    if (!currentWorkspace || !isOpen) return
+
+    const loadHistory = async () => {
+      setIsLoadingHistory(true)
+      try {
+        const history = await fetchConversations(currentWorkspace.id, 50)
+        if (history.length === 0) {
+          // Show welcome message for new conversations
+          setMessages([
+            {
+              id: 'welcome',
+              role: 'assistant',
+              content: `Hi! I'm your AI analyst copilot for ${currentWorkspace.name}. I can help you with valuation analysis, screening criteria, memo writing, and more. What would you like to explore?`,
+              timestamp: Date.now()
+            }
+          ])
+        } else {
+          // Convert API messages to local format
+          setMessages(
+            history.map((msg) => ({
+              id: msg.id.toString(),
+              role: msg.role,
+              content: msg.content,
+              timestamp: new Date(msg.createdAt).getTime()
+            }))
+          )
+        }
+      } catch (err) {
+        console.error('Failed to load conversation history:', err)
+        setMessages([
+          {
+            id: 'error',
+            role: 'assistant',
+            content: "I'm having trouble loading our conversation history. Starting fresh!",
+            timestamp: Date.now()
+          }
+        ])
+      } finally {
+        setIsLoadingHistory(false)
+      }
+    }
+
+    loadHistory()
+  }, [currentWorkspace?.id, isOpen])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -36,44 +81,74 @@ export function FloatingAIAssistant() {
   }, [messages])
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return
+    if (!input.trim() || isLoading || !currentWorkspace) return
 
+    const userPrompt = input
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input,
+      content: userPrompt,
       timestamp: Date.now()
     }
 
-    setMessages(prev => [...prev, userMessage])
+    setMessages((prev) => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
 
     try {
-      // Call AI API with context
+      // Save user message to workspace
+      await createMessage(currentWorkspace.id, {
+        workflowId: currentWorkspace.id,
+        role: 'user',
+        content: userPrompt,
+        context: {
+          stageSlug: activeStage.slug,
+          stageTitle: activeStage.title
+        }
+      })
+
+      // Call AI API with enhanced context including conversation history
       const response = await fetch('/api/copilot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: input,
+          prompt: userPrompt,
           context: {
             stageSlug: activeStage.slug,
-            stageTitle: activeStage.title
+            stageTitle: activeStage.title,
+            workspaceName: currentWorkspace.name,
+            ticker: currentWorkspace.ticker
           },
-          capability: 'suggest'
+          capability: 'suggest',
+          conversationHistory: messages.filter(
+            (m) => m.id !== 'welcome' && m.id !== 'error' && m.id !== 'fresh'
+          ),
+          workspaceId: currentWorkspace.id
         })
       })
 
       const data = await response.json()
+      const aiContent = data.response || 'I encountered an issue. Please try again.'
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.response || 'I encountered an issue. Please try again.',
+        content: aiContent,
         timestamp: Date.now()
       }
 
-      setMessages(prev => [...prev, aiMessage])
+      setMessages((prev) => [...prev, aiMessage])
+
+      // Save AI response to workspace
+      await createMessage(currentWorkspace.id, {
+        workflowId: currentWorkspace.id,
+        role: 'assistant',
+        content: aiContent,
+        context: {
+          stageSlug: activeStage.slug,
+          stageTitle: activeStage.title
+        }
+      })
     } catch (error) {
       console.error('AI request failed:', error)
       const errorMessage: Message = {
@@ -82,9 +157,22 @@ export function FloatingAIAssistant() {
         content: "I'm having trouble connecting right now. Please try again in a moment.",
         timestamp: Date.now()
       }
-      setMessages(prev => [...prev, errorMessage])
+      setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleStartFresh = () => {
+    if (confirm('Start a fresh conversation? Previous messages will remain saved.')) {
+      setMessages([
+        {
+          id: 'fresh',
+          role: 'assistant',
+          content: `Starting fresh! I'm ready to help with ${currentWorkspace?.name || 'your analysis'}. What would you like to explore?`,
+          timestamp: Date.now()
+        }
+      ])
     }
   }
 
@@ -97,25 +185,35 @@ export function FloatingAIAssistant() {
 
   // Quick action prompts
   const quickActions = [
-    { label: 'Explain this stage', prompt: `What should I focus on in the ${activeStage.title} stage?` },
-    { label: 'Suggest next steps', prompt: 'What are the most important next steps based on my current progress?' },
+    {
+      label: 'Explain this stage',
+      prompt: `What should I focus on in the ${activeStage.title} stage?`
+    },
+    {
+      label: 'Suggest next steps',
+      prompt: `What are the most important next steps for ${currentWorkspace?.name || 'this analysis'}?`
+    },
     { label: 'Review assumptions', prompt: 'Can you review my key assumptions for any red flags?' }
   ]
+
+  if (!currentWorkspace) {
+    return null // Don't show assistant without workspace
+  }
 
   if (!isOpen) {
     return (
       <button
         onClick={() => setIsOpen(true)}
         className={cn(
-          "fixed bottom-6 right-6 z-50",
-          "w-14 h-14 rounded-full",
-          "bg-gradient-to-br from-violet-600 to-purple-700",
-          "shadow-lg shadow-violet-500/50",
-          "hover:shadow-xl hover:shadow-violet-500/60",
-          "transition-all duration-200",
-          "flex items-center justify-center",
-          "group",
-          "animate-in fade-in slide-in-from-bottom-4 duration-500"
+          'fixed bottom-6 right-6 z-50',
+          'w-14 h-14 rounded-full',
+          'bg-gradient-to-br from-violet-600 to-purple-700',
+          'shadow-lg shadow-violet-500/50',
+          'hover:shadow-xl hover:shadow-violet-500/60',
+          'transition-all duration-200',
+          'flex items-center justify-center',
+          'group',
+          'animate-in fade-in slide-in-from-bottom-4 duration-500'
         )}
         aria-label="Open AI Assistant"
       >
@@ -128,12 +226,12 @@ export function FloatingAIAssistant() {
   return (
     <div
       className={cn(
-        "fixed bottom-6 right-6 z-50",
-        "bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl",
-        "transition-all duration-300 ease-out",
-        isMinimized ? "w-80 h-16" : "w-96 h-[600px]",
-        "flex flex-col overflow-hidden",
-        "animate-in fade-in slide-in-from-bottom-8 duration-500"
+        'fixed bottom-6 right-6 z-50',
+        'bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl',
+        'transition-all duration-300 ease-out',
+        isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]',
+        'flex flex-col overflow-hidden',
+        'animate-in fade-in slide-in-from-bottom-8 duration-500'
       )}
     >
       {/* Header */}
@@ -152,7 +250,7 @@ export function FloatingAIAssistant() {
           <button
             onClick={() => setIsMinimized(!isMinimized)}
             className="p-1.5 hover:bg-slate-800 rounded-lg transition-colors"
-            aria-label={isMinimized ? "Maximize" : "Minimize"}
+            aria-label={isMinimized ? 'Maximize' : 'Minimize'}
           >
             {isMinimized ? (
               <Maximize2 className="w-4 h-4 text-slate-400" />
@@ -178,8 +276,8 @@ export function FloatingAIAssistant() {
               <div
                 key={message.id}
                 className={cn(
-                  "flex gap-3",
-                  message.role === 'user' ? "justify-end" : "justify-start"
+                  'flex gap-3',
+                  message.role === 'user' ? 'justify-end' : 'justify-start'
                 )}
               >
                 {message.role === 'assistant' && (
@@ -189,15 +287,18 @@ export function FloatingAIAssistant() {
                 )}
                 <div
                   className={cn(
-                    "max-w-[80%] rounded-2xl px-4 py-2",
+                    'max-w-[80%] rounded-2xl px-4 py-2',
                     message.role === 'user'
-                      ? "bg-violet-600 text-white"
-                      : "bg-slate-800 text-slate-100 border border-slate-700"
+                      ? 'bg-violet-600 text-white'
+                      : 'bg-slate-800 text-slate-100 border border-slate-700'
                   )}
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
                   <span className="text-xs opacity-60 mt-1 block">
-                    {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(message.timestamp).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
                   </span>
                 </div>
               </div>
@@ -209,9 +310,18 @@ export function FloatingAIAssistant() {
                 </div>
                 <div className="bg-slate-800 text-slate-100 border border-slate-700 rounded-2xl px-4 py-2">
                   <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-slate-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-slate-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-slate-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span
+                      className="w-2 h-2 bg-slate-600 rounded-full animate-bounce"
+                      style={{ animationDelay: '0ms' }}
+                    />
+                    <span
+                      className="w-2 h-2 bg-slate-600 rounded-full animate-bounce"
+                      style={{ animationDelay: '150ms' }}
+                    />
+                    <span
+                      className="w-2 h-2 bg-slate-600 rounded-full animate-bounce"
+                      style={{ animationDelay: '300ms' }}
+                    />
                   </div>
                 </div>
               </div>
@@ -260,7 +370,9 @@ export function FloatingAIAssistant() {
               </Button>
             </div>
             <div className="text-xs text-slate-500 mt-2 flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs">Enter</kbd>
+              <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs">
+                Enter
+              </kbd>
               to send
             </div>
           </div>

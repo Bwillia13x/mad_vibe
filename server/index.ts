@@ -6,7 +6,7 @@ import session from 'express-session'
 import fs from 'fs'
 import { registerRoutes } from './routes'
 import { setupVite, serveStatic, log } from './vite'
-import { getEnvVar } from '../lib/env-security'
+import { getEnvVar, validateEnvConfig } from '../lib/env-security'
 import { enhancedErrorHandler } from './middleware/error-handling'
 import { requestThrottler } from './middleware/request-throttling'
 import { createSecurityHeadersMiddleware } from './middleware/security-headers'
@@ -14,6 +14,8 @@ import { resourceManager } from '../lib/resource-manager'
 import { performanceMonitor } from '../lib/performance-monitor'
 import { performanceOptimizer } from '../lib/performance-optimizer'
 import { memoryOptimizer } from '../lib/memory-optimization'
+import { corsMiddleware } from './middleware/cors'
+import { getSessionStore } from './session-store'
 
 // Initialize performance systems (they auto-start on import)
 void resourceManager
@@ -26,8 +28,19 @@ const app = express()
 app.set('trust proxy', 1) // Trust first proxy for proper IP detection
 app.set('x-powered-by', false) // Remove X-Powered-By header for security
 
+// Validate environment in production and fail fast if invalid (except SMOKE_MODE)
+const envValidation = validateEnvConfig()
+const isSmokeMode = (getEnvVar('SMOKE_MODE') as boolean) === true
+if (app.get('env') === 'production' && !envValidation.isValid && !isSmokeMode) {
+  log(`Invalid environment configuration: ${JSON.stringify(envValidation.errors)}`)
+  process.exit(1)
+}
+
 // Apply security headers middleware first
 app.use(createSecurityHeadersMiddleware())
+
+// Apply CORS early to handle preflight without throttling
+app.use(corsMiddleware())
 
 // Apply request throttling middleware early in the stack
 app.use(requestThrottler.middleware())
@@ -40,6 +53,8 @@ app.use(
     resave: false,
     saveUninitialized: false,
     rolling: true, // Reset expiration on activity
+    proxy: true,
+    store: getSessionStore(),
     cookie: {
       secure: app.get('env') === 'production', // HTTPS only in production
       httpOnly: true, // Prevent XSS access to cookies

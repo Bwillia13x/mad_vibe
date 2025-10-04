@@ -1,40 +1,114 @@
 import { type ReactNode } from 'react'
 import { type WorkflowStage } from '@/lib/workflow'
 import { type WorkbenchTab } from './WorkbenchLayout'
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
+import { ReviewerAssignmentPanel } from '@/components/agents/ReviewerAssignmentPanel'
+import { useWorkspaceContext } from '@/hooks/useWorkspaceContext'
 
 // Lazy load stage components
-const HomeDailyBrief = lazy(() => import('./stages/HomeDailyBrief').then(module => ({ default: module.HomeDailyBrief })))
-const HomeIdeaWorkspace = lazy(() => import('./stages/HomeIdeaWorkspace').then(module => ({ default: module.HomeIdeaWorkspace })))
-const IntakeOnePagerDraft = lazy(() => import('./stages/IntakeOnePagerDraft').then(module => ({ default: module.IntakeOnePagerDraft })))
-const PairAnalystOmniPrompt = lazy(() => import('./stages/PairAnalystOmniPrompt').then(module => ({ default: module.PairAnalystOmniPrompt })))
-const WatchlistsPortfolios = lazy(() => import('./stages/WatchlistsPortfolios').then(module => ({ default: module.WatchlistsPortfolios })))
-const DossierBusinessCanvas = lazy(() => import('./stages/DossierBusinessCanvas').then(module => ({ default: module.DossierBusinessCanvas })))
-const ValuationWorkbench = lazy(() => import('./stages/ValuationWorkbench').then(module => ({ default: module.ValuationWorkbench })))
-const DataNormalization = lazy(() => import('./stages/DataNormalization').then(module => ({ default: module.DataNormalization })))
-const ScenariosStressLab = lazy(() => import('./stages/ScenariosStressLab').then(module => ({ default: module.ScenariosStressLab })))
+const HomeDailyBrief = lazy(() =>
+  import('./stages/HomeDailyBrief').then((module) => ({ default: module.HomeDailyBrief }))
+)
+const HomeIdeaWorkspace = lazy(() =>
+  import('./stages/HomeIdeaWorkspace').then((module) => ({ default: module.HomeIdeaWorkspace }))
+)
+const IntakeOnePagerDraft = lazy(() =>
+  import('./stages/IntakeOnePagerDraft').then((module) => ({ default: module.IntakeOnePagerDraft }))
+)
+const PairAnalystOmniPrompt = lazy(() =>
+  import('./stages/PairAnalystOmniPrompt').then((module) => ({
+    default: module.PairAnalystOmniPrompt
+  }))
+)
+const WatchlistsPortfolios = lazy(() =>
+  import('./stages/WatchlistsPortfolios').then((module) => ({
+    default: module.WatchlistsPortfolios
+  }))
+)
+const DossierBusinessCanvas = lazy(() =>
+  import('./stages/DossierBusinessCanvas').then((module) => ({
+    default: module.DossierBusinessCanvas
+  }))
+)
+const ValuationWorkbench = lazy(() =>
+  import('./stages/ValuationWorkbench').then((module) => ({ default: module.ValuationWorkbench }))
+)
+const DataNormalization = lazy(() =>
+  import('./stages/DataNormalization').then((module) => ({ default: module.DataNormalization }))
+)
+const ScenariosStressLab = lazy(() =>
+  import('./stages/ScenariosStressLab').then((module) => ({ default: module.ScenariosStressLab }))
+)
 const MonitoringDashboard = lazy(() => import('./stages/MonitoringDashboard'))
-const RiskCatalystPlanner = lazy(() => import('./stages/RiskCatalystPlanner').then(module => ({ default: module.RiskCatalystPlanner })))
-const PortfolioSizingWorkbench = lazy(() => import('./stages/PortfolioSizingWorkbench').then(module => ({ default: module.PortfolioSizingWorkbench })))
-const ExecutionPlannerPanel = lazy(() => import('./stages/ExecutionPlannerPanel'))
-const MemoComposer = lazy(() => import('./stages/MemoComposer').then(module => ({ default: module.MemoComposer })))
-const FinancialsOwnerEarnings = lazy(() => import('./stages/FinancialsOwnerEarnings').then(module => ({ default: module.FinancialsOwnerEarnings })))
+const RiskCatalystPlanner = lazy(() =>
+  import('./stages/RiskCatalystPlanner').then((module) => ({ default: module.RiskCatalystPlanner }))
+)
+const PortfolioSizingWorkbench = lazy(() =>
+  import('./stages/PortfolioSizingWorkbench').then((module) => ({
+    default: module.PortfolioSizingWorkbench
+  }))
+)
+const ExecutionPlannerPanel = lazy(() =>
+  import('./stages/ExecutionPlannerPanel').then((module) => ({
+    default: module.ExecutionPlannerPanel
+  }))
+)
+const MemoComposer = lazy(() =>
+  import('./stages/MemoComposer').then((module) => ({ default: module.MemoComposer }))
+)
+const FinancialsOwnerEarnings = lazy(() =>
+  import('./stages/FinancialsOwnerEarnings').then((module) => ({
+    default: module.FinancialsOwnerEarnings
+  }))
+)
 const MemoHistoryTimeline = lazy(() => import('./stages/MemoHistoryTimeline'))
-const QualityGovernanceScorecard = lazy(() => import('./stages/QualityGovernanceScorecard').then(module => ({ default: module.QualityGovernanceScorecard })))
-const RedTeamMode = lazy(() => import('./stages/RedTeamMode').then(module => ({ default: module.RedTeamMode })))
+const QualityGovernanceScorecard = lazy(() =>
+  import('./stages/QualityGovernanceScorecard').then((module) => ({
+    default: module.QualityGovernanceScorecard
+  }))
+)
+const RedTeamMode = lazy(() =>
+  import('./stages/RedTeamMode').then((module) => ({ default: module.RedTeamMode }))
+)
 
 // Advanced screening components
-const AdvancedUniverseScreener = lazy(() => import('./stages/AdvancedUniverseScreener').then(module => ({ default: module.AdvancedUniverseScreener })))
-const NaturalLanguageScreener = lazy(() => import('./stages/NaturalLanguageScreener').then(module => ({ default: module.NaturalLanguageScreener })))
-const FactorAnalysisWorkbench = lazy(() => import('./stages/FactorAnalysisWorkbench').then(module => ({ default: module.FactorAnalysisWorkbench })))
+const AdvancedUniverseScreener = lazy(() =>
+  import('./stages/AdvancedUniverseScreener').then((module) => ({
+    default: module.AdvancedUniverseScreener
+  }))
+)
+const NaturalLanguageScreener = lazy(() =>
+  import('./stages/NaturalLanguageScreener').then((module) => ({
+    default: module.NaturalLanguageScreener
+  }))
+)
+const FactorAnalysisWorkbench = lazy(() =>
+  import('./stages/FactorAnalysisWorkbench').then((module) => ({
+    default: module.FactorAnalysisWorkbench
+  }))
+)
 
 // Specialized valuation models
-const ComparativeAnalysisWorkbench = lazy(() => import('./stages/ComparativeAnalysisWorkbench').then(module => ({ default: module.ComparativeAnalysisWorkbench })))
-const REITNavModel = lazy(() => import('./stages/REITNavModel').then(module => ({ default: module.REITNavModel })))
-const BankCET1Model = lazy(() => import('./stages/BankCET1Model').then(module => ({ default: module.BankCET1Model })))
-const InsuranceRBCModel = lazy(() => import('./stages/InsuranceRBCModel').then(module => ({ default: module.InsuranceRBCModel })))
-const EPV10Model = lazy(() => import('./stages/EPV10Model').then(module => ({ default: module.EPV10Model })))
-const PostMortem = lazy(() => import('./stages/PostMortem').then(module => ({ default: module.PostMortem })))
+const ComparativeAnalysisWorkbench = lazy(() =>
+  import('./stages/ComparativeAnalysisWorkbench').then((module) => ({
+    default: module.ComparativeAnalysisWorkbench
+  }))
+)
+const REITNavModel = lazy(() =>
+  import('./stages/REITNavModel').then((module) => ({ default: module.REITNavModel }))
+)
+const BankCET1Model = lazy(() =>
+  import('./stages/BankCET1Model').then((module) => ({ default: module.BankCET1Model }))
+)
+const InsuranceRBCModel = lazy(() =>
+  import('./stages/InsuranceRBCModel').then((module) => ({ default: module.InsuranceRBCModel }))
+)
+const EPV10Model = lazy(() =>
+  import('./stages/EPV10Model').then((module) => ({ default: module.EPV10Model }))
+)
+const PostMortem = lazy(() =>
+  import('./stages/PostMortem').then((module) => ({ default: module.PostMortem }))
+)
 
 const slugify = (label: string) =>
   label
@@ -56,6 +130,38 @@ const List = ({ items }: { items: string[] }) => (
     ))}
   </ul>
 )
+
+const MemoReviewerWorkflowTab = () => {
+  const { currentWorkspace } = useWorkspaceContext()
+  if (!currentWorkspace) {
+    return (
+      <div className="p-4 text-sm text-slate-400">
+        Select a workspace to manage reviewer assignments.
+      </div>
+    )
+  }
+  return (
+    <div className="px-2 pb-6">
+      <ReviewerAssignmentPanel workspaceId={currentWorkspace.id} stageSlug="memo" />
+    </div>
+  )
+}
+
+const ValuationReviewerWorkflowTab = () => {
+  const { currentWorkspace } = useWorkspaceContext()
+  if (!currentWorkspace) {
+    return (
+      <div className="p-4 text-sm text-slate-400">
+        Reviewer workflow will appear when a workspace is selected.
+      </div>
+    )
+  }
+  return (
+    <div className="px-2 pb-6">
+      <ReviewerAssignmentPanel workspaceId={currentWorkspace.id} stageSlug="valuation" />
+    </div>
+  )
+}
 
 const defaultTabs = (stage: WorkflowStage): WorkbenchTab[] => {
   if (stage.defaultTabs && stage.defaultTabs.length > 0) {
@@ -300,6 +406,11 @@ export const buildStageTabs = (stage: WorkflowStage): WorkbenchTab[] => {
           id: 'ep-pv10',
           label: 'E&P PV-10',
           content: <EPV10Model />
+        },
+        {
+          id: 'reviewer-workflow',
+          label: 'Reviewer Workflow',
+          content: <ValuationReviewerWorkflowTab />
         }
       ]
     case 'scenarios':
@@ -372,6 +483,11 @@ export const buildStageTabs = (stage: WorkflowStage): WorkbenchTab[] => {
           id: 'history',
           label: 'History',
           content: <MemoHistoryTimeline />
+        },
+        {
+          id: 'reviewer-workflow',
+          label: 'Reviewer Workflow',
+          content: <MemoReviewerWorkflowTab />
         }
       ]
     case 'execution':

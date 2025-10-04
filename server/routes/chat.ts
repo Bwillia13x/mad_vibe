@@ -102,30 +102,31 @@ router.post('/chat', async (req, res) => {
           ?.content.toLowerCase() || ''
 
       if (
-        lastUserMessage.includes('appointment') ||
-        lastUserMessage.includes('schedule') ||
-        lastUserMessage.includes('booking')
+        lastUserMessage.includes('screen') ||
+        lastUserMessage.includes('universe') ||
+        lastUserMessage.includes('filter')
       ) {
-        businessContext = await getSpecificContext('appointments')
+        businessContext = await getSpecificContext('screener')
       } else if (
-        lastUserMessage.includes('inventory') ||
-        lastUserMessage.includes('stock') ||
-        lastUserMessage.includes('supply')
+        lastUserMessage.includes('valuation') ||
+        lastUserMessage.includes('dcf') ||
+        lastUserMessage.includes('epv') ||
+        lastUserMessage.includes('model')
       ) {
-        businessContext = await getSpecificContext('inventory')
+        businessContext = await getSpecificContext('valuation')
       } else if (
-        lastUserMessage.includes('staff') ||
-        lastUserMessage.includes('barber') ||
-        lastUserMessage.includes('employee')
+        lastUserMessage.includes('memo') ||
+        lastUserMessage.includes('write-up') ||
+        lastUserMessage.includes('thesis')
       ) {
-        businessContext = await getSpecificContext('staff')
+        businessContext = await getSpecificContext('memo')
       } else if (
-        lastUserMessage.includes('analytics') ||
-        lastUserMessage.includes('performance') ||
-        lastUserMessage.includes('revenue') ||
-        lastUserMessage.includes('business')
+        lastUserMessage.includes('monitor') ||
+        lastUserMessage.includes('alert') ||
+        lastUserMessage.includes('risk') ||
+        lastUserMessage.includes('delta')
       ) {
-        businessContext = await getSpecificContext('analytics')
+        businessContext = await getSpecificContext('monitoring')
       } else {
         // General business context for other queries
         businessContext = await getBusinessContext()
@@ -133,8 +134,7 @@ router.post('/chat', async (req, res) => {
       console.log('Business context generated successfully')
     } catch (error) {
       console.error('Error generating business context:', error)
-      businessContext =
-        'Unable to fetch current business data. Operating with basic business information only.'
+      businessContext = 'Context unavailable — defaulting to high-level workspace snapshot.'
     }
 
     if (stream) {

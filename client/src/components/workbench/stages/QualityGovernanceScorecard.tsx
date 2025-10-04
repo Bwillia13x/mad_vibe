@@ -133,9 +133,21 @@ export function QualityGovernanceScorecard() {
     const redTeamScore = Math.max(0, 100 - redTeamPenalty)
 
     const composite =
-      reviewCompletion * 0.35 + commentScore * 0.2 + alertScore * 0.15 + deltaScore * 0.15 + redTeamScore * 0.15
+      reviewCompletion * 0.35 +
+      commentScore * 0.2 +
+      alertScore * 0.15 +
+      deltaScore * 0.15 +
+      redTeamScore * 0.15
     return clampScore(composite)
-  }, [alerts, deltas, memoState.reviewChecklist, openCommentCount, reviewPrompts.length, redTeamHighOpen, redTeamCoverage])
+  }, [
+    alerts,
+    deltas,
+    memoState.reviewChecklist,
+    openCommentCount,
+    reviewPrompts.length,
+    redTeamHighOpen,
+    redTeamCoverage
+  ])
 
   const categories = useMemo(
     () => [
@@ -176,7 +188,8 @@ export function QualityGovernanceScorecard() {
         id: 'governance',
         label: 'Governance Readiness',
         score: governanceScore,
-        description: 'Review sign-offs, outstanding commentary, monitoring hooks, and red-team closure.',
+        description:
+          'Review sign-offs, outstanding commentary, monitoring hooks, and red-team closure.',
         evidence: [
           `${Object.values(memoState.reviewChecklist).filter(Boolean).length}/${reviewPrompts.length} review prompts complete`,
           `${openCommentCount} open reviewer comments`,

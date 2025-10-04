@@ -5,17 +5,31 @@ import { getEnvVar } from '../../lib/env-security'
 // Gracefully handle missing API key in demo environments
 let openai: OpenAI | null = null
 const apiKey = getEnvVar('OPENAI_API_KEY')
-if (apiKey && apiKey.trim().length > 0) {
+const resolvedApiKey = typeof apiKey === 'string' && apiKey.length > 0 ? apiKey : undefined
+const configuredAiMode = (getEnvVar('AI_MODE') as string | undefined)?.toLowerCase()
+
+let aiMode: 'demo' | 'live'
+if (configuredAiMode === 'demo' || configuredAiMode === 'live') {
+  aiMode = configuredAiMode
+} else {
+  aiMode = resolvedApiKey ? 'live' : 'demo'
+}
+
+if (aiMode === 'live' && resolvedApiKey) {
   try {
     // the newest OpenAI model is "gpt-5" which was released August 7, 2025.
     // do not change this unless explicitly requested by the user
-    openai = new OpenAI({ apiKey })
-  } catch (err) {
-    console.error('Failed to initialize OpenAI client, falling back to demo mode:', err)
+    openai = new OpenAI({ apiKey: resolvedApiKey })
+  } catch (_err) {
+    console.error('Failed to initialize OpenAI client, falling back to demo mode:', _err)
     openai = null
   }
 } else {
-  console.warn('OPENAI_API_KEY not set. AI features will run in demo mode with fallback responses.')
+  if (aiMode === 'demo') {
+    console.warn('AI_MODE set to demo. Streaming AI will run in demo mode.')
+  } else {
+    console.warn('OPENAI_API_KEY not set. Streaming AI will run in demo mode.')
+  }
 }
 
 export interface BusinessChatMessage {
@@ -29,35 +43,18 @@ export async function* generateStreamingBusinessResponse(
 ): AsyncGenerator<string, void, unknown> {
   const systemPrompt: BusinessChatMessage = {
     role: 'system',
-    content: `You are an AI business assistant for Andreas For Men, Calgary's premier men's grooming destination located in Bridgeland. You have intimate knowledge of the barbershop's daily operations and can provide real-time business insights.
+    content:
+      `You are an AI equity-research copilot in the MadLab value-investing IDE. ` +
+      `Collaborate with analysts to advance ideas through screening, normalization, valuation, ` +
+      `and memo workflows.
 
-**BUSINESS INFORMATION:**
-- Name: Andreas For Men
-- Location: 1234 1 Avenue NE, Bridgeland, Calgary, AB T2E 0B2
-- Phone: (403) 555-CUTS
-- Email: info@andreasformen.ca
-- Website: https://www.andreasformen.ca
-- Specializes in sophisticated men's grooming with traditional barbering techniques and modern style
+**WORK CONTEXT:**
+${businessContext || 'No additional context supplied.'}
 
-**YOUR CAPABILITIES:**
-- Scheduling and appointment management
-- Real-time inventory tracking and stock management
-- Staff coordination, availability, and performance monitoring
-- Business analytics and financial insights
-- Customer preferences and service recommendations
-- Administrative tasks and operational efficiency
-
-**CURRENT BUSINESS CONTEXT:**
-${businessContext || 'No current business data available.'}
-
-**RESPONSE GUIDELINES:**
-- Use real business data when available to provide specific, actionable insights
-- Reference actual appointments, inventory levels, staff schedules, and performance metrics
-- Maintain a professional, knowledgeable tone as if you're an integral part of the business
-- When discussing staff, use their actual names and specialties
-- For inventory questions, reference actual stock levels and suggest reordering when appropriate
-- For scheduling questions, check real availability and appointment data
-- Always be supportive, solution-oriented, and focused on business success`
+**STYLE GUIDE:**
+- Anchor every statement in fundamentals (ROIC, FCF, leverage, reinvestment runway).
+- Highlight uncertainties, diligence blockers, and next steps when conviction is low.
+- Keep responses concise yet actionable, and reference the scenarios or checklists you rely on.`
   }
 
   const allMessages = [systemPrompt, ...messages]
@@ -65,11 +62,11 @@ ${businessContext || 'No current business data available.'}
   // List of models to try in order of preference
   const modelsToTry = ['gpt-5', 'gpt-4o', 'gpt-4-turbo', 'gpt-4']
 
-  // Fallback early if OpenAI isn't configured
-  if (!openai) {
+  // Fallback early if OpenAI isn't configured or demo mode is active
+  if (!openai || aiMode === 'demo') {
     console.log('OpenAI not configured. Streaming demo response.')
     const intro = 'Demo mode: AI assistant is running without an API key. '
-    const ctx = businessContext ? `\n\nBusiness context: ${businessContext.slice(0, 300)}` : ''
+    const ctx = businessContext ? `\n\nResearch context: ${businessContext.slice(0, 300)}` : ''
     yield intro + 'I can still walk you through the app and reference mock data.' + ctx
     return
   }
@@ -116,5 +113,6 @@ ${businessContext || 'No current business data available.'}
 
   // Fallback response if all models fail
   console.log('All streaming models failed, providing fallback response')
-  yield "I'm ready to help you with your business management needs! I can assist with scheduling, inventory, staff coordination, analytics, and more. What would you like to work on today?"
+  yield "I'm ready to help progress the investment workflow. I can walk through screens, " +
+    'valuation checkpoints, memo tasks, and monitoring alerts. What should we tackle next?'
 }

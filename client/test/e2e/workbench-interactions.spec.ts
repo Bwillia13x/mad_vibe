@@ -5,6 +5,40 @@ test.describe('Workbench Tri-Pane Interactions', () => {
     await page.goto('/workbench/home')
   })
 
+test.describe('Studio Vibe-Coding Workflow', () => {
+  test('generates macro, sends to canvas, and verifies timeline', async ({ page }) => {
+    await page.goto('/studio')
+
+    // Ensure toolbelt fetch works
+    const dataButton = page.locator('text=Fetch Company Data')
+    if (await dataButton.isEnabled()) {
+      await dataButton.click()
+    }
+
+    // Use Macro Palette to generate and send to canvas
+    const runMacroButton = page.locator('button', { hasText: 'Generate Macro' }).first()
+    if (await runMacroButton.count()) {
+      await runMacroButton.click()
+    }
+
+    const sendToCanvas = page.locator('button', { hasText: 'Send to Canvas' }).first()
+    await sendToCanvas.click()
+
+    // Canvas card should appear
+    const canvasCard = page.locator('[aria-label="Canvas area. Drag and drop an image to import."] div', {
+      hasText: 'Macro:'
+    })
+    await expect(canvasCard).toBeVisible()
+
+    // Verify artifact timeline updates after save
+    const saveButton = page.locator('button', { hasText: 'Save as Artifact' }).first()
+    await saveButton.click()
+
+    const timelineEntry = page.locator('text=Artifact timeline').locator('..').locator('article').first()
+    await expect(timelineEntry).toBeVisible()
+  })
+})
+
   test('displays tri-pane layout correctly', async ({ page }) => {
     // Check for main layout components
     await expect(page.locator('[aria-label="Workbench content"]')).toBeVisible()
@@ -99,6 +133,62 @@ test.describe('Workbench Tri-Pane Interactions', () => {
     await expect(exportButton).toBeEnabled()
   })
 
+  test('workspace overview supports inline comments with presence avatars', async ({ page }) => {
+    await page.goto('/workspace-overview')
+
+    const overviewCard = page.getByTestId('workspace-overview-heading').locator('..').locator('[role="region"]')
+    await expect(overviewCard).toBeVisible()
+
+    const commentToggle = page.locator('button[aria-label="Toggle comments for overview"]')
+    await expect(commentToggle).toBeVisible()
+
+    const commentCountBefore = await commentToggle.locator('span').innerText()
+    await commentToggle.click()
+
+    const commentTextarea = page.locator('textarea', { hasText: '' })
+    await commentTextarea.fill('Inline comment from e2e test')
+    await commentTextarea.press('Meta+Enter').catch(async () => {
+      await commentTextarea.press('Control+Enter')
+    })
+
+    const commentSubmit = page.locator('button', { hasText: 'Post' })
+    await commentSubmit.click()
+
+    await expect(page.locator('text=Inline comment from e2e test')).toBeVisible()
+
+    const commentCountAfter = await commentToggle.locator('span').innerText()
+    expect(commentCountAfter).not.toEqual(commentCountBefore)
+
+    const avatarStack = page.locator('[data-testid="presence-avatar-stack"] img, [data-testid="presence-avatar-stack"] span')
+    await expect(avatarStack.first()).toBeVisible()
+  })
+
+  test('presence telemetry handles failure recoveries', async ({ page }) => {
+    await page.goto('/workspace-overview')
+
+    await page.route('**/api/workflow/presence/heartbeat', async (route) => {
+      await route.fulfill({ status: 500, body: 'Server error' })
+    })
+
+    await page.waitForTimeout(11_000)
+
+    const commentToggle = page.locator('button[aria-label="Toggle comments for overview"]')
+    await commentToggle.click()
+
+    const commentTextarea = page.locator('textarea', { hasText: '' })
+    await commentTextarea.fill('Second comment after failure')
+    await commentTextarea.press('Meta+Enter').catch(async () => {
+      await commentTextarea.press('Control+Enter')
+    })
+
+    const commentSubmit = page.locator('button', { hasText: 'Post' })
+    await commentSubmit.click()
+
+    await expect(page.locator('text=Second comment after failure')).toBeVisible()
+
+    await page.unroute('**/api/workflow/presence/heartbeat')
+  })
+
   test('panel collapse/expand works', async ({ page }) => {
     // Test explorer collapse
     const toggleExplorerButton = page.locator('[aria-label="Toggle explorer"]')
@@ -185,6 +275,23 @@ test.describe('Workbench Tri-Pane Interactions', () => {
     // Should show desktop panel toggles
     const desktopExplorerToggle = page.locator('[aria-label="Toggle explorer"]')
     await expect(desktopExplorerToggle).toBeVisible()
+  })
+})
+
+test.describe('Studio Vibe-Coding Workflow', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/studio')
+  })
+
+  test('shows artifact timeline placeholder when empty', async ({ page }) => {
+    const timeline = page.locator('text=Artifact timeline')
+    await expect(timeline).toBeVisible()
+    await expect(page.locator('text=Nothing saved yet')).toBeVisible()
+  })
+
+  test('Send to Canvas button is disabled until output exists', async ({ page }) => {
+    const sendButton = page.locator('button', { hasText: 'Send to Canvas' }).first()
+    await expect(sendButton).toBeDisabled()
   })
 })
 

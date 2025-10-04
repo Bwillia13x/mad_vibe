@@ -498,15 +498,15 @@ The following API endpoints have been validated:
 
 ## Project Overview
 
-The ${projectName} is a comprehensive business management platform featuring:
+The ${projectName} is a human/AI pairing financial analysis platform featuring:
 
-- **AI-Powered Business Assistant** - Intelligent chat interface for business insights
-- **Point of Sale (POS) System** - Complete transaction processing with tax calculations
-- **Marketing Campaign Management** - Campaign creation, tracking, and performance analytics
-- **Customer Loyalty Program** - Points-based rewards system
-- **Staff & Appointment Scheduling** - Resource management and booking system
-- **Inventory Management** - Stock tracking with low inventory alerts
-- **Business Analytics** - Comprehensive reporting and data visualization
+- **AI-Powered Research Assistant** - Intelligent chat interface for investment research and analysis
+- **Data Normalization Workbench** - Financial statement adjustment and normalization tools
+- **Owner Earnings Analysis** - Calculate and analyze normalized cash flows
+- **Valuation Modeling** - DCF models with scenario planning and sensitivity analysis
+- **Investment Memo Composer** - Structured memo creation with exhibits and collaboration
+- **Scenario Laboratory** - What-if analysis and stress testing capabilities
+- **Monitoring Dashboard** - Post-investment tracking and portfolio monitoring
 
 ## Testing & Validation Summary
 

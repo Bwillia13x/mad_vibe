@@ -19,6 +19,7 @@ export interface EnvironmentConfig {
 
   // API keys and secrets
   OPENAI_API_KEY?: string
+  AI_MODE?: string
   ADMIN_TOKEN?: string
   SESSION_SECRET?: string
 
@@ -56,6 +57,12 @@ export interface EnvironmentConfig {
 
   // Security headers
   SECURITY_HEADERS_CONFIG?: string
+  // CORS
+  CORS_ORIGIN?: string
+
+  // Resource manager thresholds
+  RM_HEAP_ALERT_THRESHOLD?: number
+  RM_MEMORY_THRESHOLD_MB?: number
 }
 
 class EnvironmentSecurityManager {
@@ -102,10 +109,15 @@ class EnvironmentSecurityManager {
    */
   public getSafeConfig(): Partial<EnvironmentConfig> {
     const safeConfig: Partial<EnvironmentConfig> = {}
+    const rec = safeConfig as unknown as Record<keyof EnvironmentConfig, unknown>
+    const entries = Object.entries(this.config) as [
+      keyof EnvironmentConfig,
+      EnvironmentConfig[keyof EnvironmentConfig]
+    ][]
 
-    for (const [key, value] of Object.entries(this.config)) {
-      if (!this.sensitiveKeys.has(key)) {
-        ;(safeConfig as any)[key] = value
+    for (const [key, value] of entries) {
+      if (!this.sensitiveKeys.has(String(key))) {
+        rec[key] = value
       }
     }
 
@@ -134,6 +146,16 @@ class EnvironmentSecurityManager {
     if (this.config.NODE_ENV === 'production') {
       if (!this.config.DATABASE_URL && !this.config.POSTGRES_URL) {
         errors.push('Database URL is required in production')
+      }
+      // Enforce strong session secret in production
+      if (!this.config.SESSION_SECRET || this.config.SESSION_SECRET.length < 32) {
+        errors.push('SESSION_SECRET must be at least 32 characters in production')
+      }
+      // Enforce admin token presence and strength in production
+      if (!this.config.ADMIN_TOKEN || !this.isValidAdminToken(this.config.ADMIN_TOKEN)) {
+        errors.push(
+          'ADMIN_TOKEN is required in production and must be at least 32 alphanumeric characters'
+        )
       }
     }
 
@@ -176,6 +198,7 @@ class EnvironmentSecurityManager {
 
       // API keys and secrets
       OPENAI_API_KEY: this.sanitizeApiKey(process.env.OPENAI_API_KEY),
+      AI_MODE: this.sanitizeString(process.env.AI_MODE),
       ADMIN_TOKEN: this.sanitizeString(process.env.ADMIN_TOKEN),
       SESSION_SECRET: this.sanitizeString(process.env.SESSION_SECRET),
 
@@ -212,17 +235,25 @@ class EnvironmentSecurityManager {
       MAX_SESSIONS: this.sanitizeString(process.env.MAX_SESSIONS),
 
       // Security headers
-      SECURITY_HEADERS_CONFIG: this.sanitizeString(process.env.SECURITY_HEADERS_CONFIG)
+      SECURITY_HEADERS_CONFIG: this.sanitizeString(process.env.SECURITY_HEADERS_CONFIG),
+
+      // CORS
+      CORS_ORIGIN: this.sanitizeString(process.env.CORS_ORIGIN),
+
+      // Resource manager thresholds
+      RM_HEAP_ALERT_THRESHOLD: this.parseInteger(process.env.RM_HEAP_ALERT_THRESHOLD),
+      RM_MEMORY_THRESHOLD_MB: this.parseInteger(process.env.RM_MEMORY_THRESHOLD_MB)
     }
 
-    // Remove undefined values
-    Object.keys(config).forEach((key) => {
-      if ((config as any)[key] === undefined) {
-        delete (config as any)[key]
+    // Remove undefined values with proper typing
+    const cleaned = { ...config } as Partial<EnvironmentConfig>
+    for (const key of Object.keys(cleaned) as (keyof EnvironmentConfig)[]) {
+      if (cleaned[key] === undefined) {
+        delete cleaned[key]
       }
-    })
+    }
 
-    return config
+    return cleaned as EnvironmentConfig
   }
 
   /**
@@ -281,10 +312,7 @@ class EnvironmentSecurityManager {
    */
   private sanitizeString(value?: string): string | undefined {
     if (!value) return undefined
-
-    // Remove control characters and trim
-    const sanitized = value.replace(/[\x00-\x1F\x7F]/g, '').trim()
-
+    const sanitized = this.stripControlChars(value).trim()
     return sanitized.length > 0 ? sanitized : undefined
   }
 
@@ -293,10 +321,9 @@ class EnvironmentSecurityManager {
    */
   private sanitizeApiKey(value?: string): string | undefined {
     if (!value) return undefined
-
-    // Remove whitespace and control characters
-    const sanitized = value.replace(/\s/g, '').replace(/[\x00-\x1F\x7F]/g, '')
-
+    // Remove whitespace then control characters
+    const noWs = value.replace(/\s/g, '')
+    const sanitized = this.stripControlChars(noWs)
     return sanitized.length > 0 ? sanitized : undefined
   }
 
@@ -313,6 +340,18 @@ class EnvironmentSecurityManager {
       .trim()
 
     return sanitized.length > 0 ? sanitized : undefined
+  }
+
+  /**
+   * Remove ASCII control characters (0-31 and 127) without using control-char regex
+   */
+  private stripControlChars(input: string): string {
+    let out = ''
+    for (let i = 0; i < input.length; i++) {
+      const code = input.charCodeAt(i)
+      if (code >= 32 && code !== 127) out += input[i]
+    }
+    return out
   }
 
   /**

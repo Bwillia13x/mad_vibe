@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
-import { 
-  dataStreamManager, 
-  type DataStreamType, 
+import {
+  dataStreamManager,
+  type DataStreamType,
   type IdeaSpark,
   type MarketMover,
   type EarningsEvent,
@@ -102,16 +102,22 @@ export function useIdeaSparks(autoGenerate = true) {
   }, [autoGenerate, generate])
 
   const dismissSpark = useCallback((id: string) => {
-    setSparks(prev => prev.filter(s => s.id !== id))
+    setSparks((prev) => prev.filter((s) => s.id !== id))
   }, [])
 
-  const filterByTicker = useCallback((ticker: string) => {
-    return sparks.filter(s => s.tickers.includes(ticker))
-  }, [sparks])
+  const filterByTicker = useCallback(
+    (ticker: string) => {
+      return sparks.filter((s) => s.tickers.includes(ticker))
+    },
+    [sparks]
+  )
 
-  const filterByPriority = useCallback((priority: 'high' | 'medium' | 'low') => {
-    return sparks.filter(s => s.priority === priority)
-  }, [sparks])
+  const filterByPriority = useCallback(
+    (priority: 'high' | 'medium' | 'low') => {
+      return sparks.filter((s) => s.priority === priority)
+    },
+    [sparks]
+  )
 
   return {
     sparks,

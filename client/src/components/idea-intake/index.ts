@@ -1,4 +1,5 @@
 export { IdeaIntake } from './idea-intake'
+export { IdeaIntake as default } from './idea-intake'
 export { InputsSection } from './inputs-section'
 export { DisqualifiersSection } from './disqualifiers-section'
 export { WorkSection } from './work-section'

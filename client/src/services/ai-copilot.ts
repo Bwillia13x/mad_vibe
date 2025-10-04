@@ -3,7 +3,7 @@
  * Handles routing, context management, and proactive AI assistance
  */
 
-export type AICapability = 
+export type AICapability =
   | 'summarize'
   | 'analyze'
   | 'validate'
@@ -44,12 +44,13 @@ export type AIPromptTemplate = {
 
 // Stage-specific AI prompts and capabilities
 const STAGE_PROMPTS: Record<string, AIPromptTemplate[]> = {
-  'screener': [
+  screener: [
     {
       id: 'suggest-factors',
       label: 'Suggest screening factors',
       capability: 'suggest',
-      prompt: 'Based on current market conditions, suggest relevant screening factors for {industry} companies'
+      prompt:
+        'Based on current market conditions, suggest relevant screening factors for {industry} companies'
     },
     {
       id: 'explain-results',
@@ -64,7 +65,7 @@ const STAGE_PROMPTS: Record<string, AIPromptTemplate[]> = {
       prompt: 'Compare current screening criteria with previous successful screens'
     }
   ],
-  'financials': [
+  financials: [
     {
       id: 'validate-adjustments',
       label: 'Validate normalization',
@@ -84,7 +85,7 @@ const STAGE_PROMPTS: Record<string, AIPromptTemplate[]> = {
       prompt: 'Identify potential red flags or anomalies in the financial statements'
     }
   ],
-  'valuation': [
+  valuation: [
     {
       id: 'sanity-check',
       label: 'Sanity check assumptions',
@@ -104,7 +105,7 @@ const STAGE_PROMPTS: Record<string, AIPromptTemplate[]> = {
       prompt: 'Compare valuation multiples with peer group and explain differences'
     }
   ],
-  'scenario': [
+  scenario: [
     {
       id: 'stress-scenarios',
       label: 'Generate stress scenarios',
@@ -118,7 +119,7 @@ const STAGE_PROMPTS: Record<string, AIPromptTemplate[]> = {
       prompt: 'Evaluate the likelihood of each scenario based on historical data and current trends'
     }
   ],
-  'memo': [
+  memo: [
     {
       id: 'improve-narrative',
       label: 'Improve narrative flow',
@@ -137,7 +138,7 @@ const STAGE_PROMPTS: Record<string, AIPromptTemplate[]> = {
       id: 'challenge-thesis',
       label: 'Challenge core assumptions',
       capability: 'critique',
-      prompt: 'Act as devil\'s advocate and challenge the core investment thesis'
+      prompt: "Act as devil's advocate and challenge the core investment thesis"
     },
     {
       id: 'find-blindspots',
@@ -195,7 +196,7 @@ export class AICopilot {
    */
   getPromptTemplate(id: string): AIPromptTemplate | undefined {
     const allPrompts = [...Object.values(STAGE_PROMPTS).flat(), ...GLOBAL_PROMPTS]
-    return allPrompts.find(p => p.id === id)
+    return allPrompts.find((p) => p.id === id)
   }
 
   /**
@@ -210,10 +211,7 @@ export class AICopilot {
 
     // Replace placeholders like {industry}, {results}, etc.
     Object.entries(fullContext).forEach(([key, value]) => {
-      prompt = prompt.replace(
-        new RegExp(`\\{${key}\\}`, 'g'),
-        String(value)
-      )
+      prompt = prompt.replace(new RegExp(`\\{${key}\\}`, 'g'), String(value))
     })
 
     return prompt
@@ -262,7 +260,10 @@ export class AICopilot {
         break
 
       case 'memo':
-        if (this.context.currentData?.wordCount && (this.context.currentData.wordCount as number) > 5000) {
+        if (
+          this.context.currentData?.wordCount &&
+          (this.context.currentData.wordCount as number) > 5000
+        ) {
           newSuggestions.push({
             id: 'memo-length-warning',
             type: 'tip',
@@ -300,7 +301,7 @@ export class AICopilot {
    * Dismiss a suggestion
    */
   dismissSuggestion(id: string): void {
-    this.suggestions = this.suggestions.filter(s => s.id !== id)
+    this.suggestions = this.suggestions.filter((s) => s.id !== id)
     this.notifyListeners()
   }
 
@@ -318,7 +319,7 @@ export class AICopilot {
    * Notify all listeners of suggestion changes
    */
   private notifyListeners(): void {
-    this.suggestionListeners.forEach(listener => {
+    this.suggestionListeners.forEach((listener) => {
       listener(this.suggestions)
     })
   }

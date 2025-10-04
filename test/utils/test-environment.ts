@@ -87,7 +87,8 @@ export async function startTestServer(config: TestConfig): Promise<TestEnvironme
       ...process.env,
       ...config.server.env,
       ADMIN_TOKEN: process.env.ADMIN_TOKEN || 'test-admin-token-12345-secure', // Ensure test token for auth validation
-      DATABASE_URL: process.env.DATABASE_URL || 'postgresql://testuser:testpass@localhost:5432/testdb', // Dummy DB for tests
+      DATABASE_URL:
+        process.env.DATABASE_URL || 'postgresql://testuser:testpass@localhost:5432/testdb', // Dummy DB for tests
       NODE_ENV: 'test', // Set test env to skip real DB ops if possible
       PORT: '0', // Use ephemeral port
       PORT_FILE: portFile
@@ -214,7 +215,7 @@ export class TestHttpClient {
     const requestHeaders = this.getHeaders(headers)
     // Always set Content-Type for POST to satisfy strict content-type validation
     requestHeaders['Content-Type'] = 'application/json'
-  
+
     // TEMP LOG for debugging auth issues in load tests
     if (requestHeaders['Authorization']) {
       const tokenPrefix = requestHeaders['Authorization'].substring(0, 20) + '...'
@@ -222,7 +223,7 @@ export class TestHttpClient {
     } else {
       console.log(`[TestHttpClient] Sending POST to ${path} WITHOUT Authorization header`)
     }
-  
+
     return fetch(`${this.baseUrl}${path}`, {
       method: 'POST',
       headers: requestHeaders,

@@ -84,7 +84,7 @@ export class UIComponentTestSuite {
       const heading = await this.page.$('[data-testid="heading-main"]')
       const headingText = await this.page.evaluate((el) => el?.textContent, heading)
 
-      if (!headingText?.includes('Andreas Vibe Business Management')) {
+      if (!headingText?.includes('MAD Vibe')) {
         throw new Error(`Expected main heading, got: ${headingText}`)
       }
 
@@ -162,7 +162,7 @@ export class UIComponentTestSuite {
           name: 'Chat',
           testId: 'button-tool-chat',
           expectedUrl: '/',
-          expectedHeading: 'Andreas Vibe Business Management'
+          expectedHeading: 'MAD Vibe'
         }
       ]
 

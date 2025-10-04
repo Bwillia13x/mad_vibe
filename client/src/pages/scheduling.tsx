@@ -255,7 +255,7 @@ export default function SchedulingPage() {
                           {appointment.service?.duration || 0}min
                           {appointment.service?.price && (
                             <span className="ml-2 font-medium text-green-600 dark:text-green-400">
-                              {formatPrice(appointment.service.price)}
+                              {formatPrice(String(appointment.service.price))}
                             </span>
                           )}
                         </p>

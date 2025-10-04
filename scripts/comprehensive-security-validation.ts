@@ -19,7 +19,10 @@ import {
   type TestEnvironment
 } from '../test/utils/test-environment'
 import { TestReporter } from '../test/reporting/test-reporter'
-import { SecurityTestSuite, type SecurityTestSuiteResult } from '../test/security/security-test-suite'
+import {
+  SecurityTestSuite,
+  type SecurityTestSuiteResult
+} from '../test/security/security-test-suite'
 import { loadTestConfig } from '../test/config/test-config'
 import {
   testSecurityHeaders,
@@ -883,9 +886,7 @@ ${result.testResults.securityTestSuite.environmentSecurityResults
 ## Security Headers Validation
 
 ### Standard Security Headers
-${result.testResults.securityHeaders
-  .map((r) => `- ${r.passed ? '✅' : '❌'} ${r.name}`)
-  .join('\n')}
+${result.testResults.securityHeaders.map((r) => `- ${r.passed ? '✅' : '❌'} ${r.name}`).join('\n')}
 
 ### Strict Security Headers
 ${result.testResults.strictSecurityHeaders

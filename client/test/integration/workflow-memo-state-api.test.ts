@@ -124,18 +124,13 @@ describe('Workflow memo state API', () => {
     expect(getResponse.status).toBe(400)
     expect(getResponse.body).toMatchObject({ message: 'Session key header required' })
 
-    const putResponse = await performRequest(
-      app,
-      'PUT',
-      '/api/workflow/memo-state',
-      {
-        sections: {},
-        reviewChecklist: {},
-        attachments: {},
-        commentThreads: {},
-        version: 0
-      }
-    )
+    const putResponse = await performRequest(app, 'PUT', '/api/workflow/memo-state', {
+      sections: {},
+      reviewChecklist: {},
+      attachments: {},
+      commentThreads: {},
+      version: 0
+    })
     expect(putResponse.status).toBe(400)
     expect(putResponse.body).toMatchObject({ message: 'Session key header required' })
   })
