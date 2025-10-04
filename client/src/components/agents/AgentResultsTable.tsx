@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/layout/GlassCard'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { FileText, Download, Trash2, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -134,8 +135,26 @@ export function AgentResultsTable({ workspaceId, onSelectResult }: AgentResultsT
   if (loading) {
     return (
       <GlassCard title="Agent Results" subtitle="Loading...">
-        <div className="h-32 flex items-center justify-center text-sm text-slate-400">
-          Loading agent results...
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-3 bg-slate-900/40 rounded-lg border border-slate-700/50">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-5 w-20" />
+                  </div>
+                  <Skeleton className="h-3 w-64" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-full mb-2" />
+              <div className="flex gap-2">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-16" />
+              </div>
+            </div>
+          ))}
         </div>
       </GlassCard>
     )

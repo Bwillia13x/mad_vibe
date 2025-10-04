@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { GlassCard } from '@/components/layout/GlassCard'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useWorkspaceContext } from '@/hooks/useWorkspaceContext'
 
 interface AgentPerformanceMetrics {
@@ -141,14 +142,44 @@ export default function AgentMetricsPage() {
             >
               <option value={168}>7 days</option>
               <option value={720}>30 days</option>
-              <option value={2160}>90 days</option>
             </select>
           </div>
         }
       >
         {isLoading && !metrics ? (
-          <div className="h-24 flex items-center justify-center text-sm text-slate-500">
-            Loading…
+          <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 space-y-2"
+                >
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-6 w-16" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              ))}
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32 mb-2" />
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <Skeleton className="h-3 w-40" />
+                    <Skeleton className="h-3 w-12" />
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32 mb-2" />
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <Skeleton className="h-3 w-40" />
+                    <Skeleton className="h-3 w-12" />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ) : !metrics ? (
           <div className="h-24 flex items-center justify-center text-sm text-slate-500">

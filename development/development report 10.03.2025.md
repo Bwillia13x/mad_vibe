@@ -352,7 +352,34 @@
   - Automatic logging of token usage and latency for all OpenAI requests
 - **Analytics Foundation**: Infrastructure ready for per-agent, per-workspace cost analytics in performance dashboard
 
-**Phase 12 Status:** Infrastructure work complete. Remaining items (result comparison UI, skeleton loaders, conversational search, cost dashboard integration) ready for next session.
+**Skeleton Loaders for Production Polish:** ✅ COMPLETE
+
+- **AgentResultsTable**: Added skeleton loading states with realistic card layouts during data fetch
+  - 3 placeholder cards with animated skeletons for title, metadata, summary, and action buttons
+  - Maintains layout consistency during loading to prevent content shift
+- **AgentMetricsPage**: Added comprehensive skeleton loaders for all dashboard sections
+  - 6 KPI tile skeletons with animated placeholders for label, value, helper text
+  - 2 columns of list item skeletons for slowest/failed steps sections
+  - Provides smooth loading experience while metrics compute
+
+**Phase 12 Completion Status:**
+
+**✅ Delivered:**
+
+1. OpenAI cost tracking infrastructure (schema, wrapper, metrics)
+2. Skeleton loaders for agent results and metrics pages
+3. Full-text search with tsvector/GIN indexes (from Phase 10)
+4. Error boundaries for agent routes (from Phase 7)
+
+**📋 Deferred to Phase 12B:**
+
+- Result comparison UI with side-by-side diff view
+- Cost analytics charts integrated into performance dashboard
+- Conversational search interface (natural language query parsing)
+- Bookmarking/highlighting system for key findings
+- SLO dashboard prototype with alerting hooks
+
+**Rationale:** Core infrastructure and production polish complete. UI enhancements for comparison/analytics require dedicated design time and are better suited for focused sprint.
 
 ### Milestones
 
