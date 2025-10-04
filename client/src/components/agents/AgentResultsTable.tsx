@@ -23,9 +23,18 @@ interface AgentResult {
 interface AgentResultsTableProps {
   workspaceId: number
   onSelectResult?: (taskId: string) => void
+  compareMode?: boolean
+  selectedForComparison?: string[]
+  onSelectForComparison?: (taskId: string) => void
 }
 
-export function AgentResultsTable({ workspaceId, onSelectResult }: AgentResultsTableProps) {
+export function AgentResultsTable({
+  workspaceId,
+  onSelectResult,
+  compareMode = false,
+  selectedForComparison = [],
+  onSelectForComparison
+}: AgentResultsTableProps) {
   const [results, setResults] = useState<AgentResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -180,17 +189,32 @@ export function AgentResultsTable({ workspaceId, onSelectResult }: AgentResultsT
     )
   }
 
+  const isSelected = (taskId: string) => selectedForComparison.includes(taskId)
+
   return (
     <GlassCard title="Agent Results" subtitle={`${results.length} completed analyses`}>
       <div className="space-y-2">
         {results.map((result) => (
           <div
             key={result.taskId}
-            className="p-3 bg-slate-900/40 rounded-lg border border-slate-700/50 hover:border-slate-600/50 transition"
+            className={`p-3 bg-slate-900/40 rounded-lg border transition ${
+              isSelected(result.taskId)
+                ? 'border-violet-500 bg-violet-950/20'
+                : 'border-slate-700/50 hover:border-slate-600/50'
+            }`}
           >
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
+                  {compareMode && (
+                    <input
+                      type="checkbox"
+                      checked={isSelected(result.taskId)}
+                      onChange={() => onSelectForComparison?.(result.taskId)}
+                      disabled={!isSelected(result.taskId) && selectedForComparison.length >= 2}
+                      className="w-4 h-4 text-violet-500 bg-slate-800 border-slate-600 rounded focus:ring-violet-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  )}
                   <h4 className="text-sm font-medium text-slate-200">{result.taskDescription}</h4>
                   {getStatusBadge(result.status)}
                 </div>
@@ -213,20 +237,26 @@ export function AgentResultsTable({ workspaceId, onSelectResult }: AgentResultsT
               </div>
             )}
 
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" onClick={() => onSelectResult?.(result.taskId)}>
-                <FileText className="w-3 h-3 mr-1" />
-                View Details
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => handleExport(result.taskId, 'json')}>
-                <Download className="w-3 h-3 mr-1" />
-                Export
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => handleDelete(result.taskId)}>
-                <Trash2 className="w-3 h-3 mr-1" />
-                Delete
-              </Button>
-            </div>
+            {!compareMode && (
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={() => onSelectResult?.(result.taskId)}>
+                  <FileText className="w-3 h-3 mr-1" />
+                  View Details
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleExport(result.taskId, 'json')}
+                >
+                  <Download className="w-3 h-3 mr-1" />
+                  Export
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => handleDelete(result.taskId)}>
+                  <Trash2 className="w-3 h-3 mr-1" />
+                  Delete
+                </Button>
+              </div>
+            )}
           </div>
         ))}
       </div>

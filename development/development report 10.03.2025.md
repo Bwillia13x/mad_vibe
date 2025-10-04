@@ -432,6 +432,23 @@
   - Violet accent colors for cost values, emerald for recent activity
   - Automatically fetches alongside performance metrics
 
+**Result Comparison UI:** ✅ COMPLETE
+
+- **Component**: Created `AgentResultComparison.tsx` with side-by-side view
+  - Parallel fetching of two agent results
+  - Status badges, duration, summary, and step-by-step comparison
+  - Comparison summary section with key metrics (duration diff, status match, step count)
+  - Skeleton loaders during fetch
+- **Compare Mode Integration**: Enhanced `AgentResultsTable.tsx`
+  - Checkbox selection for up to 2 results
+  - Visual feedback with violet highlights for selected items
+  - Disabled state when 2 items already selected
+  - Conditional button rendering (compare mode vs. detail mode)
+- **Page Routing**: Updated `agent-results.tsx` page
+  - "Compare Results" button with selection counter badge
+  - Toggle between detail view, comparison view, and list view
+  - State management for comparison mode and selected results
+
 **Phase 12B Status:**
 
 **✅ Complete:**
@@ -439,6 +456,14 @@
 - Cost analytics API and backend logic
 - Dashboard UI integration with model breakdowns
 - Period-based cost tracking (24h, 7d, 30d)
+- Result comparison UI with side-by-side view
+- Compare mode with checkbox selection
+
+**📋 Deferred (Optional Enhancements):**
+
+- Conversational search interface (NL query parsing)
+- Bookmarking/highlighting database schema
+- SLO dashboard with alerting hooks
 
 ### Milestones
 
