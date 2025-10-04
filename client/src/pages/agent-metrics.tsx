@@ -56,6 +56,16 @@ export default function AgentMetricsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const usd = useMemo(
+    () =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 4
+      }),
+    []
+  )
+
   useEffect(() => {
     let cancelled = false
     async function load() {
@@ -180,6 +190,7 @@ export default function AgentMetricsPage() {
               value={periodHours}
               onChange={(e) => setPeriodHours(parseInt(e.target.value))}
               className="rounded-md border border-slate-700 bg-slate-900/60 px-2 py-1"
+              disabled={isLoading}
             >
               <option value={168}>7 days</option>
               <option value={720}>30 days</option>
@@ -312,7 +323,7 @@ export default function AgentMetricsPage() {
                   <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
                     <p className="text-xs text-slate-500">Total Cost</p>
                     <p className="text-lg font-semibold text-violet-400">
-                      ${(costData.totalCostMicroUsd / 1000000).toFixed(4)}
+                      {usd.format(costData.totalCostMicroUsd / 1000000)}
                     </p>
                   </div>
                   <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
@@ -330,7 +341,7 @@ export default function AgentMetricsPage() {
                   <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
                     <p className="text-xs text-slate-500">Last 24h Cost</p>
                     <p className="text-lg font-semibold text-emerald-400">
-                      ${(costData.last24h.costMicroUsd / 1000000).toFixed(4)}
+                      {usd.format(costData.last24h.costMicroUsd / 1000000)}
                     </p>
                   </div>
                 </div>
@@ -352,11 +363,22 @@ export default function AgentMetricsPage() {
                             </p>
                           </div>
                           <p className="text-sm font-semibold text-violet-400">
-                            ${(stats.costMicroUsd / 1000000).toFixed(4)}
+                            {usd.format(stats.costMicroUsd / 1000000)}
                           </p>
                         </div>
                       ))}
                   </div>
+                </div>
+              </section>
+            )}
+            {!isLoading && (!costData || costData.totalRequests === 0) && (
+              <section className="mt-6 pt-6 border-t border-slate-700/50">
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">
+                  AI Cost Analytics
+                </p>
+                <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-400">
+                  No AI usage recorded for this period. Generate results using the AI copilot to see
+                  cost analytics here.
                 </div>
               </section>
             )}

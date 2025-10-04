@@ -3,6 +3,7 @@ import {
   fetchReviewerAssignments,
   createReviewerAssignment,
   updateReviewerAssignment,
+  batchUpdateReviewerAssignments,
   fetchAuditTimeline,
   exportAuditTimelineCsv,
   createAuditEvent,
@@ -42,6 +43,10 @@ interface UseReviewerWorkflowResult {
     status: ReviewerAssignmentStatus,
     extra?: ReviewerAssignmentUpdateInput
   ) => Promise<ReviewerAssignment | null>
+  batchUpdate: (
+    assignmentIds: number[],
+    input: ReviewerAssignmentUpdateInput
+  ) => Promise<ReviewerAssignment[]>
 }
 
 interface UseAuditTimelineResult {
@@ -156,6 +161,37 @@ export function useReviewerWorkflow(
     [updateAssignment]
   )
 
+  const batchUpdate = useCallback(
+    async (assignmentIds: number[], input: ReviewerAssignmentUpdateInput) => {
+      if (!workflowId || assignmentIds.length === 0) return []
+      setUpdating(true)
+      setError(null)
+      try {
+        const updated = await batchUpdateReviewerAssignments(
+          workflowId,
+          assignmentIds,
+          input,
+          sessionKey ?? undefined
+        )
+        setAssignments((prev) => {
+          const map = new Map(prev.map((assignment) => [assignment.id, assignment]))
+          for (const item of updated) {
+            map.set(item.id, item)
+          }
+          return Array.from(map.values()).sort((a, b) => b.id - a.id)
+        })
+        return updated
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to batch update assignments'
+        setError(message)
+        return []
+      } finally {
+        setUpdating(false)
+      }
+    },
+    [sessionKey, workflowId]
+  )
+
   return {
     assignments,
     loading,
@@ -165,7 +201,8 @@ export function useReviewerWorkflow(
     refresh,
     createAssignment,
     updateAssignment,
-    setStatus
+    setStatus,
+    batchUpdate
   }
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -7,6 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useMemoComposer } from '@/hooks/useMemoComposer'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { useWorkspaceContext } from '@/hooks/useWorkspaceContext'
+import { useMemoSharedDraft } from '@/hooks/useMemoSharedDraft'
+import type { MemoSharedDraftInput } from '@shared/types'
 
 const formatTime = (timestamp: string | null) => {
   if (!timestamp) return 'Pending sync'
@@ -16,6 +21,7 @@ const formatTime = (timestamp: string | null) => {
 }
 
 export function MemoComposer() {
+  const { currentWorkspace } = useWorkspaceContext()
   const {
     sections,
     reviewPrompts,
@@ -35,6 +41,20 @@ export function MemoComposer() {
     htmlPreview,
     syncStatus
   } = useMemoComposer()
+  const {
+    draft: sharedDraft,
+    suggestions,
+    loading: sharedDraftLoading,
+    saving: sharedDraftSaving,
+    suggestionLoading,
+    error: sharedDraftError,
+    suggestionError,
+    refresh: refreshSharedDraft,
+    refreshSuggestions,
+    saveDraft,
+    updateSuggestion,
+    clearSuggestions
+  } = useMemoSharedDraft(currentWorkspace?.id)
 
   const [activeTab, setActiveTab] = useState<'composer' | 'preview'>('composer')
   const [commentSection, setCommentSection] = useState<string>(sections[0]?.id ?? '')
@@ -112,6 +132,31 @@ export function MemoComposer() {
     setCommentDraft('')
   }
 
+  const handlePublishSharedDraft = async () => {
+    const payload: MemoSharedDraftInput = {
+      sections: state.sections,
+      reviewChecklist: state.reviewChecklist,
+      attachments: state.attachments,
+      commentThreads: state.commentThreads,
+      version: sharedDraft.version ?? 0,
+      lockSessionId: sharedDraft.lockSessionId ?? undefined,
+      lockExpiresAt: sharedDraft.lockExpiresAt ?? undefined
+    }
+    await saveDraft(payload)
+  }
+
+  const handleAcceptSuggestion = async (suggestionId: number) => {
+    await updateSuggestion(suggestionId, { status: 'accepted' })
+  }
+
+  const handleRejectSuggestion = async (suggestionId: number) => {
+    await updateSuggestion(suggestionId, { status: 'rejected' })
+  }
+
+  const handleClearAllSuggestions = async () => {
+    await clearSuggestions(suggestions.map((suggestion) => suggestion.id))
+  }
+
   return (
     <div className="space-y-6">
       <Card className="border-slate-800 bg-slate-900/60">
@@ -173,6 +218,171 @@ export function MemoComposer() {
                 <span className="text-[11px] text-amber-300">{syncStatus.error}</span>
               )}
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-violet-900/60 bg-slate-950/60">
+        <CardHeader className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <CardTitle className="text-sm text-slate-100">Shared Draft Mode</CardTitle>
+            <CardDescription className="text-xs text-slate-400">
+              Coordinate memo edits with versioned shared drafts and reviewer suggestions.
+            </CardDescription>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-violet-700 text-violet-200"
+              onClick={() => void refreshSharedDraft()}
+              disabled={sharedDraftLoading}
+            >
+              {sharedDraftLoading ? 'Refreshing…' : 'Refresh Draft'}
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => void handlePublishSharedDraft()}
+              disabled={sharedDraftSaving || sharedDraftLoading}
+            >
+              {sharedDraftSaving ? 'Publishing…' : 'Publish Current Memo'}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 text-xs text-slate-300">
+          {(sharedDraftError || suggestionError) && (
+            <div className="rounded-md border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-rose-200">
+              {sharedDraftError ?? suggestionError}
+            </div>
+          )}
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+              <div className="text-[11px] uppercase text-slate-500">Last Published</div>
+              <div className="text-sm text-slate-100">{formatTime(sharedDraft.updatedAt)}</div>
+            </div>
+            <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+              <div className="text-[11px] uppercase text-slate-500">Draft Version</div>
+              <div className="text-sm text-slate-100">v{sharedDraft.version}</div>
+            </div>
+            <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+              <div className="text-[11px] uppercase text-slate-500">Suggestions Pending</div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-100">{suggestions.length}</span>
+                <Badge
+                  variant={suggestions.length > 0 ? 'outline' : 'secondary'}
+                  className="border-violet-600 text-[10px] uppercase text-violet-200"
+                >
+                  {suggestions.length > 0 ? 'Action Needed' : 'Cleared'}
+                </Badge>
+              </div>
+            </div>
+            <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+              <div className="text-[11px] uppercase text-slate-500">Edit Lock</div>
+              <div className="text-sm text-slate-100">
+                {sharedDraft.lockSessionId
+                  ? `Held (${sharedDraft.lockSessionId.slice(0, 6)}…)`
+                  : 'Unlocked'}
+              </div>
+              {sharedDraft.lockExpiresAt && (
+                <div className="text-[11px] text-slate-500">
+                  Expires {formatTime(sharedDraft.lockExpiresAt)}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <Separator className="bg-slate-800" />
+
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] uppercase text-slate-500">
+            <span>Reviewer Suggestions</span>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-slate-700 text-slate-200"
+                onClick={() => void refreshSuggestions()}
+                disabled={suggestionLoading}
+              >
+                {suggestionLoading ? 'Refreshing…' : 'Refresh'}
+              </Button>
+              {suggestions.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-violet-200"
+                  onClick={() => void handleClearAllSuggestions()}
+                  disabled={suggestionLoading}
+                >
+                  Dismiss All
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {suggestions.map((suggestion) => (
+              <div
+                key={suggestion.id}
+                className="rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-slate-200"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="space-y-1">
+                    <div className="font-medium text-slate-100">
+                      Section • {suggestion.sectionId}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      {suggestion.authorName ?? 'Reviewer'} • {formatDate(suggestion.createdAt)}
+                    </div>
+                  </div>
+                  <Badge className="bg-violet-500/20 text-violet-100 border border-violet-500/40 text-[10px]">
+                    Pending
+                  </Badge>
+                </div>
+                {suggestion.summary && (
+                  <p className="mt-2 text-xs text-slate-300">{suggestion.summary}</p>
+                )}
+                <div className="mt-3 grid gap-3 text-[11px] text-slate-400 md:grid-cols-2">
+                  <div className="rounded border border-slate-800 bg-slate-950/70 p-2">
+                    <div className="mb-1 text-slate-500">Before</div>
+                    <pre className="whitespace-pre-wrap break-words text-slate-300">
+                      {suggestion.beforeText ?? '—'}
+                    </pre>
+                  </div>
+                  <div className="rounded border border-slate-800 bg-slate-950/70 p-2">
+                    <div className="mb-1 text-slate-500">After</div>
+                    <pre className="whitespace-pre-wrap break-words text-slate-300">
+                      {suggestion.afterText ?? '—'}
+                    </pre>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-emerald-500/40 text-emerald-200 hover:bg-emerald-500/20"
+                    disabled={suggestionLoading}
+                    onClick={() => void handleAcceptSuggestion(suggestion.id)}
+                  >
+                    Accept
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-rose-500/40 text-rose-200 hover:bg-rose-500/20"
+                    disabled={suggestionLoading}
+                    onClick={() => void handleRejectSuggestion(suggestion.id)}
+                  >
+                    Reject
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            {!suggestionLoading && suggestions.length === 0 && (
+              <div className="rounded border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400">
+                No pending suggestions. Shared draft is aligned with reviewer feedback.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

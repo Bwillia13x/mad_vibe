@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { GlassCard } from '@/components/layout/GlassCard'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -39,11 +39,7 @@ export function AgentResultsTable({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadResults()
-  }, [workspaceId])
-
-  async function loadResults() {
+  const loadResults = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -61,7 +57,11 @@ export function AgentResultsTable({
     } finally {
       setLoading(false)
     }
-  }
+  }, [workspaceId])
+
+  useEffect(() => {
+    void loadResults()
+  }, [loadResults])
 
   async function handleDelete(taskId: string) {
     if (!confirm('Delete this agent result? This cannot be undone.')) {
@@ -192,7 +192,12 @@ export function AgentResultsTable({
   const isSelected = (taskId: string) => selectedForComparison.includes(taskId)
 
   return (
-    <GlassCard title="Agent Results" subtitle={`${results.length} completed analyses`}>
+    <GlassCard
+      title="Agent Results"
+      subtitle={`${results.length} completed analyses${
+        compareMode ? ` • Selected ${selectedForComparison.length}/2` : ''
+      }`}
+    >
       <div className="space-y-2">
         {results.map((result) => (
           <div
@@ -200,7 +205,9 @@ export function AgentResultsTable({
             className={`p-3 bg-slate-900/40 rounded-lg border transition ${
               isSelected(result.taskId)
                 ? 'border-violet-500 bg-violet-950/20'
-                : 'border-slate-700/50 hover:border-slate-600/50'
+                : compareMode
+                  ? 'border-slate-700/50'
+                  : 'border-slate-700/50 hover:border-slate-600/50'
             }`}
           >
             <div className="flex items-start justify-between mb-2">
@@ -209,10 +216,13 @@ export function AgentResultsTable({
                   {compareMode && (
                     <input
                       type="checkbox"
+                      aria-label="Select result for comparison"
+                      title="Select result for comparison"
+                      id={`compare-${result.taskId}`}
                       checked={isSelected(result.taskId)}
                       onChange={() => onSelectForComparison?.(result.taskId)}
                       disabled={!isSelected(result.taskId) && selectedForComparison.length >= 2}
-                      className="w-4 h-4 text-violet-500 bg-slate-800 border-slate-600 rounded focus:ring-violet-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                      className="w-4 h-4 text-violet-500 bg-slate-800 border-slate-600 rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                     />
                   )}
                   <h4 className="text-sm font-medium text-slate-200">{result.taskDescription}</h4>

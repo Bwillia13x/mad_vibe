@@ -41,6 +41,39 @@
   - Audit logs available in warehouse with freshness <5 minutes during business hours.
   - PagerDuty/Slack alert routing validated end-to-end using synthetic scripts.
 
+#### Phase 13 Deliverables
+
+- Expanded workflow persistence to cover SLA/escalation handling, audit exports, and
+  shared drafts (`migrations/0007_phase13_collaboration.sql`, `lib/db/schema.ts`,
+  `shared/types.ts`).
+- Reviewer workflow API now enforces SLA filters, batch updates, and integrates export
+  scheduling (`server/routes/workflow-audit.ts`); memo shared-draft router adds
+  collaborative endpoints and is mounted server-side (`server/routes/memo-shared.ts`,
+  `server/routes.ts`).
+- Enhanced reviewer console with SLA summaries, bulk reassignment, and escalation
+  controls (`client/src/components/agents/ReviewerAssignmentPanel.tsx`); audit timeline
+  now supports schedule management with role-aware visibility filters
+  (`client/src/pages/audit-timeline.tsx`).
+- Added shared draft state hook and surfaced publishing plus suggestion triage inside
+  the memo composer (`client/src/hooks/useMemoSharedDraft.tsx`,
+  `client/src/components/workbench/stages/MemoComposer.tsx`); valuation workbench shows
+  live collaborator presence (`client/src/components/workbench/stages/ValuationWorkbench.tsx`).
+- Updated docs to capture Phase 13 automation scope and expanded workflow client API
+  bindings (`docs/workflow-audit-collaboration.md`, `client/src/lib/workflow-api.ts`,
+  `client/src/hooks/useReviewerWorkflow.tsx`).
+
+#### Tests
+
+- `npm run lint` (passes with existing warnings in legacy `scripts/setup-workspaces.ts`
+  and `server/middleware/input-validation.ts`).
+
+#### Next Steps
+
+1. Apply `migrations/0007_phase13_collaboration.sql` (run `npm run db:push`).
+2. Smoke the reviewer SLA and memo shared-draft flows once the migration is live.
+3. Consider trimming legacy ESLint warnings in `scripts/setup-workspaces.ts` and
+   `server/middleware/input-validation.ts` when convenient.
+
 ### Milestone C — Automation Reliability (Week of 2025-10-20)
 
 - **Owner**: Core Platform (Luis)
@@ -459,6 +492,13 @@
 - Result comparison UI with side-by-side view
 - Compare mode with checkbox selection
 
+**UI/UX Touch-ups (2025-10-04):** ✅ COMPLETE
+
+- Accessibility: Labeled compare checkbox with focus ring in `client/src/components/agents/AgentResultsTable.tsx`; ARIA tab semantics (`role=tablist/tab/tabpane`, `aria-selected`, `aria-controls`) in `client/src/components/agents/AgentResultDetail.tsx`; conditional region semantics with `aria-labelledby` in `client/src/components/layout/GlassCard.tsx`.
+- Metrics UX: Currency formatting via `Intl.NumberFormat` and zero-state messaging for cost analytics; disabled period selector while loading in `client/src/pages/agent-metrics.tsx`.
+- Selection UX: Subtitle shows selected count (n/2) in compare mode; row hover suppressed during compare mode; fetch effect stabilized using `useCallback` in `AgentResultsTable.tsx`.
+- Feedback polish: "Copy link" now has clear keyboard focus styling.
+
 **📋 Deferred (Optional Enhancements):**
 
 - Conversational search interface (NL query parsing)
@@ -567,24 +607,58 @@
 
 ### Phase 14 Objectives
 
-- Deploy AI assistant for reviewer triage: summarize outstanding items, suggest owners, propose next steps.
-- Generate automated memos from audit timeline data with configurable templates.
-- Deliver anomaly detection on valuation deltas and monitoring alerts using historical baselines.
-- Introduce conversational scenario planning integrating presence data.
+- Put an AI reviewer co-pilot in production for triage, summarization, and workload balancing.
+- Auto-generate memo drafts from workflow timelines and shared draft context with template controls.
+- Detect anomalies across valuation deltas and monitoring alerts using historical baselines.
+- Enable conversational scenario planning with presence-aware, shared draft, and anomaly context surfaces.
+
+### Phase 14 Workstreams
+
+1. **Reviewer AI Triage**
+   - Ship `/api/workflow/reviewer-ai` endpoint backed by embeddings plus SLA/escalation-aware rules.
+   - Extend `client/src/components/agents/ReviewerAssignmentPanel.tsx` with AI triage cards, bulk apply actions, and feedback capture.
+   - Persist triage feedback to tune prompts (`workflow_audit_events`, new `workflow_reviewer_ai_feedback`).
+2. **Automated Memo Drafting**
+   - Build shared prompt templates in `docs/memo-templates/` and surface template selectors in `MemoComposer`.
+   - Add server route (`server/routes/memo-ai.ts`) to assemble timeline + shared draft context and call LLM.
+   - Implement diff-aware merge with existing draft state and suggestion queue.
+3. **Anomaly Detection & Insights**
+   - Create nightly job `scripts/analyze-valuation-deltas.ts` storing anomalies inside `workflow_monitorings` metadata.
+   - Expose anomalies via `/api/workflow/anomalies` and render new panel in `ValuationWorkbench` + monitoring dashboard.
+   - Emit metrics (`anomaly_count`, `anomaly_false_positive_rate`) to observability stack.
+4. **Conversational Scenario Planning**
+   - Extend `workflow_conversations` schema with scenario metadata; add `client/src/components/workbench/ScenarioChat.tsx`.
+   - Integrate presence + shared draft hooks for synchronized adjustments and consensus markers.
+   - Provide export to audit timeline and memo shared drafts.
 
 ### Phase 14 Milestones
 
-- **Q1 (Jan 10)**: Reviewer AI assistant beta with triage suggestions.
-- **Q2 (Jan 18)**: Autonomous memo drafts generated from timeline snapshots.
-- **Q3 (Jan 24)**: Anomaly detection live for valuation and monitoring alerts.
-- **Q4 (Jan 31)**: Conversational scenario planning pilot with collaboration hooks.
+- **Q1 (Jan 10)**: Reviewer AI triage endpoint + UI beta with feedback logging.
+- **Q2 (Jan 18)**: Automated memo draft templates + merge workflow in memo composer.
+- **Q3 (Jan 24)**: Valuation/monitoring anomaly detection live with alert surfacing.
+- **Q4 (Jan 31)**: Conversational scenario planning pilot wired into shared drafts and audit timeline.
 
-### Phase 14 Success Criteria
+### Phase 14 Dependencies
 
-- Reviewers accept or adjust AI triage suggestions in >60% of cases.
-- Generated memos require <20% manual edits before sharing.
-- Anomaly alerts reduce false positives by 30% vs prior monitoring.
-- Scenario planning supports simultaneous participants with synchronized results.
+- Phase 13 shared-draft schema and SLA telemetry fully deployed (`npm run db:push` + smoke tests).
+- Observability Stack Milestone B dashboards measuring sync freshness and triage metrics.
+- LLM provider credentials (`OPENAI_API_KEY` or Azure equivalent) and guardrail policies finalized.
+- Data warehouse delta feeds delivering up-to-date valuation history.
+
+### Phase 14 Validation & Success Metrics
+
+- Reviewers accept or adjust AI triage suggestions in ≥60% of surfaced cases.
+- Memo drafts require <20% manual edits before submission (tracked via suggestion diff coverage).
+- Anomaly alerts reduce false positives by ≥30% compared with Phase 12 baselines; false negatives under 10% on backtest set.
+- Scenario planning sessions support ≥3 concurrent collaborators with latency <300ms for presence updates.
+- Test coverage: new API routes backed by integration tests; memo + triage flows covered by Playwright smoke scripts.
+
+### Phase 14 Risks & Mitigations
+
+- **Model hallucination**: enforce retrieval-augmented prompts and display source snippets in UI.
+- **Reviewer overload**: throttle AI recommendations and add undo/rollback for batch actions.
+- **Template drift**: version templates in git + admin UI, add lint to validate placeholders.
+- **Data freshness gaps**: monitor delta job lag; fallback to baseline heuristics if sync stale >10 min.
 
 ## Phase 15 Plan (Governance, Compliance & External Sharing — Starts 2026-02-10)
 

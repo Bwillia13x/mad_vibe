@@ -17,9 +17,19 @@ import type {
   ReviewerAssignmentInput,
   ReviewerAssignmentUpdateInput,
   ReviewerAssignmentStatus,
+  ReviewerSlaStatus,
   AuditTimelineEvent,
   AuditEventInput,
-  AuditEventFilters
+  AuditEventFilters,
+  AuditExportSchedule,
+  AuditExportScheduleInput,
+  AuditExportScheduleUpdate,
+  MemoSharedDraftPayload,
+  MemoSharedDraftInput,
+  MemoSuggestion,
+  MemoSuggestionInput,
+  MemoSuggestionUpdate,
+  MemoSuggestionStatus
 } from '@shared/types'
 
 export interface PresencePeerPayload {
@@ -296,6 +306,7 @@ export interface ReviewerAssignmentQuery {
   offset?: number
   dueBefore?: string
   dueAfter?: string
+  slaStatus?: ReviewerSlaStatus | ReviewerSlaStatus[]
 }
 
 const ADMIN_HEADERS = ADMIN_BEARER ? { Authorization: `Bearer ${ADMIN_BEARER}` } : undefined
@@ -320,6 +331,10 @@ export async function fetchReviewerAssignments(
   if (params?.status) {
     const statusParam = Array.isArray(params.status) ? params.status.join(',') : params.status
     search.set('status', statusParam)
+  }
+  if (params?.slaStatus) {
+    const slaParam = Array.isArray(params.slaStatus) ? params.slaStatus.join(',') : params.slaStatus
+    search.set('slaStatus', slaParam)
   }
   if (params?.reviewerId) search.set('reviewerId', String(params.reviewerId))
   if (params?.includeCancelled) search.set('includeCancelled', 'true')
@@ -375,6 +390,24 @@ export async function updateReviewerAssignment(
   return data.assignment
 }
 
+export async function batchUpdateReviewerAssignments(
+  workflowId: number,
+  assignmentIds: number[],
+  input: ReviewerAssignmentUpdateInput,
+  sessionKey?: string
+): Promise<ReviewerAssignment[]> {
+  const payload = { ...input, assignmentIds }
+  const res = await fetch(`${BASE_URL}/${workflowId}/reviewer-assignments/batch`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(payload)
+  })
+  if (!res.ok) throw new Error('Failed to batch update reviewer assignments')
+  const data = await handleResponse<{ assignments: ReviewerAssignment[] }>(res)
+  return data.assignments
+}
+
 export async function fetchAuditTimeline(
   workflowId: number,
   filters?: AuditEventFilters,
@@ -389,6 +422,8 @@ export async function fetchAuditTimeline(
     search.set('acknowledged', filters.acknowledged ? 'true' : 'false')
   if (filters?.createdAfter) search.set('createdAfter', filters.createdAfter)
   if (filters?.createdBefore) search.set('createdBefore', filters.createdBefore)
+  if (filters?.actorRole) search.set('actorRole', filters.actorRole)
+  if (filters?.visibleToRole) search.set('visibleToRole', filters.visibleToRole)
   if (filters?.limit) search.set('limit', String(filters.limit))
   if (filters?.offset) search.set('offset', String(filters.offset))
 
@@ -417,6 +452,8 @@ export async function exportAuditTimelineCsv(
     search.set('acknowledged', filters.acknowledged ? 'true' : 'false')
   if (filters?.createdAfter) search.set('createdAfter', filters.createdAfter)
   if (filters?.createdBefore) search.set('createdBefore', filters.createdBefore)
+  if (filters?.actorRole) search.set('actorRole', filters.actorRole)
+  if (filters?.visibleToRole) search.set('visibleToRole', filters.visibleToRole)
   search.set('export', 'csv')
 
   const res = await fetch(`${BASE_URL}/${workflowId}/audit/events?${search.toString()}`, {
@@ -425,6 +462,162 @@ export async function exportAuditTimelineCsv(
   })
   if (!res.ok) throw new Error('Failed to export audit events')
   return await res.text()
+}
+
+export async function fetchAuditExportSchedules(
+  workflowId: number,
+  sessionKey?: string
+): Promise<AuditExportSchedule[]> {
+  const res = await fetch(`${BASE_URL}/${workflowId}/audit/export-schedules`, {
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey)
+  })
+  if (!res.ok) throw new Error('Failed to fetch audit export schedules')
+  const data = await handleResponse<{ schedules: AuditExportSchedule[] }>(res)
+  return data.schedules
+}
+
+export async function createAuditExportSchedule(
+  workflowId: number,
+  input: AuditExportScheduleInput,
+  sessionKey?: string
+): Promise<AuditExportSchedule> {
+  const res = await fetch(`${BASE_URL}/${workflowId}/audit/export-schedules`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(input)
+  })
+  if (!res.ok) throw new Error('Failed to create audit export schedule')
+  const data = await handleResponse<{ schedule: AuditExportSchedule }>(res)
+  return data.schedule
+}
+
+export async function updateAuditExportSchedule(
+  workflowId: number,
+  scheduleId: number,
+  input: AuditExportScheduleUpdate,
+  sessionKey?: string
+): Promise<AuditExportSchedule> {
+  const res = await fetch(`${BASE_URL}/${workflowId}/audit/export-schedules/${scheduleId}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(input)
+  })
+  if (!res.ok) throw new Error('Failed to update audit export schedule')
+  const data = await handleResponse<{ schedule: AuditExportSchedule }>(res)
+  return data.schedule
+}
+
+export async function deactivateAuditExportSchedule(
+  workflowId: number,
+  scheduleId: number,
+  sessionKey?: string
+): Promise<AuditExportSchedule> {
+  const res = await fetch(`${BASE_URL}/${workflowId}/audit/export-schedules/${scheduleId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey)
+  })
+  if (!res.ok) throw new Error('Failed to deactivate audit export schedule')
+  const data = await handleResponse<{ schedule: AuditExportSchedule }>(res)
+  return data.schedule
+}
+
+export async function fetchSharedMemoDraft(
+  workflowId: number,
+  sessionKey?: string
+): Promise<MemoSharedDraftPayload> {
+  const res = await fetch(`${BASE_URL}/memo/${workflowId}/shared-draft`, {
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey)
+  })
+  if (!res.ok) throw new Error('Failed to fetch shared memo draft')
+  const data = await handleResponse<{ draft: MemoSharedDraftPayload }>(res)
+  return data.draft
+}
+
+export async function saveSharedMemoDraft(
+  workflowId: number,
+  input: MemoSharedDraftInput,
+  sessionKey?: string
+): Promise<MemoSharedDraftPayload> {
+  const res = await fetch(`${BASE_URL}/memo/${workflowId}/shared-draft`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(input)
+  })
+  if (!res.ok) throw new Error('Failed to persist shared memo draft')
+  const data = await handleResponse<{ draft: MemoSharedDraftPayload }>(res)
+  return data.draft
+}
+
+export async function fetchMemoSuggestions(
+  workflowId: number,
+  options?: { status?: MemoSuggestionStatus },
+  sessionKey?: string
+): Promise<MemoSuggestion[]> {
+  const search = new URLSearchParams()
+  if (options?.status) search.set('status', options.status)
+  const res = await fetch(
+    `${BASE_URL}/memo/${workflowId}/suggestions${search.toString() ? `?${search}` : ''}`,
+    {
+      credentials: 'include',
+      headers: buildAdminHeaders(sessionKey)
+    }
+  )
+  if (!res.ok) throw new Error('Failed to fetch memo suggestions')
+  const data = await handleResponse<{ suggestions: MemoSuggestion[] }>(res)
+  return data.suggestions
+}
+
+export async function createMemoSuggestion(
+  workflowId: number,
+  input: MemoSuggestionInput,
+  sessionKey?: string
+): Promise<MemoSuggestion> {
+  const res = await fetch(`${BASE_URL}/memo/${workflowId}/suggestions`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(input)
+  })
+  if (!res.ok) throw new Error('Failed to create memo suggestion')
+  const data = await handleResponse<{ suggestion: MemoSuggestion }>(res)
+  return data.suggestion
+}
+
+export async function updateMemoSuggestion(
+  workflowId: number,
+  suggestionId: number,
+  input: MemoSuggestionUpdate,
+  sessionKey?: string
+): Promise<MemoSuggestion> {
+  const res = await fetch(`${BASE_URL}/memo/${workflowId}/suggestions/${suggestionId}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(input)
+  })
+  if (!res.ok) throw new Error('Failed to update memo suggestion')
+  const data = await handleResponse<{ suggestion: MemoSuggestion }>(res)
+  return data.suggestion
+}
+
+export async function deleteMemoSuggestions(
+  workflowId: number,
+  ids: number[],
+  sessionKey?: string
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/memo/${workflowId}/suggestions`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ ids })
+  })
+  if (!res.ok && res.status !== 204) throw new Error('Failed to delete memo suggestions')
 }
 
 export async function createAuditEvent(

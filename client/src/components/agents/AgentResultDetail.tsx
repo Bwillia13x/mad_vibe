@@ -129,7 +129,7 @@ export function AgentResultDetail({ taskId, onBack }: AgentResultDetailProps) {
           {completedSteps.slice(0, 5).map((step) => (
             <div key={step.id} className="p-2 bg-slate-900/40 rounded border border-slate-700/50">
               <div className="text-sm font-medium text-slate-200 mb-1">{step.stepName}</div>
-              {step.result && (
+              {step.result != null && (
                 <pre className="text-xs text-slate-400 overflow-x-auto">
                   {JSON.stringify(step.result, null, 2).substring(0, 200)}...
                 </pre>
@@ -172,7 +172,7 @@ export function AgentResultDetail({ taskId, onBack }: AgentResultDetailProps) {
                         window.history.replaceState(null, '', url.toString())
                         setHighlightedStepId(step.stepId)
                       }}
-                      className="text-xs text-violet-300 hover:text-violet-200"
+                      className="text-xs text-violet-300 hover:text-violet-200 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                     >
                       Copy link
                     </button>
@@ -258,8 +258,18 @@ export function AgentResultDetail({ taskId, onBack }: AgentResultDetailProps) {
 
       <GlassCard title={`Agent Result: ${taskId}`} subtitle={`${steps.length} steps executed`}>
         <div className="space-y-4">
-          <div className="flex gap-2 border-b border-slate-700/50">
+          <div
+            className="flex gap-2 border-b border-slate-700/50"
+            role="tablist"
+            aria-label="Result detail tabs"
+          >
             <button
+              type="button"
+              id="tab-summary"
+              role="tab"
+              aria-selected={activeTab === 'summary' ? 'true' : 'false'}
+              aria-controls="panel-summary"
+              tabIndex={activeTab === 'summary' ? 0 : -1}
               className={`px-4 py-2 text-sm font-medium transition ${
                 activeTab === 'summary'
                   ? 'text-violet-400 border-b-2 border-violet-400'
@@ -270,6 +280,12 @@ export function AgentResultDetail({ taskId, onBack }: AgentResultDetailProps) {
               Summary
             </button>
             <button
+              type="button"
+              id="tab-steps"
+              role="tab"
+              aria-selected={activeTab === 'steps' ? 'true' : 'false'}
+              aria-controls="panel-steps"
+              tabIndex={activeTab === 'steps' ? 0 : -1}
               className={`px-4 py-2 text-sm font-medium transition ${
                 activeTab === 'steps'
                   ? 'text-violet-400 border-b-2 border-violet-400'
@@ -280,6 +296,12 @@ export function AgentResultDetail({ taskId, onBack }: AgentResultDetailProps) {
               Steps
             </button>
             <button
+              type="button"
+              id="tab-raw"
+              role="tab"
+              aria-selected={activeTab === 'raw' ? 'true' : 'false'}
+              aria-controls="panel-raw"
+              tabIndex={activeTab === 'raw' ? 0 : -1}
               className={`px-4 py-2 text-sm font-medium transition ${
                 activeTab === 'raw'
                   ? 'text-violet-400 border-b-2 border-violet-400'
@@ -292,9 +314,30 @@ export function AgentResultDetail({ taskId, onBack }: AgentResultDetailProps) {
           </div>
 
           <div>
-            {activeTab === 'summary' && renderSummary()}
-            {activeTab === 'steps' && renderSteps()}
-            {activeTab === 'raw' && renderRaw()}
+            <div
+              id="panel-summary"
+              role="tabpanel"
+              aria-labelledby="tab-summary"
+              hidden={activeTab !== 'summary'}
+            >
+              {renderSummary()}
+            </div>
+            <div
+              id="panel-steps"
+              role="tabpanel"
+              aria-labelledby="tab-steps"
+              hidden={activeTab !== 'steps'}
+            >
+              {renderSteps()}
+            </div>
+            <div
+              id="panel-raw"
+              role="tabpanel"
+              aria-labelledby="tab-raw"
+              hidden={activeTab !== 'raw'}
+            >
+              {renderRaw()}
+            </div>
           </div>
         </div>
       </GlassCard>

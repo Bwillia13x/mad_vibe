@@ -115,6 +115,29 @@ The MadLab platform now features a comprehensive **Tri-Pane IDE Architecture** w
 - **Migration Planning**: Preparing database migration strategy
 - **Release Preparation**: Finalizing production deployment checklist
 
+### **🚧 Phase 13 Enhancements (Reviewer Workflow & Collaboration Scale)**
+
+Phase 13 introduces automation and collaboration tooling on top of the existing audit infrastructure.
+
+- **Reviewer SLA Automation**
+  - New schema columns (`sla_status`, `escalation_level`, `batch_id`) track assignment health.
+  - Workflow API exposes bulk reassignment, SLA escalations, and reminder audit events.
+  - Reviewer panel surfaces SLA summaries, overdue indicators, and batch reassignment controls.
+
+- **Audit Export Scheduling**
+  - `/api/workflow/:id/audit/export-schedules` endpoints manage role-aware export cadences.
+  - Audit timeline UI now supports schedule creation, activation toggles, and delivery targeting.
+
+- **Shared Draft Mode**
+  - `/api/workflow/memo/:id/shared-draft` persists memo snapshots with optimistic locking.
+  - Reviewer suggestions API enables acceptance/rejection with audit logging.
+  - Memo composer includes shared draft publishing, lock visibility, and suggestion triage tools.
+
+- **Valuation Presence Signal**
+  - Live collaborator context and stale revision warnings surface inside the valuation workbench header.
+
+Refer to `migrations/0007_phase13_collaboration.sql` for required database changes prior to enabling these features.
+
 ## 🚀 **Production Readiness Checklist**
 
 ### **✅ Completed**

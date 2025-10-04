@@ -8,6 +8,7 @@ import createScreenerRouter from './routes/screener'
 import aiCopilotRouter from './routes/ai-copilot'
 import { createWorkflowRouter, getWorkflowPersistenceMode } from './routes/workflow'
 import workspacesRouter from './routes/workspaces'
+import memoSharedRouter from './routes/memo-shared'
 import dataIngestRouter from './routes/data-ingest'
 import workflowAuditRouter from './routes/workflow-audit'
 import { getNow, setFreeze, getFreeze } from './lib/clock'
@@ -197,6 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', aiCopilotRouter)
 
   // Workflow research log endpoints
+  app.use('/api/workflow/memo', memoSharedRouter)
   app.use('/api/workflow', createWorkflowRouter())
   app.use('/api/workflow', workflowAuditRouter)
 

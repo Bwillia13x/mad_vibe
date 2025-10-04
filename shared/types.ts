@@ -59,6 +59,8 @@ export type ReviewerAssignmentStatus =
   | 'rejected'
   | 'cancelled'
 
+export type ReviewerSlaStatus = 'on_track' | 'due_soon' | 'overdue' | 'escalated'
+
 export interface ReviewerAssignment {
   id: number
   workflowId: number
@@ -76,6 +78,12 @@ export interface ReviewerAssignment {
   completedAt: string | null
   reminderCount: number
   lastReminderAt: string | null
+  slaStatus: ReviewerSlaStatus
+  escalationLevel: number
+  escalatedAt: string | null
+  escalatedTo: number | null
+  escalationNotes: string | null
+  batchId: string | null
   notes: string | null
   metadata: Record<string, unknown>
 }
@@ -91,6 +99,11 @@ export interface ReviewerAssignmentInput {
   metadata?: Record<string, unknown>
   assignedBy?: number | null
   assignedByName?: string | null
+  slaStatus?: ReviewerSlaStatus
+  escalationLevel?: number | null
+  escalatedTo?: number | null
+  escalationNotes?: string | null
+  batchId?: string | null
 }
 
 export interface ReviewerAssignmentUpdateInput {
@@ -105,6 +118,11 @@ export interface ReviewerAssignmentUpdateInput {
   actorId?: number | null
   actorName?: string | null
   sendReminder?: boolean
+  slaStatus?: ReviewerSlaStatus
+  escalationLevel?: number | null
+  escalatedTo?: number | null
+  escalationNotes?: string | null
+  batchId?: string | null
 }
 
 export interface AuditTimelineEvent {
@@ -121,6 +139,7 @@ export interface AuditTimelineEvent {
   acknowledgedAt: string | null
   acknowledgedBy: number | null
   acknowledgementNote: string | null
+  visibleToRoles: string[] | null
   metadata: Record<string, unknown>
 }
 
@@ -142,8 +161,55 @@ export interface AuditEventFilters {
   acknowledged?: boolean
   createdAfter?: string
   createdBefore?: string
+  actorRole?: string
+  visibleToRole?: string
   limit?: number
   offset?: number
+}
+
+export interface AuditExportRecipient {
+  channel: 'email' | 'slack' | 'webhook' | string
+  target: string
+  metadata?: Record<string, unknown>
+}
+
+export interface AuditExportSchedule {
+  id: number
+  workflowId: number
+  name: string
+  frequency: string
+  intervalMinutes: number | null
+  cronExpression: string | null
+  format: string
+  filters: AuditEventFilters
+  actorRoles: string[]
+  recipients: AuditExportRecipient[]
+  active: boolean
+  nextRunAt: string | null
+  lastRunAt: string | null
+  lastStatus: string | null
+  createdAt: string
+  updatedAt: string
+  metadata: Record<string, unknown>
+}
+
+export interface AuditExportScheduleInput {
+  name: string
+  frequency: string
+  intervalMinutes?: number | null
+  cronExpression?: string | null
+  format?: string
+  filters?: AuditEventFilters
+  actorRoles?: string[]
+  recipients?: AuditExportRecipient[]
+  active?: boolean
+  nextRunAt?: string | null
+  metadata?: Record<string, unknown>
+}
+
+export interface AuditExportScheduleUpdate extends Partial<AuditExportScheduleInput> {
+  lastRunAt?: string | null
+  lastStatus?: string | null
 }
 
 export interface MemoAttachmentState {
@@ -161,6 +227,51 @@ export interface MemoComposerStatePayload {
 }
 
 export type MemoComposerStateInput = Omit<MemoComposerStatePayload, 'updatedAt'>
+
+export interface MemoSharedDraftPayload extends MemoComposerStatePayload {
+  updatedBy: number | null
+  lockSessionId: string | null
+  lockExpiresAt: string | null
+}
+
+export type MemoSharedDraftInput = Omit<MemoSharedDraftPayload, 'updatedAt' | 'updatedBy'> & {
+  updatedBy?: number | null
+}
+
+export type MemoSuggestionStatus = 'pending' | 'accepted' | 'rejected'
+
+export interface MemoSuggestion {
+  id: number
+  workflowId: number
+  sectionId: string
+  authorId: number | null
+  authorName: string | null
+  summary: string | null
+  beforeText: string | null
+  afterText: string | null
+  status: MemoSuggestionStatus
+  createdAt: string
+  resolvedAt: string | null
+  resolvedBy: number | null
+  metadata: Record<string, unknown>
+}
+
+export interface MemoSuggestionInput {
+  sectionId: string
+  summary?: string | null
+  beforeText?: string | null
+  afterText?: string | null
+  authorId?: number | null
+  authorName?: string | null
+  metadata?: Record<string, unknown>
+}
+
+export interface MemoSuggestionUpdate {
+  status?: MemoSuggestionStatus
+  resolvedBy?: number | null
+  resolvedAt?: string | null
+  metadata?: Record<string, unknown>
+}
 
 export interface DataNormalizationStatePayload {
   reconciledSources: Record<string, boolean>

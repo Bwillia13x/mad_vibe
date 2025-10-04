@@ -3,6 +3,7 @@
 // Notes: No external libs. Escape raw '>' characters in JSX text (use \u003e or ≥). Icons wrapped as components.
 
 import React, { useMemo, useState } from 'react'
+import { usePresence } from '@/hooks/usePresence'
 
 // ---------------- helpers ----------------
 const cls = (...s: (string | false | null | undefined)[]) => s.filter(Boolean).join(' ')
@@ -197,6 +198,20 @@ export function ValuationWorkbench() {
   const [method, setMethod] = useState('EPV')
   const [state, setState] = useState({ ...BASE, g1: 6.0, g2: 3.0 }) // 1–5y, 6–10y growth (% per year)
   const [scenario, setScenario] = useState('Base') // Base, Bull, Bear
+  const presence = usePresence('valuation')
+
+  const collaborators = useMemo(() => {
+    const others = presence.peers.filter((peer) => peer.actorId !== presence.actorId)
+    if (others.length === 0) return 'Solo editing'
+    const labels = others.slice(0, 2).map((peer) => peer.actorId)
+    const remainder = others.length > 2 ? ` +${others.length - 2}` : ''
+    return `Collaborating with ${labels.join(', ')}${remainder}`
+  }, [presence.peers, presence.actorId])
+
+  const conflictNotice =
+    presence.conflict?.type === 'stale_revision'
+      ? 'Conflict detected — refresh assumptions'
+      : (presence.conflict?.message ?? null)
 
   // scenario nudges
   const adj = useMemo(() => {
@@ -290,7 +305,7 @@ export function ValuationWorkbench() {
         <div className="text-sm text-slate-300 min-w-[260px] inline-flex items-center gap-2">
           <IconMethod /> Valuation Workbench
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-400">
+        <div className="flex flex-1 flex-wrap items-center gap-2 text-xs text-slate-400">
           <Tag tone="slate">Price ${fmt2(state.price)}</Tag>
           <Tag tone="slate">Shares {fmt(state.shares)}m</Tag>
           <Tag tone={state.netDebt < 0 ? 'emerald' : 'rose'}>
@@ -299,6 +314,9 @@ export function ValuationWorkbench() {
               : `Net debt $${fmt(state.netDebt)}m`}
           </Tag>
           <Tag tone="violet">Owner Earnings ${fmt(state.ownerEarnings)}m</Tag>
+          <span className="ml-auto text-[11px] text-slate-500">
+            {collaborators} • {conflictNotice ?? 'Live sync'}
+          </span>
         </div>
       </div>
 

@@ -7,7 +7,8 @@ import {
   timestamp,
   index,
   date,
-  text
+  text,
+  boolean
 } from 'drizzle-orm/pg-core'
 
 // Users table for multi-user support within workflow module
@@ -390,6 +391,14 @@ export const workflowReviewerAssignments = pgTable(
     completedAt: timestamp('completed_at'),
     reminderCount: integer('reminder_count').notNull().default(0),
     lastReminderAt: timestamp('last_reminder_at'),
+    slaStatus: varchar('sla_status', { length: 30 }).notNull().default('on_track'),
+    escalationLevel: integer('escalation_level').notNull().default(0),
+    escalatedAt: timestamp('escalated_at'),
+    escalatedTo: integer('escalated_to').references(() => workflowUsers.id, {
+      onDelete: 'set null'
+    }),
+    escalationNotes: text('escalation_notes'),
+    batchId: varchar('batch_id', { length: 64 }),
     notes: text('notes'),
     metadata: jsonb('metadata').notNull().default({})
   },
@@ -400,7 +409,9 @@ export const workflowReviewerAssignments = pgTable(
         table.stageSlug
       ),
       statusIdx: index('workflow_reviewer_assignments_status_idx').on(table.status),
-      reviewerIdx: index('workflow_reviewer_assignments_reviewer_idx').on(table.reviewerId)
+      reviewerIdx: index('workflow_reviewer_assignments_reviewer_idx').on(table.reviewerId),
+      slaIdx: index('workflow_reviewer_assignments_sla_idx').on(table.slaStatus),
+      escalationIdx: index('workflow_reviewer_assignments_escalation_idx').on(table.escalationLevel)
     }
   }
 )
@@ -428,7 +439,8 @@ export const workflowAuditEvents = pgTable(
       onDelete: 'set null'
     }),
     acknowledgementNote: text('acknowledgement_note'),
-    metadata: jsonb('metadata').notNull().default({})
+    metadata: jsonb('metadata').notNull().default({}),
+    visibleToRoles: jsonb('visible_to_roles').$type<string[] | null>().default(null)
   },
   (table) => {
     return {
@@ -438,6 +450,83 @@ export const workflowAuditEvents = pgTable(
       ),
       stageIdx: index('workflow_audit_events_stage_idx').on(table.stageSlug),
       typeIdx: index('workflow_audit_events_type_idx').on(table.eventType)
+    }
+  }
+)
+
+export const workflowAuditExportSchedules = pgTable(
+  'workflow_audit_export_schedules',
+  {
+    id: serial('id').primaryKey(),
+    workflowId: integer('workflow_id')
+      .references(() => workflows.id, { onDelete: 'cascade' })
+      .notNull(),
+    name: varchar('name', { length: 100 }).notNull(),
+    frequency: varchar('frequency', { length: 30 }).notNull().default('daily'),
+    intervalMinutes: integer('interval_minutes'),
+    cronExpression: varchar('cron_expression', { length: 120 }),
+    format: varchar('format', { length: 20 }).notNull().default('csv'),
+    filters: jsonb('filters').notNull().default({}),
+    actorRoles: jsonb('actor_roles').$type<string[]>().notNull().default([]),
+    recipients: jsonb('recipients').$type<Record<string, unknown>[]>().notNull().default([]),
+    active: boolean('active').notNull().default(true),
+    nextRunAt: timestamp('next_run_at'),
+    lastRunAt: timestamp('last_run_at'),
+    lastStatus: varchar('last_status', { length: 20 }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    metadata: jsonb('metadata').notNull().default({})
+  },
+  (table) => {
+    return {
+      workflowIdx: index('workflow_audit_export_schedules_workflow_idx').on(table.workflowId),
+      activeIdx: index('workflow_audit_export_schedules_active_idx').on(
+        table.active,
+        table.nextRunAt
+      )
+    }
+  }
+)
+
+export const workflowMemoSharedDrafts = pgTable('workflow_memo_shared_drafts', {
+  workflowId: integer('workflow_id')
+    .references(() => workflows.id, { onDelete: 'cascade' })
+    .primaryKey(),
+  state: jsonb('state').$type<Record<string, unknown>>().notNull().default({}),
+  version: integer('version').notNull().default(0),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  updatedBy: integer('updated_by').references(() => workflowUsers.id, { onDelete: 'set null' }),
+  lockSessionId: varchar('lock_session_id', { length: 255 }),
+  lockExpiresAt: timestamp('lock_expires_at'),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default({})
+})
+
+export const workflowMemoSuggestions = pgTable(
+  'workflow_memo_suggestions',
+  {
+    id: serial('id').primaryKey(),
+    workflowId: integer('workflow_id')
+      .notNull()
+      .references(() => workflows.id, { onDelete: 'cascade' }),
+    sectionId: varchar('section_id', { length: 50 }).notNull(),
+    authorId: integer('author_id').references(() => workflowUsers.id, { onDelete: 'set null' }),
+    authorName: varchar('author_name', { length: 255 }),
+    summary: text('summary'),
+    beforeText: text('before_text'),
+    afterText: text('after_text'),
+    status: varchar('status', { length: 20 }).notNull().default('pending'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    resolvedAt: timestamp('resolved_at'),
+    resolvedBy: integer('resolved_by').references(() => workflowUsers.id, { onDelete: 'set null' }),
+    metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default({})
+  },
+  (table) => {
+    return {
+      workflowIdx: index('workflow_memo_suggestions_workflow_idx').on(
+        table.workflowId,
+        table.status
+      ),
+      sectionIdx: index('workflow_memo_suggestions_section_idx').on(table.sectionId)
     }
   }
 )

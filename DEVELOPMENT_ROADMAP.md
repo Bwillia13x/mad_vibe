@@ -1,6 +1,6 @@
 # 🚀 MadLab Development Roadmap & Codebase Audit
 
-**Audit Date:** October 3, 2025  
+**Audit Date:** December 5, 2025  
 **Project:** MadLab (Andreas Vibe) - Investment Research Platform  
 **Current Version:** 1.0.0  
 **Overall Status:** 92% Production Ready (Warehouse automation scheduled; dashboards pending BI rollout)
@@ -11,7 +11,7 @@
 
 ### Current State Assessment
 
-The MadLab platform is an ambitious **investment research IDE** built on Express + Vite + React + TypeScript with a sophisticated tri-pane workbench architecture. Core schema, audit logging, and workspace features are now aligned with production requirements; the remaining focus is shipping Phase 3 observability dashboards and completing the warehouse analytics loop.
+The MadLab platform is an ambitious **investment research IDE** built on Express + Vite + React + TypeScript with a sophisticated tri-pane workbench architecture. Core schema, audit logging, and workspace features are aligned with production requirements. Phase 13 (Reviewer Automation & Collaboration) shipped with expanded workflow persistence, SLA-aware reviewer tooling, and shared memo drafts; the remaining focus is shipping Phase 3 observability dashboards and completing the warehouse analytics loop.
 
 ### Key Findings
 
@@ -33,7 +33,8 @@ The MadLab platform is an ambitious **investment research IDE** built on Express
 🔄 **In Progress:**
 
 - Phase 3 Milestone A observability dashboards + alerting (specs in `docs/ai-audit-observability.md`)
-- Updated playbook now includes dashboard layouts, PagerDuty/Slack configuration, sync cadence, and Data Platform checklist (see `docs/ai-audit-observability.md` Step 3-6).
+- Apply `migrations/0007_phase13_collaboration.sql` across environments and validate reviewer SLA + shared-draft smoke tests
+- Updated playbook now includes dashboard layouts, PagerDuty/Slack configuration, sync cadence, and Data Platform checklist (see `docs/ai-audit-observability.md` Step 3-6)
 - BigQuery selected, service account provisioned, automation workflow `.github/workflows/ai-audit-sync.yml` created; awaiting initial run validation
 - Universe screener with placeholder filtering logic
 - Data stream services (market data, news, filings) currently on mock data
@@ -214,14 +215,23 @@ CREATE TABLE institutional_holdings (...)
 
 **Enhancements Needed:**
 
-- [ ] Multi-user conflict resolution improvements
+- [x] Multi-user conflict resolution improvements (shared draft locking + presence cues)
+- [x] Assignment and notification system (SLA-aware reviewer batch assignments + escalation routing)
 - [ ] Commenting and annotation system
 - [ ] Document versioning and rollback
-- [ ] Assignment and notification system
 - [ ] Team workspace management
 - [ ] Permissions and role-based access control
 
-**Estimated Time:** 2-3 weeks
+**Estimated Time:** 2-3 weeks (remaining)
+
+### 3.4 Phase 13 Recap (Complete — December 5, 2025)
+
+- Expanded workflow persistence for SLA/escalation handling, audit export schedules, and shared drafts (`migrations/0007_phase13_collaboration.sql`, `lib/db/schema.ts`, `shared/types.ts`).
+- Reviewer workflow API now enforces SLA filters, batch updates, and export scheduling while memo shared-draft endpoints enable collaborative editing (`server/routes/workflow-audit.ts`, `server/routes/memo-shared.ts`, `server/routes.ts`).
+- Reviewer console gains SLA summaries, bulk reassignment, and escalation controls with audit timeline schedule management and role-aware visibility filters (`client/src/components/agents/ReviewerAssignmentPanel.tsx`, `client/src/pages/audit-timeline.tsx`).
+- New shared draft hook and composer integration add publishing + suggestion triage, and valuation workbench surfaces live collaborator presence (`client/src/hooks/useMemoSharedDraft.tsx`, `client/src/components/workbench/stages/MemoComposer.tsx`, `client/src/components/workbench/stages/ValuationWorkbench.tsx`).
+- Workflow client bindings and documentation updated for Phase 13 automation scope (`docs/workflow-audit-collaboration.md`, `client/src/lib/workflow-api.ts`, `client/src/hooks/useReviewerWorkflow.tsx`).
+- Validation: `npm run lint` (passes; legacy warnings remain in `scripts/setup-workspaces.ts` and `server/middleware/input-validation.ts`).
 
 ---
 
