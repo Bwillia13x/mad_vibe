@@ -55,7 +55,11 @@ interface UseAuditTimelineResult {
   createEvent: (input: AuditEventInput) => Promise<AuditTimelineEvent | null>
   acknowledge: (
     eventId: number,
-    input: { actorId?: number | null; actorName?: string | null; acknowledgementNote?: string | null }
+    input: {
+      actorId?: number | null
+      actorName?: string | null
+      acknowledgementNote?: string | null
+    }
   ) => Promise<AuditTimelineEvent | null>
 }
 
@@ -182,7 +186,11 @@ export function useAuditTimeline(
     setLoading(true)
     setError(null)
     try {
-      const response = await fetchAuditTimeline(workflowId, effectiveFilters, sessionKey ?? undefined)
+      const response = await fetchAuditTimeline(
+        workflowId,
+        effectiveFilters,
+        sessionKey ?? undefined
+      )
       setEvents(response.events)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load audit events')
@@ -223,7 +231,11 @@ export function useAuditTimeline(
   const acknowledge = useCallback(
     async (
       eventId: number,
-      input: { actorId?: number | null; actorName?: string | null; acknowledgementNote?: string | null }
+      input: {
+        actorId?: number | null
+        actorName?: string | null
+        acknowledgementNote?: string | null
+      }
     ) => {
       if (!workflowId) return null
       try {

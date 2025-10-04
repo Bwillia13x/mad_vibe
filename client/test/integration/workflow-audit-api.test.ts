@@ -2,10 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import express from 'express'
 import type { AddressInfo } from 'node:net'
 import { createWorkflowAuditRouter } from '../../../server/routes/workflow-audit'
-import {
-  workflowReviewerAssignments,
-  workflowAuditEvents
-} from '../../../lib/db/schema'
+import { workflowReviewerAssignments, workflowAuditEvents } from '../../../lib/db/schema'
 import type { ReviewerAssignmentStatus } from '@shared/types'
 
 process.env.DATABASE_URL =
@@ -180,7 +177,10 @@ describe('Workflow audit & reviewer assignment API', () => {
     }
 
     insertMock.mockImplementation((table) => {
-      if ((table as typeof workflowReviewerAssignments).tableName === workflowReviewerAssignments.tableName) {
+      if (
+        (table as typeof workflowReviewerAssignments).tableName ===
+        workflowReviewerAssignments.tableName
+      ) {
         return {
           values: () => ({
             returning: async () => [createdRow]
@@ -236,7 +236,10 @@ describe('Workflow audit & reviewer assignment API', () => {
     assignmentFindFirst.mockResolvedValue(existingRow)
 
     updateMock.mockImplementation((table) => {
-      if ((table as typeof workflowReviewerAssignments).tableName === workflowReviewerAssignments.tableName) {
+      if (
+        (table as typeof workflowReviewerAssignments).tableName ===
+        workflowReviewerAssignments.tableName
+      ) {
         return {
           set: () => ({
             where: () => ({ returning: async () => [updatedRow] })
@@ -262,12 +265,9 @@ describe('Workflow audit & reviewer assignment API', () => {
       }
     })
 
-    const response = await performRequest(
-      app,
-      'PATCH',
-      '/api/workflow/5/reviewer-assignments/15',
-      { status: 'in_review' }
-    )
+    const response = await performRequest(app, 'PATCH', '/api/workflow/5/reviewer-assignments/15', {
+      status: 'in_review'
+    })
 
     expect(response.status).toBe(200)
     expect(response.body.assignment.status).toBe('in_review')
@@ -306,22 +306,26 @@ describe('Workflow audit & reviewer assignment API', () => {
     insertMock.mockImplementation((table) => {
       if ((table as typeof workflowAuditEvents).tableName === workflowAuditEvents.tableName) {
         return {
-          values: () => ({ returning: async () => [{
-            id: 99,
-            workflowId: 4,
-            stageSlug: 'memo',
-            eventType: 'custom_event',
-            actorId: null,
-            actorName: 'Analyst',
-            actorRole: 'analyst',
-            payload: {},
-            reviewerAssignmentId: null,
-            createdAt: new Date('2025-10-04T13:00:00Z'),
-            acknowledgedAt: null,
-            acknowledgedBy: null,
-            acknowledgementNote: null,
-            metadata: {}
-          }] })
+          values: () => ({
+            returning: async () => [
+              {
+                id: 99,
+                workflowId: 4,
+                stageSlug: 'memo',
+                eventType: 'custom_event',
+                actorId: null,
+                actorName: 'Analyst',
+                actorRole: 'analyst',
+                payload: {},
+                reviewerAssignmentId: null,
+                createdAt: new Date('2025-10-04T13:00:00Z'),
+                acknowledgedAt: null,
+                acknowledgedBy: null,
+                acknowledgementNote: null,
+                metadata: {}
+              }
+            ]
+          })
         }
       }
       return {

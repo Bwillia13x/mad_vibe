@@ -5,39 +5,46 @@ test.describe('Workbench Tri-Pane Interactions', () => {
     await page.goto('/workbench/home')
   })
 
-test.describe('Studio Vibe-Coding Workflow', () => {
-  test('generates macro, sends to canvas, and verifies timeline', async ({ page }) => {
-    await page.goto('/studio')
+  test.describe('Studio Vibe-Coding Workflow', () => {
+    test('generates macro, sends to canvas, and verifies timeline', async ({ page }) => {
+      await page.goto('/studio')
 
-    // Ensure toolbelt fetch works
-    const dataButton = page.locator('text=Fetch Company Data')
-    if (await dataButton.isEnabled()) {
-      await dataButton.click()
-    }
+      // Ensure toolbelt fetch works
+      const dataButton = page.locator('text=Fetch Company Data')
+      if (await dataButton.isEnabled()) {
+        await dataButton.click()
+      }
 
-    // Use Macro Palette to generate and send to canvas
-    const runMacroButton = page.locator('button', { hasText: 'Generate Macro' }).first()
-    if (await runMacroButton.count()) {
-      await runMacroButton.click()
-    }
+      // Use Macro Palette to generate and send to canvas
+      const runMacroButton = page.locator('button', { hasText: 'Generate Macro' }).first()
+      if (await runMacroButton.count()) {
+        await runMacroButton.click()
+      }
 
-    const sendToCanvas = page.locator('button', { hasText: 'Send to Canvas' }).first()
-    await sendToCanvas.click()
+      const sendToCanvas = page.locator('button', { hasText: 'Send to Canvas' }).first()
+      await sendToCanvas.click()
 
-    // Canvas card should appear
-    const canvasCard = page.locator('[aria-label="Canvas area. Drag and drop an image to import."] div', {
-      hasText: 'Macro:'
+      // Canvas card should appear
+      const canvasCard = page.locator(
+        '[aria-label="Canvas area. Drag and drop an image to import."] div',
+        {
+          hasText: 'Macro:'
+        }
+      )
+      await expect(canvasCard).toBeVisible()
+
+      // Verify artifact timeline updates after save
+      const saveButton = page.locator('button', { hasText: 'Save as Artifact' }).first()
+      await saveButton.click()
+
+      const timelineEntry = page
+        .locator('text=Artifact timeline')
+        .locator('..')
+        .locator('article')
+        .first()
+      await expect(timelineEntry).toBeVisible()
     })
-    await expect(canvasCard).toBeVisible()
-
-    // Verify artifact timeline updates after save
-    const saveButton = page.locator('button', { hasText: 'Save as Artifact' }).first()
-    await saveButton.click()
-
-    const timelineEntry = page.locator('text=Artifact timeline').locator('..').locator('article').first()
-    await expect(timelineEntry).toBeVisible()
   })
-})
 
   test('displays tri-pane layout correctly', async ({ page }) => {
     // Check for main layout components
@@ -136,7 +143,10 @@ test.describe('Studio Vibe-Coding Workflow', () => {
   test('workspace overview supports inline comments with presence avatars', async ({ page }) => {
     await page.goto('/workspace-overview')
 
-    const overviewCard = page.getByTestId('workspace-overview-heading').locator('..').locator('[role="region"]')
+    const overviewCard = page
+      .getByTestId('workspace-overview-heading')
+      .locator('..')
+      .locator('[role="region"]')
     await expect(overviewCard).toBeVisible()
 
     const commentToggle = page.locator('button[aria-label="Toggle comments for overview"]')
@@ -159,7 +169,9 @@ test.describe('Studio Vibe-Coding Workflow', () => {
     const commentCountAfter = await commentToggle.locator('span').innerText()
     expect(commentCountAfter).not.toEqual(commentCountBefore)
 
-    const avatarStack = page.locator('[data-testid="presence-avatar-stack"] img, [data-testid="presence-avatar-stack"] span')
+    const avatarStack = page.locator(
+      '[data-testid="presence-avatar-stack"] img, [data-testid="presence-avatar-stack"] span'
+    )
     await expect(avatarStack.first()).toBeVisible()
   })
 

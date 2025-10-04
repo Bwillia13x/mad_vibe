@@ -225,13 +225,31 @@ export function FormulaAssistant({ className = '' }: FormulaAssistantProps) {
         </div>
 
         <div className="mt-3 flex items-center gap-2 flex-wrap">
-          <Button size="sm" variant="outline" onClick={onCopy} disabled={!output} title="Copy to clipboard">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onCopy}
+            disabled={!output}
+            title="Copy to clipboard"
+          >
             Copy
           </Button>
-          <Button size="sm" variant="outline" onClick={exportCsv} disabled={!output} title="Export as CSV">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={exportCsv}
+            disabled={!output}
+            title="Export as CSV"
+          >
             Export CSV
           </Button>
-          <Button size="sm" variant="outline" onClick={sendToCanvas} disabled={!output} title="Send summary card to canvas">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={sendToCanvas}
+            disabled={!output}
+            title="Send summary card to canvas"
+          >
             Send to Canvas
           </Button>
           <Button

@@ -285,7 +285,10 @@ export class SessionPresenceService {
     return stage
   }
 
-  private ensureSession(stage: StagePresenceState, session: StagePresenceSession): StagePresenceSession {
+  private ensureSession(
+    stage: StagePresenceState,
+    session: StagePresenceSession
+  ): StagePresenceSession {
     const existing = stage.sessions.get(session.sessionId)
     if (existing) {
       return existing
@@ -377,9 +380,7 @@ export class SessionPresenceService {
       message: 'Local state is stale compared to the latest revision',
       latestRevision: stage.latestRevision,
       blockingSessionId: stage.lockedBy ?? undefined,
-      blockingActorId: stage.lockedBy
-        ? stage.sessions.get(stage.lockedBy)?.actorId ?? null
-        : null
+      blockingActorId: stage.lockedBy ? (stage.sessions.get(stage.lockedBy)?.actorId ?? null) : null
     }
   }
 
@@ -411,13 +412,16 @@ export class SessionPresenceService {
         stageSlug: session.stageSlug,
         updatedAt: new Date(session.updatedAt).toISOString(),
         revision: session.revision ?? null,
-        locked: stage.lockedBy === session.sessionId && !!stage.lockExpiresAt && stage.lockExpiresAt > now
+        locked:
+          stage.lockedBy === session.sessionId && !!stage.lockExpiresAt && stage.lockExpiresAt > now
       })
     }
     return peers.sort((a, b) => (a.updatedAt > b.updatedAt ? -1 : 1))
   }
 
-  private toConflictSnapshot(conflict: StagePresenceConflict | null): PresenceConflictSnapshot | null {
+  private toConflictSnapshot(
+    conflict: StagePresenceConflict | null
+  ): PresenceConflictSnapshot | null {
     if (!conflict) return null
     return {
       type: conflict.type,

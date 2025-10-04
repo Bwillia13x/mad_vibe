@@ -79,7 +79,9 @@ export function PresenceAvatarStack({
               sizeClass
             )}
           >
-            <AvatarFallback className={cn('font-semibold uppercase', fallbackTone)}>??</AvatarFallback>
+            <AvatarFallback className={cn('font-semibold uppercase', fallbackTone)}>
+              ??
+            </AvatarFallback>
           </Avatar>
         ) : (
           visible.map((peer, index) => {
@@ -102,9 +104,7 @@ export function PresenceAvatarStack({
           })
         )}
       </div>
-      {showCount && extraCount > 0 && (
-        <span className="text-xs text-slate-400">+{extraCount}</span>
-      )}
+      {showCount && extraCount > 0 && <span className="text-xs text-slate-400">+{extraCount}</span>}
     </div>
   )
 }

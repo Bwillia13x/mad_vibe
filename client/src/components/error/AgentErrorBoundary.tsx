@@ -9,10 +9,7 @@ interface AgentErrorFallbackProps {
 
 function AgentErrorFallback({ error }: AgentErrorFallbackProps): JSX.Element {
   return (
-    <GlassCard 
-      title="Agent Mode Unavailable" 
-      className="border-amber-900/50 bg-amber-950/10"
-    >
+    <GlassCard title="Agent Mode Unavailable" className="border-amber-900/50 bg-amber-950/10">
       <div className="flex items-start gap-3">
         <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
         <div>

@@ -16,17 +16,17 @@ export async function getCachedWorkspace(workspaceId: number): Promise<any | nul
   try {
     const key = `workspace:${workspaceId}`
     const cached = await redis.get(key)
-    
+
     if (cached) {
       log('Workspace cache hit', { workspaceId })
       return JSON.parse(cached)
     }
-    
+
     return null
   } catch (error) {
-    log('Workspace cache get error', { 
-      workspaceId, 
-      error: error instanceof Error ? error.message : String(error) 
+    log('Workspace cache get error', {
+      workspaceId,
+      error: error instanceof Error ? error.message : String(error)
     })
     return null
   }
@@ -42,9 +42,9 @@ export async function setCachedWorkspace(workspaceId: number, data: any): Promis
     await redis.set(key, JSON.stringify(data), CACHE_TTL)
     log('Workspace cached', { workspaceId, ttl: CACHE_TTL })
   } catch (error) {
-    log('Workspace cache set error', { 
-      workspaceId, 
-      error: error instanceof Error ? error.message : String(error) 
+    log('Workspace cache set error', {
+      workspaceId,
+      error: error instanceof Error ? error.message : String(error)
     })
   }
 }
@@ -59,9 +59,9 @@ export async function invalidateWorkspaceCache(workspaceId: number): Promise<voi
     await redis.del(key)
     log('Workspace cache invalidated', { workspaceId })
   } catch (error) {
-    log('Workspace cache invalidation error', { 
-      workspaceId, 
-      error: error instanceof Error ? error.message : String(error) 
+    log('Workspace cache invalidation error', {
+      workspaceId,
+      error: error instanceof Error ? error.message : String(error)
     })
   }
 }
@@ -74,19 +74,22 @@ export async function getCachedWorkspaceSnapshots(workspaceId: number): Promise<
   try {
     const key = `workspace:${workspaceId}:snapshots`
     const cached = await redis.get(key)
-    
+
     if (cached) {
       log('Workspace snapshots cache hit', { workspaceId })
       return JSON.parse(cached)
     }
-    
+
     return null
   } catch (error) {
     return null
   }
 }
 
-export async function setCachedWorkspaceSnapshots(workspaceId: number, snapshots: any[]): Promise<void> {
+export async function setCachedWorkspaceSnapshots(
+  workspaceId: number,
+  snapshots: any[]
+): Promise<void> {
   if (!redis.isEnabled()) {
     return
   }

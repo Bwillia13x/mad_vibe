@@ -477,12 +477,7 @@ export function CanvasBoard({ className = '' }: CanvasBoardProps) {
           onPointerLeave={endDraw}
         />
         {cards.map((card) => (
-          <CanvasCard
-            key={card.id}
-            card={card}
-            onDrag={onCardDrag}
-            onRemove={removeCard}
-          />
+          <CanvasCard key={card.id} card={card} onDrag={onCardDrag} onRemove={removeCard} />
         ))}
         <div className="absolute top-2 left-2 flex gap-2">
           <button

@@ -18,14 +18,14 @@ class RedisClient {
 
   constructor(config: RedisClientConfig = {}) {
     this.enabled = config.enabled ?? process.env.REDIS_ENABLED === 'true'
-    
+
     if (!this.enabled) {
       log('Redis caching disabled')
       return
     }
 
     // Lazy load redis to avoid requiring it when disabled
-    this.initializeClient(config).catch(err => {
+    this.initializeClient(config).catch((err) => {
       log('Failed to initialize Redis client', { error: err.message })
       this.enabled = false
     })
@@ -60,7 +60,7 @@ class RedisClient {
 
       await this.client.connect()
     } catch (error) {
-      log('Redis client initialization failed', { 
+      log('Redis client initialization failed', {
         error: error instanceof Error ? error.message : String(error)
       })
       throw error
@@ -131,7 +131,9 @@ class RedisClient {
         await this.client.disconnect()
         log('Redis disconnected gracefully')
       } catch (error) {
-        log('Error disconnecting Redis', { error: error instanceof Error ? error.message : String(error) })
+        log('Error disconnecting Redis', {
+          error: error instanceof Error ? error.message : String(error)
+        })
       }
     }
   }

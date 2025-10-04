@@ -693,7 +693,7 @@ export function createWorkflowRouter(
       if (existing && payload.version !== existingVersion) {
         const snapshot = sessionPresenceService.getStageSnapshot(STAGE_SLUGS.memo)
         const blockingActorId = snapshot?.lockOwner
-          ? snapshot.peers.find((peer) => peer.sessionId === snapshot.lockOwner)?.actorId ?? null
+          ? (snapshot.peers.find((peer) => peer.sessionId === snapshot.lockOwner)?.actorId ?? null)
           : null
         sessionPresenceService.registerConflict({
           stageSlug: STAGE_SLUGS.memo,
@@ -765,7 +765,7 @@ export function createWorkflowRouter(
       if (existing && payload.version !== existingVersion) {
         const snapshot = sessionPresenceService.getStageSnapshot(STAGE_SLUGS.normalization)
         const blockingActorId = snapshot?.lockOwner
-          ? snapshot.peers.find((peer) => peer.sessionId === snapshot.lockOwner)?.actorId ?? null
+          ? (snapshot.peers.find((peer) => peer.sessionId === snapshot.lockOwner)?.actorId ?? null)
           : null
         sessionPresenceService.registerConflict({
           stageSlug: STAGE_SLUGS.normalization,
@@ -839,7 +839,7 @@ export function createWorkflowRouter(
       if (existing && payload.version !== existingVersion) {
         const snapshot = sessionPresenceService.getStageSnapshot(STAGE_SLUGS.valuation)
         const blockingActorId = snapshot?.lockOwner
-          ? snapshot.peers.find((peer) => peer.sessionId === snapshot.lockOwner)?.actorId ?? null
+          ? (snapshot.peers.find((peer) => peer.sessionId === snapshot.lockOwner)?.actorId ?? null)
           : null
         sessionPresenceService.registerConflict({
           stageSlug: STAGE_SLUGS.valuation,
@@ -909,7 +909,7 @@ export function createWorkflowRouter(
       if (existing && payload.version !== existingVersion) {
         const snapshot = sessionPresenceService.getStageSnapshot(STAGE_SLUGS.monitoring)
         const blockingActorId = snapshot?.lockOwner
-          ? snapshot.peers.find((peer) => peer.sessionId === snapshot.lockOwner)?.actorId ?? null
+          ? (snapshot.peers.find((peer) => peer.sessionId === snapshot.lockOwner)?.actorId ?? null)
           : null
         sessionPresenceService.registerConflict({
           stageSlug: STAGE_SLUGS.monitoring,
@@ -937,7 +937,11 @@ export function createWorkflowRouter(
       const persisted = buildMonitoringPayload(result)
       res.json(persisted)
       if (persisted) {
-        sessionPresenceService.registerRevision(STAGE_SLUGS.monitoring, persisted.version, sessionId)
+        sessionPresenceService.registerRevision(
+          STAGE_SLUGS.monitoring,
+          persisted.version,
+          sessionId
+        )
       }
     } catch (error) {
       log(`Error persisting monitoring state: ${error}`)
@@ -962,9 +966,7 @@ export function createWorkflowRouter(
     const actorId = resolveActorId(req.headers['x-actor-id'], sessionId)
     const revisionValue = isRecord(req.body) ? (req.body.revision as number | undefined) : undefined
     const revision = typeof revisionValue === 'number' ? revisionValue : undefined
-    const lockRequestRaw = isRecord(req.body)
-      ? (req.body.lockRequest ?? req.body.lock)
-      : undefined
+    const lockRequestRaw = isRecord(req.body) ? (req.body.lockRequest ?? req.body.lock) : undefined
     const lockRequest = lockRequestRaw === true
 
     const result = sessionPresenceService.heartbeat({

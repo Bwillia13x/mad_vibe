@@ -4,7 +4,17 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Play, Pause, X, CheckCircle, AlertCircle, Loader2, Sparkles, RefreshCw, Clock } from 'lucide-react'
+import {
+  Play,
+  Pause,
+  X,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  Sparkles,
+  RefreshCw,
+  Clock
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface AgentTask {
@@ -271,111 +281,148 @@ export function AgentTaskPanel() {
           tasks.map((task) => {
             const stats = getTaskStats(task)
             const duration = formatDuration(task.startedAt, task.completedAt)
-            
+
             return (
-            <Card key={task.id} className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-slate-100">{task.description}</h3>
-                    {task.status === 'completed' && (
-                      <Badge variant="outline" className="bg-green-950/30 text-green-400 border-green-900">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Complete
-                      </Badge>
-                    )}
-                    {task.status === 'failed' && (
-                      <Badge variant="outline" className="bg-red-950/30 text-red-400 border-red-900">
-                        <AlertCircle className="w-3 h-3 mr-1" />
-                        Failed
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-3 text-xs text-slate-400">
-                    <span>Step {task.currentStepIndex + 1} of {task.steps.length}</span>
-                    {duration && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {duration}
+              <Card key={task.id} className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-slate-100">{task.description}</h3>
+                      {task.status === 'completed' && (
+                        <Badge
+                          variant="outline"
+                          className="bg-green-950/30 text-green-400 border-green-900"
+                        >
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Complete
+                        </Badge>
+                      )}
+                      {task.status === 'failed' && (
+                        <Badge
+                          variant="outline"
+                          className="bg-red-950/30 text-red-400 border-red-900"
+                        >
+                          <AlertCircle className="w-3 h-3 mr-1" />
+                          Failed
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 text-xs text-slate-400">
+                      <span>
+                        Step {task.currentStepIndex + 1} of {task.steps.length}
                       </span>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-2 mt-2">
-                    {stats.completed > 0 && (
-                      <Badge variant="outline" className="bg-green-950/20 text-green-500 border-green-900 text-xs">
-                        ✓ {stats.completed}
-                      </Badge>
-                    )}
-                    {stats.failed > 0 && (
-                      <Badge variant="outline" className="bg-red-950/20 text-red-500 border-red-900 text-xs">
-                        ✕ {stats.failed}
-                      </Badge>
-                    )}
-                    {stats.pending > 0 && (
-                      <Badge variant="outline" className="bg-slate-800 text-slate-400 border-slate-700 text-xs">
-                        ⋯ {stats.pending}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {task.status === 'in_progress' && (
-                    <Button size="sm" variant="ghost" onClick={() => pauseTask(task.id)} title="Pause task">
-                      <Pause className="w-4 h-4" />
-                    </Button>
-                  )}
-                  {task.status === 'paused' && (
-                    <Button size="sm" variant="ghost" onClick={() => startTask(task.id)} title="Resume task">
-                      <Play className="w-4 h-4" />
-                    </Button>
-                  )}
-                  {task.status === 'failed' && (
-                    <Button size="sm" variant="ghost" onClick={() => startTask(task.id)} title="Retry task">
-                      <RefreshCw className="w-4 h-4" />
-                    </Button>
-                  )}
-                  {(task.status === 'in_progress' || task.status === 'paused') && (
-                    <Button size="sm" variant="ghost" onClick={() => cancelTask(task.id)} title="Cancel task">
-                      <X className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
+                      {duration && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {duration}
+                        </span>
+                      )}
+                    </div>
 
-              <Progress value={getProgress(task)} className="mb-3" />
-
-              {/* Steps */}
-              <div className="space-y-2">
-                {task.steps.map((step, index) => (
-                  <div
-                    key={step.id}
-                    className={cn(
-                      'flex items-center gap-3 p-2 rounded',
-                      index === task.currentStepIndex &&
-                        task.status === 'in_progress' &&
-                        'bg-violet-950/30'
-                    )}
-                  >
-                    {getStatusIcon(step.status)}
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-200">{step.name}</p>
-                      <p className="text-xs text-slate-500">{step.description}</p>
-                      {step.error && (
-                        <p className="text-xs text-red-400 mt-1">Error: {step.error}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      {stats.completed > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="bg-green-950/20 text-green-500 border-green-900 text-xs"
+                        >
+                          ✓ {stats.completed}
+                        </Badge>
+                      )}
+                      {stats.failed > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="bg-red-950/20 text-red-500 border-red-900 text-xs"
+                        >
+                          ✕ {stats.failed}
+                        </Badge>
+                      )}
+                      {stats.pending > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="bg-slate-800 text-slate-400 border-slate-700 text-xs"
+                        >
+                          ⋯ {stats.pending}
+                        </Badge>
                       )}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {task.error && (
-                <div className="mt-3 p-3 bg-red-950/30 border border-red-900 rounded">
-                  <p className="text-sm text-red-400">Task failed: {task.error}</p>
+                  <div className="flex items-center gap-2">
+                    {task.status === 'in_progress' && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => pauseTask(task.id)}
+                        title="Pause task"
+                      >
+                        <Pause className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {task.status === 'paused' && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => startTask(task.id)}
+                        title="Resume task"
+                      >
+                        <Play className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {task.status === 'failed' && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => startTask(task.id)}
+                        title="Retry task"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {(task.status === 'in_progress' || task.status === 'paused') && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => cancelTask(task.id)}
+                        title="Cancel task"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              )}
-            </Card>
+
+                <Progress value={getProgress(task)} className="mb-3" />
+
+                {/* Steps */}
+                <div className="space-y-2">
+                  {task.steps.map((step, index) => (
+                    <div
+                      key={step.id}
+                      className={cn(
+                        'flex items-center gap-3 p-2 rounded',
+                        index === task.currentStepIndex &&
+                          task.status === 'in_progress' &&
+                          'bg-violet-950/30'
+                      )}
+                    >
+                      {getStatusIcon(step.status)}
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-200">{step.name}</p>
+                        <p className="text-xs text-slate-500">{step.description}</p>
+                        {step.error && (
+                          <p className="text-xs text-red-400 mt-1">Error: {step.error}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {task.error && (
+                  <div className="mt-3 p-3 bg-red-950/30 border border-red-900 rounded">
+                    <p className="text-sm text-red-400">Task failed: {task.error}</p>
+                  </div>
+                )}
+              </Card>
             )
           })
         )}

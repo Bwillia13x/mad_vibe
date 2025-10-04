@@ -88,12 +88,15 @@ export default function AgentSearchPage() {
     const nextQuery = url.searchParams.get('q') ?? ''
     const limitRaw = url.searchParams.get('limit')
     const parsedLimit = limitRaw ? parseInt(limitRaw, 10) : NaN
-    const normalizedLimit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 50) : 20
+    const normalizedLimit = Number.isFinite(parsedLimit)
+      ? Math.min(Math.max(parsedLimit, 1), 50)
+      : 20
     const statusParamRaw = url.searchParams.get('status')
     const validStatuses: TaskStatus[] = ['succeeded', 'failed', 'running', 'queued']
-    const normalizedStatus: TaskStatus | 'all' = statusParamRaw && validStatuses.includes(statusParamRaw as TaskStatus)
-      ? (statusParamRaw as TaskStatus)
-      : 'all'
+    const normalizedStatus: TaskStatus | 'all' =
+      statusParamRaw && validStatuses.includes(statusParamRaw as TaskStatus)
+        ? (statusParamRaw as TaskStatus)
+        : 'all'
     const startedAfterParam = toLocalDateTimeInput(url.searchParams.get('startedAfter'))
     const startedBeforeParam = toLocalDateTimeInput(url.searchParams.get('startedBefore'))
     const minDurationParam = url.searchParams.get('minDurationMs') ?? ''
@@ -157,7 +160,16 @@ export default function AgentSearchPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [canSearch, currentWorkspace?.id, limit, q, statusFilter, startedAfter, startedBefore, minDuration])
+  }, [
+    canSearch,
+    currentWorkspace?.id,
+    limit,
+    q,
+    statusFilter,
+    startedAfter,
+    startedBefore,
+    minDuration
+  ])
 
   useEffect(() => {
     const h = setTimeout(() => {
@@ -259,7 +271,17 @@ export default function AgentSearchPage() {
     if (nextPath !== location) {
       navigate(nextPath, { replace: true })
     }
-  }, [currentWorkspace?.id, q, limit, statusFilter, startedAfter, startedBefore, minDuration, location, navigate])
+  }, [
+    currentWorkspace?.id,
+    q,
+    limit,
+    statusFilter,
+    startedAfter,
+    startedBefore,
+    minDuration,
+    location,
+    navigate
+  ])
 
   return (
     <div className="p-4 space-y-4">
@@ -364,7 +386,9 @@ export default function AgentSearchPage() {
             {isLoading ? 'Loading…' : 'Type at least 2 characters to search.'}
           </div>
         ) : hits.length === 0 ? (
-          <div className="h-24 flex items-center justify-center text-sm text-slate-500">No results.</div>
+          <div className="h-24 flex items-center justify-center text-sm text-slate-500">
+            No results.
+          </div>
         ) : (
           <ul className="space-y-3">
             {hits.map((h) => {
@@ -372,7 +396,10 @@ export default function AgentSearchPage() {
               const completedDate = parseDate(h.completedAt)
               const durationLabel = formatDurationMs(h.durationMs)
               return (
-                <li key={h.taskId} className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+                <li
+                  key={h.taskId}
+                  className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+                >
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-slate-200 text-sm">
@@ -409,10 +436,15 @@ export default function AgentSearchPage() {
 
                   {h.steps.length > 0 && (
                     <div className="mt-3">
-                      <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Relevant steps</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">
+                        Relevant steps
+                      </p>
                       <ul className="space-y-2">
                         {h.steps.map((s) => (
-                          <li key={s.stepId} className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+                          <li
+                            key={s.stepId}
+                            className="rounded-lg border border-slate-800 bg-slate-900/50 p-3"
+                          >
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex-1 space-y-1">
                                 <p className="text-sm text-slate-200">{s.action}</p>

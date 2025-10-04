@@ -37,14 +37,14 @@ export function AgentResultsTable({ workspaceId, onSelectResult }: AgentResultsT
     try {
       setLoading(true)
       setError(null)
-      
+
       const response = await fetch(`/api/workspaces/${workspaceId}/agent-results?limit=20`)
       const data = await response.json()
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to load results')
       }
-      
+
       setResults(data.results || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load results')
@@ -62,9 +62,9 @@ export function AgentResultsTable({ workspaceId, onSelectResult }: AgentResultsT
       const response = await fetch(`/api/agent-results/${taskId}`, {
         method: 'DELETE'
       })
-      
+
       if (response.ok) {
-        setResults(results.filter(r => r.taskId !== taskId))
+        setResults(results.filter((r) => r.taskId !== taskId))
       }
     } catch (err) {
       console.error('Failed to delete result:', err)
@@ -74,7 +74,7 @@ export function AgentResultsTable({ workspaceId, onSelectResult }: AgentResultsT
   async function handleExport(taskId: string, format: 'json' | 'pdf') {
     try {
       const response = await fetch(`/api/agent-results/${taskId}/export?format=${format}`)
-      
+
       if (format === 'json') {
         const data = await response.json()
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -172,14 +172,12 @@ export function AgentResultsTable({ workspaceId, onSelectResult }: AgentResultsT
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h4 className="text-sm font-medium text-slate-200">
-                    {result.taskDescription}
-                  </h4>
+                  <h4 className="text-sm font-medium text-slate-200">{result.taskDescription}</h4>
                   {getStatusBadge(result.status)}
                 </div>
                 <p className="text-xs text-slate-400">
-                  Type: {result.taskType} • Duration: {formatDuration(result.durationMs)} • 
-                  {result.completedAt 
+                  Type: {result.taskType} • Duration: {formatDuration(result.durationMs)} •
+                  {result.completedAt
                     ? ` Completed ${formatDistanceToNow(new Date(result.completedAt))} ago`
                     : ' In progress'}
                 </p>
@@ -188,8 +186,7 @@ export function AgentResultsTable({ workspaceId, onSelectResult }: AgentResultsT
 
             {result.resultSummary && (
               <div className="mb-2 p-2 bg-slate-950/50 rounded text-xs text-slate-400">
-                <span className="font-medium">Key Findings:</span>
-                {' '}
+                <span className="font-medium">Key Findings:</span>{' '}
                 {Object.entries(result.resultSummary)
                   .slice(0, 3)
                   .map(([key, value]) => `${key}: ${value}`)
@@ -198,27 +195,15 @@ export function AgentResultsTable({ workspaceId, onSelectResult }: AgentResultsT
             )}
 
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onSelectResult?.(result.taskId)}
-              >
+              <Button size="sm" variant="outline" onClick={() => onSelectResult?.(result.taskId)}>
                 <FileText className="w-3 h-3 mr-1" />
                 View Details
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => handleExport(result.taskId, 'json')}
-              >
+              <Button size="sm" variant="ghost" onClick={() => handleExport(result.taskId, 'json')}>
                 <Download className="w-3 h-3 mr-1" />
                 Export
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => handleDelete(result.taskId)}
-              >
+              <Button size="sm" variant="ghost" onClick={() => handleDelete(result.taskId)}>
                 <Trash2 className="w-3 h-3 mr-1" />
                 Delete
               </Button>

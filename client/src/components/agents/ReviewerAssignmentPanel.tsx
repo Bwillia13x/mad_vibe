@@ -22,8 +22,14 @@ interface ReviewerAssignmentPanelProps {
 
 const STATUS_COPY: Record<ReviewerAssignmentStatus, { label: string; tone: string }> = {
   pending: { label: 'Pending', tone: 'bg-slate-800/60 text-slate-200' },
-  in_review: { label: 'In Review', tone: 'bg-amber-500/20 text-amber-200 border border-amber-500/40' },
-  approved: { label: 'Approved', tone: 'bg-emerald-500/20 text-emerald-100 border border-emerald-500/40' },
+  in_review: {
+    label: 'In Review',
+    tone: 'bg-amber-500/20 text-amber-200 border border-amber-500/40'
+  },
+  approved: {
+    label: 'Approved',
+    tone: 'bg-emerald-500/20 text-emerald-100 border border-emerald-500/40'
+  },
   rejected: { label: 'Rejected', tone: 'bg-rose-500/20 text-rose-100 border border-rose-500/40' },
   cancelled: { label: 'Cancelled', tone: 'bg-slate-900/60 text-slate-400' }
 }
@@ -223,7 +229,9 @@ export function ReviewerAssignmentPanel({ workspaceId, stageSlug }: ReviewerAssi
 
         <div className="flex items-center justify-between text-xs text-slate-400">
           <div>
-            {loading ? 'Loading reviewer assignments…' : `${assignments.length} assignment(s) tracked.`}
+            {loading
+              ? 'Loading reviewer assignments…'
+              : `${assignments.length} assignment(s) tracked.`}
           </div>
           <button
             type="button"
@@ -257,7 +265,9 @@ export function ReviewerAssignmentPanel({ workspaceId, stageSlug }: ReviewerAssi
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex flex-col">
                           <span className="text-slate-100 font-medium">
-                            {assignment.reviewerName || assignment.reviewerEmail || 'Unassigned Reviewer'}
+                            {assignment.reviewerName ||
+                              assignment.reviewerEmail ||
+                              'Unassigned Reviewer'}
                           </span>
                           <span className="text-xs text-slate-500">
                             Stage • {assignment.stageSlug}
@@ -338,7 +348,8 @@ export function ReviewerAssignmentPanel({ workspaceId, stageSlug }: ReviewerAssi
                           Send Reminder
                         </Button>
                         <div className="ml-auto text-[11px] text-slate-500">
-                          Updated {formatDate(assignment.lastReminderAt ?? assignment.assignedAt) ?? '—'}
+                          Updated{' '}
+                          {formatDate(assignment.lastReminderAt ?? assignment.assignedAt) ?? '—'}
                         </div>
                       </div>
                     </div>

@@ -15,26 +15,31 @@ Phase 7 focuses on production readiness through database optimization, connectio
 ## Objectives
 
 ### 1. Database Optimization
+
 - Add performance indexes on high-traffic tables
 - Analyze query plans and optimize N+1 queries
 - Implement query result caching for expensive operations
 
 ### 2. Connection Pool Hardening
+
 - Tune pool parameters for production workload
 - Add connection exhaustion monitoring
 - Implement graceful degradation on pool saturation
 
 ### 3. Error Boundaries & Resilience
+
 - Wrap React components with error boundaries
 - Add client-side error tracking
 - Implement graceful fallbacks for API failures
 
 ### 4. Load & Performance Testing
+
 - Simulate 50+ concurrent agent tasks
 - Measure p95/p99 latencies under load
 - Identify memory leaks and resource bottlenecks
 
 ### 5. Caching Layer
+
 - Deploy Redis for workspace snapshots
 - Cache agent task state to reduce DB load
 - Implement cache invalidation strategy
@@ -46,29 +51,32 @@ Phase 7 focuses on production readiness through database optimization, connectio
 ### Task 1: Database Indexes (Priority: High)
 
 **Files:**
+
 - New migration: `migrations/0002_performance_indexes.sql`
 - Schema documentation: `docs/DATABASE_INDEXES.md`
 
 **Indexes to Add:**
+
 ```sql
 -- ai_audit_logs: frequently queried by workspace + timestamp
-CREATE INDEX idx_ai_audit_logs_workspace_time 
+CREATE INDEX idx_ai_audit_logs_workspace_time
 ON ai_audit_logs(workspace_id, created_at DESC);
 
 -- market_snapshots: queried by ticker + date
-CREATE INDEX idx_market_snapshots_ticker_date 
+CREATE INDEX idx_market_snapshots_ticker_date
 ON market_snapshots(ticker, snapshot_date DESC);
 
 -- workspace_data_snapshots: queried by workspace + type
-CREATE INDEX idx_workspace_snapshots_workspace_type 
+CREATE INDEX idx_workspace_snapshots_workspace_type
 ON workspace_data_snapshots(workspace_id, snapshot_type, created_at DESC);
 
 -- workflows: queried by userId + lastAccessedAt for sorting
-CREATE INDEX idx_workflows_user_accessed 
+CREATE INDEX idx_workflows_user_accessed
 ON workflows(user_id, last_accessed_at DESC);
 ```
 
 **Validation:**
+
 - Run `EXPLAIN ANALYZE` on critical queries before/after
 - Measure query time improvement (target: >50% reduction)
 - Monitor index usage with `pg_stat_user_indexes`
@@ -76,11 +84,13 @@ ON workflows(user_id, last_accessed_at DESC);
 ### Task 2: Connection Pool Tuning (Priority: High)
 
 **Files:**
+
 - `lib/db/connection-pool.ts`
 - New: `lib/db/pool-health-check.ts`
 - `server/routes/health.ts` (extend with pool metrics)
 
 **Configuration Changes:**
+
 ```typescript
 // lib/db/connection-pool.ts
 {
@@ -97,6 +107,7 @@ ON workflows(user_id, last_accessed_at DESC);
 ```
 
 **Health Check Endpoint:**
+
 ```typescript
 // GET /api/health/pool
 {
@@ -110,12 +121,14 @@ ON workflows(user_id, last_accessed_at DESC);
 ### Task 3: React Error Boundaries (Priority: Medium)
 
 **Files:**
+
 - New: `client/src/components/error/ErrorBoundary.tsx`
 - New: `client/src/components/error/AgentErrorBoundary.tsx`
 - Update: `client/src/pages/workspace-overview.tsx`
 - Update: `client/src/components/agents/AgentTaskPanel.tsx`
 
 **Implementation:**
+
 ```tsx
 // client/src/components/error/ErrorBoundary.tsx
 import { Component, ReactNode } from 'react'
@@ -142,7 +155,7 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught:', error, errorInfo)
     this.props.onError?.(error, errorInfo)
-    
+
     // Send to error tracking service (Sentry, etc.)
     if (window.errorTracker) {
       window.errorTracker.captureException(error, {
@@ -154,18 +167,20 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      return this.props.fallback || (
-        <GlassCard title="Something went wrong" className="border-red-900/50">
-          <p className="text-sm text-slate-400 mb-2">
-            We encountered an error loading this component.
-          </p>
-          <button 
-            onClick={() => this.setState({ hasError: false, error: null })}
-            className="text-violet-400 hover:text-violet-300 text-sm"
-          >
-            Try again
-          </button>
-        </GlassCard>
+      return (
+        this.props.fallback || (
+          <GlassCard title="Something went wrong" className="border-red-900/50">
+            <p className="text-sm text-slate-400 mb-2">
+              We encountered an error loading this component.
+            </p>
+            <button
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className="text-violet-400 hover:text-violet-300 text-sm"
+            >
+              Try again
+            </button>
+          </GlassCard>
+        )
       )
     }
 
@@ -175,6 +190,7 @@ export class ErrorBoundary extends Component<Props, State> {
 ```
 
 **Usage:**
+
 ```tsx
 // Wrap agent components
 <ErrorBoundary fallback={<AgentErrorFallback />}>
@@ -185,6 +201,7 @@ export class ErrorBoundary extends Component<Props, State> {
 ### Task 4: Load Testing Suite (Priority: High)
 
 **Files:**
+
 - New: `test/performance/agent-load.test.ts`
 - New: `test/performance/workspace-load.test.ts`
 - New: `scripts/run-load-tests.ts`
@@ -207,6 +224,7 @@ export class ErrorBoundary extends Component<Props, State> {
    - Verify no memory leaks or dropped connections
 
 **Implementation:**
+
 ```typescript
 // test/performance/agent-load.test.ts
 import { describe, it, expect } from 'vitest'
@@ -228,7 +246,7 @@ describe('Agent task load testing', () => {
 
     const results = await Promise.allSettled(tasks)
     const duration = Date.now() - startTime
-    const failures = results.filter(r => r.status === 'rejected')
+    const failures = results.filter((r) => r.status === 'rejected')
 
     expect(failures.length).toBe(0)
     expect(duration).toBeLessThan(25000) // 50 tasks in <25s = <500ms avg
@@ -239,6 +257,7 @@ describe('Agent task load testing', () => {
 ### Task 5: Redis Caching Layer (Priority: Medium)
 
 **Files:**
+
 - New: `lib/cache/redis-client.ts`
 - New: `lib/cache/workspace-cache.ts`
 - New: `lib/cache/agent-cache.ts`
@@ -247,6 +266,7 @@ describe('Agent task load testing', () => {
 - New: `docker-compose.redis.yml`
 
 **Redis Client Setup:**
+
 ```typescript
 // lib/cache/redis-client.ts
 import { createClient } from 'redis'
@@ -271,6 +291,7 @@ export async function connectRedis() {
 ```
 
 **Caching Strategy:**
+
 ```typescript
 // lib/cache/workspace-cache.ts
 import { redis } from './redis-client'
@@ -296,30 +317,35 @@ export async function invalidateWorkspaceCache(workspaceId: number) {
 ## Milestones
 
 ### M1: Database Performance (Oct 12)
+
 - [x] Create and apply index migration
 - [x] Run EXPLAIN ANALYZE validation
 - [x] Document query performance improvements
 - [x] Update `docs/DATABASE_INDEXES.md`
 
 ### M2: Connection Pool Hardening (Oct 14)
+
 - [x] Tune pool configuration
 - [x] Add health check endpoint
 - [x] Implement pool event logging
 - [x] Set up alerting for pool saturation
 
 ### M3: Error Resilience (Oct 16)
+
 - [x] Implement ErrorBoundary components
 - [x] Integrate error tracking service
 - [x] Add fallback UI for agent failures
 - [x] Test error recovery flows
 
 ### M4: Load Testing (Oct 18)
+
 - [x] Author load test suite
 - [x] Run tests in staging environment
 - [x] Identify and fix bottlenecks
 - [x] Achieve <500ms p95 latency target
 
 ### M5: Caching (Oct 19)
+
 - [x] Deploy Redis container
 - [x] Implement caching layer
 - [x] Add cache invalidation hooks
@@ -348,12 +374,12 @@ export async function invalidateWorkspaceCache(workspaceId: number) {
 
 ## Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Redis deployment delays | High | Start with in-memory cache fallback |
-| Load tests reveal critical bottlenecks | High | Allocate buffer time for optimization |
-| Error tracking integration blocked | Medium | Use console logging as interim solution |
-| Index creation locks production tables | High | Apply indexes during low-traffic window |
+| Risk                                   | Impact | Mitigation                              |
+| -------------------------------------- | ------ | --------------------------------------- |
+| Redis deployment delays                | High   | Start with in-memory cache fallback     |
+| Load tests reveal critical bottlenecks | High   | Allocate buffer time for optimization   |
+| Error tracking integration blocked     | Medium | Use console logging as interim solution |
+| Index creation locks production tables | High   | Apply indexes during low-traffic window |
 
 ---
 

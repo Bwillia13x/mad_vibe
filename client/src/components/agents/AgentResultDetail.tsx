@@ -101,23 +101,19 @@ export function AgentResultDetail({ taskId, onBack }: AgentResultDetailProps) {
   }
 
   function renderSummary() {
-    const completedSteps = steps.filter(s => s.status === 'completed')
-    const failedSteps = steps.filter(s => s.status === 'failed')
+    const completedSteps = steps.filter((s) => s.status === 'completed')
+    const failedSteps = steps.filter((s) => s.status === 'failed')
     const totalDuration = steps.reduce((sum, s) => sum + (s.durationMs || 0), 0)
 
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
           <div className="p-3 bg-slate-900/40 rounded border border-slate-700/50">
-            <div className="text-2xl font-semibold text-slate-100">
-              {completedSteps.length}
-            </div>
+            <div className="text-2xl font-semibold text-slate-100">{completedSteps.length}</div>
             <div className="text-xs text-slate-400">Completed Steps</div>
           </div>
           <div className="p-3 bg-slate-900/40 rounded border border-slate-700/50">
-            <div className="text-2xl font-semibold text-slate-100">
-              {failedSteps.length}
-            </div>
+            <div className="text-2xl font-semibold text-slate-100">{failedSteps.length}</div>
             <div className="text-xs text-slate-400">Failed Steps</div>
           </div>
           <div className="p-3 bg-slate-900/40 rounded border border-slate-700/50">
@@ -161,7 +157,7 @@ export function AgentResultDetail({ taskId, onBack }: AgentResultDetailProps) {
             <div className="absolute left-0 top-0 -translate-x-1/2 bg-slate-800 rounded-full p-1">
               {getStepIcon(step.status)}
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex items-start justify-between">
                 <div>

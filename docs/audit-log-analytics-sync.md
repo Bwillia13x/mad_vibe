@@ -70,7 +70,7 @@ Provide a reliable path for replicating `ai_audit_logs` (and related provenance 
   - `AI_AUDIT_BQ_AUDIT_TABLE=raw_ai_audit_logs`
   - `AI_AUDIT_BQ_WORKSPACE_TABLE=raw_workspace_snapshots`
   - `AI_AUDIT_BQ_MARKET_TABLE=raw_market_snapshots`
-  - `AI_AUDIT_BQ_CREDENTIALS=/secure/path/ai-audit-bigquery.json` *(or inline JSON)*
+  - `AI_AUDIT_BQ_CREDENTIALS=/secure/path/ai-audit-bigquery.json` _(or inline JSON)_
 - **Automation cadence**
   - Hourly delta (`*/30 * * * *`) invoking `npm run sync:ai-audit-logs -- --mode=delta --since=<iso>`
   - Nightly full (`0 9 * * *`) invoking `npm run sync:ai-audit-logs -- --mode=full --lookback=24h`

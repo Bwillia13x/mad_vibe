@@ -189,10 +189,7 @@ router.get('/agent-results/:taskId/export', async (req, res) => {
       const { generateTaskPDF } = await import('../../lib/reports/pdf-generator')
       const pdfBuffer = await generateTaskPDF(task, steps)
       res.setHeader('Content-Type', 'application/pdf')
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="agent-result-${taskId}.pdf"`
-      )
+      res.setHeader('Content-Disposition', `attachment; filename="agent-result-${taskId}.pdf"`)
       return res.send(pdfBuffer)
     } else {
       res.status(400).json({ error: 'Invalid format. Use json or pdf' })
@@ -217,10 +214,7 @@ router.delete('/agent-results/:taskId', async (req, res) => {
     }
 
     // Delete task result (cascade will delete steps)
-    await connectionPool.query(
-      'DELETE FROM agent_task_results WHERE task_id = $1',
-      [taskId]
-    )
+    await connectionPool.query('DELETE FROM agent_task_results WHERE task_id = $1', [taskId])
 
     res.json({ message: 'Result deleted', taskId })
   } catch (error) {

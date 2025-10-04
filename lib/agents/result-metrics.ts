@@ -77,7 +77,11 @@ export async function getAgentMetrics(
     [workspaceId, since]
   )
 
-  const tasks = taskRes.rows as Array<{ status: string; duration_ms: number | null; created_at: string }>
+  const tasks = taskRes.rows as Array<{
+    status: string
+    duration_ms: number | null
+    created_at: string
+  }>
   const steps = stepRes.rows as Array<{
     action: string
     status: string
@@ -90,14 +94,17 @@ export async function getAgentMetrics(
   const failedTasks = tasks.filter((t) => t.status === 'failed').length
   const successRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
 
-  const durations = tasks.map((t) => (t.duration_ms ?? 0)).filter((n) => n > 0)
+  const durations = tasks.map((t) => t.duration_ms ?? 0).filter((n) => n > 0)
   const averageDurationMs = average(durations)
   const p50DurationMs = percentile(durations, 50)
   const p95DurationMs = percentile(durations, 95)
   const p99DurationMs = percentile(durations, 99)
 
   // Step success rates and slowest steps
-  const stepTotals = new Map<string, { total: number; success: number; sumMs: number; countMs: number }>()
+  const stepTotals = new Map<
+    string,
+    { total: number; success: number; sumMs: number; countMs: number }
+  >()
   for (const s of steps) {
     const key = s.action || 'unknown'
     const prev = stepTotals.get(key) ?? { total: 0, success: 0, sumMs: 0, countMs: 0 }
@@ -140,8 +147,12 @@ export async function getAgentMetrics(
   const now = Date.now()
   const dayMs = 24 * 60 * 60 * 1000
   const tasksLast24h = tasks.filter((t) => new Date(t.created_at).getTime() >= now - dayMs).length
-  const tasksLast7d = tasks.filter((t) => new Date(t.created_at).getTime() >= now - 7 * dayMs).length
-  const tasksLast30d = tasks.filter((t) => new Date(t.created_at).getTime() >= now - 30 * dayMs).length
+  const tasksLast7d = tasks.filter(
+    (t) => new Date(t.created_at).getTime() >= now - 7 * dayMs
+  ).length
+  const tasksLast30d = tasks.filter(
+    (t) => new Date(t.created_at).getTime() >= now - 30 * dayMs
+  ).length
 
   return {
     totalTasks,

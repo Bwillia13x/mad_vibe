@@ -70,7 +70,7 @@ export function sortByUpdatedAtDesc(a: WorkspaceArtifact, b: WorkspaceArtifact):
 export function formatSnapshotType(type: string): string {
   return type
     .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
 
@@ -129,7 +129,9 @@ export interface WorkspaceMetric {
   trend?: string
 }
 
-export function computeWorkspaceMetrics(workspace: IdeaWorkspace | null | undefined): WorkspaceMetric[] {
+export function computeWorkspaceMetrics(
+  workspace: IdeaWorkspace | null | undefined
+): WorkspaceMetric[] {
   if (!workspace) return []
 
   const settings = workspace.settings || {}

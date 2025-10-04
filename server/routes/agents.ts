@@ -9,7 +9,9 @@ router.use(optionalAuth)
  * Log structured telemetry events
  */
 function logTelemetry(event: string, data: Record<string, unknown>) {
-  console.log(JSON.stringify({ event: `agent:${event}`, ...data, timestamp: new Date().toISOString() }))
+  console.log(
+    JSON.stringify({ event: `agent:${event}`, ...data, timestamp: new Date().toISOString() })
+  )
 }
 
 /**
@@ -189,7 +191,7 @@ router.get('/agents/tasks/:taskId/stream', async (req, res) => {
   // Listen for task updates
   type TaskEvent = { id: string; [key: string]: unknown }
   type StepEvent = { task: TaskEvent; step: Record<string, unknown> }
-  
+
   const handlers = {
     'task:started': (t: TaskEvent) => {
       if (t.id === taskId) {
@@ -220,7 +222,9 @@ router.get('/agents/tasks/:taskId/stream', async (req, res) => {
     },
     'task:paused': (t: TaskEvent) => {
       if (t.id === taskId) {
-        res.write(`data: ${JSON.stringify({ type: 'task:paused', task: t, audit: { timestamp: new Date().toISOString(), action: 'pause' } })}\n\n`)
+        res.write(
+          `data: ${JSON.stringify({ type: 'task:paused', task: t, audit: { timestamp: new Date().toISOString(), action: 'pause' } })}\n\n`
+        )
       }
     }
   }

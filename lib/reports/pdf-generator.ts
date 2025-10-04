@@ -34,9 +34,7 @@ export async function generateTaskPDF(
 
       doc.moveDown(1)
       doc.fontSize(10)
-      const completedAt = task.completedAt
-        ? new Date(task.completedAt).toLocaleString()
-        : 'N/A'
+      const completedAt = task.completedAt ? new Date(task.completedAt).toLocaleString() : 'N/A'
       const duration = task.durationMs != null ? `${Math.round(task.durationMs / 1000)}s` : 'N/A'
 
       doc.text(`Type: ${task.taskType}`)
@@ -63,7 +61,8 @@ export async function generateTaskPDF(
       } else {
         steps.forEach((s, i) => {
           doc.fontSize(12).text(`${i + 1}. ${s.stepName || s.action}`)
-          doc.fontSize(10)
+          doc
+            .fontSize(10)
             .text(`Action: ${s.action}`)
             .text(`Status: ${s.status}`)
             .text(

@@ -94,7 +94,7 @@ export async function extractFinancialStatements(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        Authorization: `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model: 'gpt-4-turbo-preview',
@@ -129,7 +129,7 @@ export async function extractFinancialStatements(
       ticker,
       error: error instanceof Error ? error.message : String(error)
     })
-    
+
     // Fall back to mock data
     return getMockFinancialStatements(ticker, formType)
   }
@@ -143,7 +143,7 @@ export function calculateOwnerEarnings(
   maintenanceCapexRatio: number = 0.7
 ): OwnerEarningsResult {
   const { netIncome } = financials.incomeStatement
-  const { depreciation, amortization, stockBasedComp, capex, changeInWorkingCapital } = 
+  const { depreciation, amortization, stockBasedComp, capex, changeInWorkingCapital } =
     financials.cashFlowStatement
 
   // Estimate maintenance CapEx as percentage of total CapEx
@@ -160,7 +160,7 @@ export function calculateOwnerEarnings(
     (changeInWorkingCapital || 0)
 
   const adjustments = []
-  
+
   if (depreciation) {
     adjustments.push({
       name: 'Depreciation',
@@ -168,7 +168,7 @@ export function calculateOwnerEarnings(
       reason: 'Non-cash charge added back'
     })
   }
-  
+
   if (amortization) {
     adjustments.push({
       name: 'Amortization',
@@ -176,7 +176,7 @@ export function calculateOwnerEarnings(
       reason: 'Non-cash charge added back'
     })
   }
-  
+
   if (stockBasedComp) {
     adjustments.push({
       name: 'Stock-Based Compensation',
@@ -184,7 +184,7 @@ export function calculateOwnerEarnings(
       reason: 'Non-cash expense added back'
     })
   }
-  
+
   if (maintenanceCapex) {
     adjustments.push({
       name: 'Maintenance CapEx',
@@ -192,7 +192,7 @@ export function calculateOwnerEarnings(
       reason: `Required reinvestment (${Math.round(maintenanceCapexRatio * 100)}% of total CapEx)`
     })
   }
-  
+
   if (changeInWorkingCapital) {
     adjustments.push({
       name: 'Change in Working Capital',
@@ -265,7 +265,7 @@ function normalizeExtractedData(
       ticker,
       company: data.metadata?.company || ticker,
       fiscalYear: data.metadata?.fiscalYear || new Date().getFullYear(),
-      fiscalQuarter: formType === '10-Q' ? (data.metadata?.fiscalQuarter || 4) : undefined,
+      fiscalQuarter: formType === '10-Q' ? data.metadata?.fiscalQuarter || 4 : undefined,
       currency: data.metadata?.currency || 'USD',
       reportDate: data.metadata?.reportDate || new Date().toISOString().split('T')[0]
     }
@@ -314,7 +314,7 @@ function getMockFinancialStatements(
       operatingCashFlow: baseRevenue * 0.25,
       investingCashFlow: -baseRevenue * 0.15,
       financingCashFlow: -baseRevenue * 0.08,
-      capex: -baseRevenue * 0.10,
+      capex: -baseRevenue * 0.1,
       depreciation: baseRevenue * 0.05,
       amortization: baseRevenue * 0.02,
       stockBasedComp: baseRevenue * 0.03,

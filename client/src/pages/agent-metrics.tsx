@@ -147,7 +147,9 @@ export default function AgentMetricsPage() {
         }
       >
         {isLoading && !metrics ? (
-          <div className="h-24 flex items-center justify-center text-sm text-slate-500">Loading…</div>
+          <div className="h-24 flex items-center justify-center text-sm text-slate-500">
+            Loading…
+          </div>
         ) : !metrics ? (
           <div className="h-24 flex items-center justify-center text-sm text-slate-500">
             No data for selected period.
@@ -156,7 +158,10 @@ export default function AgentMetricsPage() {
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {kpis.map((kpi) => (
-                <div key={kpi.label} className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+                <div
+                  key={kpi.label}
+                  className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+                >
                   <p className="text-xs uppercase tracking-wide text-slate-500">{kpi.label}</p>
                   <p className="mt-1 text-lg font-semibold text-slate-100">{kpi.value}</p>
                   {kpi.helper && <p className="text-xs text-slate-500 mt-1">{kpi.helper}</p>}
@@ -182,7 +187,9 @@ export default function AgentMetricsPage() {
               </section>
 
               <section>
-                <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">Most failed steps</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">
+                  Most failed steps
+                </p>
                 {metrics.mostFailedSteps.length === 0 ? (
                   <p className="text-xs text-slate-500">No failures recorded.</p>
                 ) : (
@@ -199,7 +206,9 @@ export default function AgentMetricsPage() {
             </div>
 
             <section>
-              <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">Step success rates</p>
+              <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">
+                Step success rates
+              </p>
               {Object.keys(metrics.stepSuccessRates).length === 0 ? (
                 <p className="text-xs text-slate-500">No steps recorded.</p>
               ) : (
@@ -208,9 +217,14 @@ export default function AgentMetricsPage() {
                     .sort((a, b) => b[1].rate - a[1].rate)
                     .slice(0, 9)
                     .map(([action, s]) => (
-                      <div key={action} className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
+                      <div
+                        key={action}
+                        className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2"
+                      >
                         <p className="text-sm text-slate-200">{action}</p>
-                        <p className="text-xs text-slate-500">{s.success}/{s.total} • {s.rate.toFixed(1)}%</p>
+                        <p className="text-xs text-slate-500">
+                          {s.success}/{s.total} • {s.rate.toFixed(1)}%
+                        </p>
                       </div>
                     ))}
                 </div>

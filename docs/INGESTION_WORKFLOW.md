@@ -86,7 +86,6 @@ Refer to `migrations/0001_phase1_snapshots.sql` for the DDL applied during Phase
 ## Manual Smoke Verification Playbook
 
 1. **Provision environment**
-
    - Start the Postgres instance used by Drizzle (`postgres://` connection must be reachable).
    - Copy `.env.example` to `.env` and populate `MARKET_DATA_PROVIDER`, `POLYGON_API_KEY` (if applicable), `OPENAI_API_KEY`, and `SESSION_SECRET`.
    - Ensure `npm run db:push` and any seeding scripts have been executed so `workflows`, `market_snapshots`, and `workspace_data_snapshots` exist.
@@ -113,7 +112,6 @@ Refer to `migrations/0001_phase1_snapshots.sql` for the DDL applied during Phase
    Expected response (`201`) includes `snapshot` and, when the workspace exists, a `workspaceSnapshot` referencing the new `marketSnapshotId`.
 
 4. **Validate provenance**
-
    - `GET http://localhost:5000/api/data-ingest/workspaces/WORKSPACE_ID/snapshots` should return the new record with `snapshotType: "market-refresh"`.
    - `GET http://localhost:5000/api/workspaces/WORKSPACE_ID/snapshots` (workspace routes) mirrors the payload.
 

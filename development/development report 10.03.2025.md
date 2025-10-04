@@ -246,29 +246,34 @@
 ### Phase 10 Objectives
 
 **Code Quality & TypeScript Cleanup:**
+
 - Resolve remaining TypeScript errors in `workspace-overview.tsx`
 - Create missing collaboration components (`CardCollaborationControls`, `PresenceAvatarStack`)
 - Add missing API exports (`fetchAuditLog`, `fetchDataSnapshots`, `AuditSummary`)
 - Complete Dialog UI components
 
 **PDF Export Implementation:** ✅
+
 - Installed `pdfkit` and `@types/pdfkit`
 - Added `lib/reports/pdf-generator.ts` for report assembly
 - Updated `/api/agent-results/:taskId/export?format=pdf` to stream PDF downloads
 
 **Agent Performance Dashboard:** ✅ foundational metrics
+
 - Added `lib/agents/result-metrics.ts` for success rates, duration percentiles, step analytics
 - Exposed `GET /api/agent-results/metrics` for aggregated telemetry
 - Created `/agent-metrics` page with KPI tiles, slowest/failed step tables, and step success leaderboard
 - Next: add charts (trends, distributions) and cost analytics overlay
 
-**Full-Text Search:** *baseline filters landed 2025-10-03*
-- Implement PostgreSQL `tsvector` indexes for agent results *(in progress; filters shipping ahead of ranking)*
+**Full-Text Search:** _baseline filters landed 2025-10-03_
+
+- Implement PostgreSQL `tsvector` indexes for agent results _(in progress; filters shipping ahead of ranking)_
 - Expand search API with ranking, relevance scoring, and advanced filters
-- Build search UI with autocomplete and facets *(initial filter UI live; autocomplete pending)*
+- Build search UI with autocomplete and facets _(initial filter UI live; autocomplete pending)_
 - Support workspace-scoped and global search with pagination and deep links
 
 **Production Readiness:**
+
 - Add comprehensive error boundaries across all routes
 - Implement skeleton loaders and progressive loading
 - Optimize bundle size with code splitting
@@ -284,22 +289,26 @@
 ### 2025-10-04 Phase 10 Completion
 
 **Code Quality & TypeScript Cleanup:** ✅
+
 - Fixed TypeScript errors in `server/routes/agents.ts` by importing `AuthenticatedRequest` type and properly typing request parameters
 - Resolved unused variable lints in `client/src/components/ai/FloatingAIAssistant.tsx` (prefixed with `_` per ESLint convention)
 - Fixed React useEffect dependency warning by including `currentWorkspace` object reference
 
 **Agent Performance Dashboard:** ✅ (Already Complete)
+
 - `client/src/pages/agent-metrics.tsx` provides KPI tiles, step analytics, and slowest/failed step breakdowns
 - `lib/agents/result-metrics.ts` exposes success rates, duration percentiles, and step-level statistics
 - `/api/agent-results/metrics` endpoint delivers aggregated telemetry with workspace filtering
 
 **Full-Text Search:** ✅ (Already Complete per Migration 0004)
+
 - `migrations/0004_agent_result_search.sql` added `tsvector` columns and GIN indexes to `agent_task_results` and `agent_step_results`
 - Triggers automatically maintain search vectors on insert/update
 - `/api/agent-results/search` endpoint supports ranked full-text queries
 - Agent Search page at `/agent-search` with filter UI
 
 **Production Readiness:** ✅ (Partial - from Phase 7)
+
 - Error boundaries implemented in `client/src/components/error/ErrorBoundary.tsx` and `AgentErrorBoundary.tsx`
 - Skeleton loaders and code splitting remain as follow-up items for Phase 11+
 
@@ -307,36 +316,36 @@
 
 ### Milestones
 
-- **M1 (Oct 20)**: TypeScript cleanup complete, all errors resolved *(in progress)*
-- **M2 (Oct 25)**: PDF export functional with professional templates *(met: base PDF export live; branding pending)*
-- **M3 (Oct 27)**: Performance dashboard foundations shipped *(current milestone)*
+- **M1 (Oct 20)**: TypeScript cleanup complete, all errors resolved _(in progress)_
+- **M2 (Oct 25)**: PDF export functional with professional templates _(met: base PDF export live; branding pending)_
+- **M3 (Oct 27)**: Performance dashboard foundations shipped _(current milestone)_
 - **M4 (Nov 5)**: Full-text search operational with <500ms response time
 - **M5 (Nov 10)**: Production polish complete, ready for deployment
 
 ### **Success Criteria**
 
 - Zero TypeScript errors across codebase
-- PDF exports generate in <5 seconds *(baseline met; perf validation pending)*
+- PDF exports generate in <5 seconds _(baseline met; perf validation pending)_
 - Dashboard loads in <1 second
 - Search returns results in <500ms
 - All major routes wrapped with error boundaries
 
 ## Phase 11 Review (Lint Cleanup & Roadmap Alignment — Starts 2025-11-08)
 
-### Objectives
+### Phase 11 Objectives
 
 - Resolve markdownlint warnings across documentation, starting with `development/development report 10.03.2025.md` (duplicate headings, spacing).
 - Ensure roadmap, `AGENTS.md`, and `docs/workflow-roadmap.md` remain synchronized with latest phase numbering and milestones.
 - Audit open TODOs in code and docs to confirm alignment with Phase 10 deliverables.
 - Verify that CI lint/typecheck suites cover the updated files and add missing scripts if necessary.
 
-### Milestones
+### Phase 11 Milestones
 
 - **Rvw1 (Nov 9)**: Markdownlint warnings cleared for development reports and roadmap docs.
 - **Rvw2 (Nov 11)**: Roadmap documents cross-checked and updated to reflect Phase 10A + review adjustments.
 - **Rvw3 (Nov 13)**: CI lint coverage verified with updated scripts or configs merged.
 
-### Success Criteria
+### Phase 11 Success Criteria
 
 - `npm run lint` and markdownlint pass cleanly on documentation set.
 - Roadmap documentation (development report, `docs/workflow-roadmap.md`, `AGENTS.md`) shows consistent phase references.
@@ -344,32 +353,36 @@
 
 ## Phase 12 Plan (Cognitive Insights & Search Enhancements — Starts 2025-11-15)
 
-### Objectives
+### Phase 12 Objectives
 
 **Cognitive Insights & Annotations:**
+
 - Add agent result comparison UI with diff view and annotation threads
 - Enable bookmarking/highlighting of key findings per workspace
 
 **Full-Text Search Expansion:**
+
 - Complete Phase 10 search backend (tsvector, ranking)
 - Layer conversational query interface over search results
 
 **Cost & Efficiency Analytics:**
+
 - Integrate OpenAI usage tracking into performance dashboard
 - Provide per-agent and per-workspace cost trend charts
 
 **Operational Hardening:**
+
 - Complete error boundaries & skeleton loaders (carryover)
 - Introduce SLO dashboards and alerting hooks
 
-### Milestones
+### Phase 12 Milestones
 
 - **N1 (Nov 20)**: Full-text search API + UI live with conversational shortcuts
 - **N2 (Nov 25)**: Comparison/annotation workflows GA for agent results
 - **N3 (Nov 30)**: Cost analytics integrated into dashboards
 - **N4 (Dec 5)**: Operational hardening (error boundaries, skeletons, SLOs) complete
 
-### Success Criteria
+### Phase 12 Success Criteria
 
 - Search supports ranked, filtered, and conversational queries across results and artifacts
 - Analysts can annotate, compare, and bookmark results without external tools
@@ -378,21 +391,21 @@
 
 ## Phase 13 Plan (Reviewer Workflow & Collaboration Scale — Starts 2025-12-05)
 
-### Objectives
+### Phase 13 Objectives
 
 - Graduate reviewer assignment workflow to production: escalation rules, SLA tracking, batch reassignment tools.
 - Integrate presence/conflict resolution into valuation playbooks and monitoring dashboards.
 - Expand audit timeline with role-based access, timeline diffing, and export scheduling.
 - Introduce shared draft mode for memo edits with suggestion history and acceptance flow.
 
-### Milestones
+### Phase 13 Milestones
 
 - **P1 (Dec 10)**: Reviewer SLA automation live (escalations, reminders, reassignment controls).
 - **P2 (Dec 14)**: Presence + conflict resolution wired into valuation playbooks.
 - **P3 (Dec 18)**: Audit timeline role-aware filtering and scheduled exports shipped.
 - **P4 (Dec 22)**: Shared draft mode GA with suggestion capture and acceptance.
 
-### Success Criteria
+### Phase 13 Success Criteria
 
 - Reviewer queue dashboard reflects SLA states and auto-escalates overdue items.
 - Presence/conflict indicators visible across valuation, monitoring, and memo modules.
@@ -401,21 +414,21 @@
 
 ## Phase 14 Plan (AI Assist & Intelligent Insights — Starts 2026-01-05)
 
-### Objectives
+### Phase 14 Objectives
 
 - Deploy AI assistant for reviewer triage: summarize outstanding items, suggest owners, propose next steps.
 - Generate automated memos from audit timeline data with configurable templates.
 - Deliver anomaly detection on valuation deltas and monitoring alerts using historical baselines.
 - Introduce conversational scenario planning integrating presence data.
 
-### Milestones
+### Phase 14 Milestones
 
 - **Q1 (Jan 10)**: Reviewer AI assistant beta with triage suggestions.
 - **Q2 (Jan 18)**: Autonomous memo drafts generated from timeline snapshots.
 - **Q3 (Jan 24)**: Anomaly detection live for valuation and monitoring alerts.
 - **Q4 (Jan 31)**: Conversational scenario planning pilot with collaboration hooks.
 
-### Success Criteria
+### Phase 14 Success Criteria
 
 - Reviewers accept or adjust AI triage suggestions in >60% of cases.
 - Generated memos require <20% manual edits before sharing.
@@ -424,21 +437,21 @@
 
 ## Phase 15 Plan (Governance, Compliance & External Sharing — Starts 2026-02-10)
 
-### Objectives
+### Phase 15 Objectives
 
 - Implement regulatory compliance mode: redact sensitive fields, export audit-ready bundles.
 - Provide external reviewer portal with read-only access, comment capture, and approval workflow.
 - Integrate e-signature for memo approvals and execution steps.
 - Build configurable retention policies and data purging tools.
 
-### Milestones
+### Phase 15 Milestones
 
 - **R1 (Feb 15)**: Compliance mode toggles + redaction rules in place.
 - **R2 (Feb 20)**: External reviewer portal MVP with comment sync.
 - **R3 (Feb 26)**: Memo e-signature pipeline live.
 - **R4 (Mar 5)**: Retention policy engine with automated purging tasks.
 
-### Success Criteria
+### Phase 15 Success Criteria
 
 - Compliance mode passes internal audit validation (redaction coverage, export logs).
 - External reviewers complete feedback loops without full workspace access.
@@ -447,18 +460,18 @@
 
 ## Phase 16 Plan (Scalability, Extensibility & Ecosystem — Starts 2026-03-20)
 
-### Objectives
+### Phase 16 Objectives
 
 - Introduce plugin framework for third-party data sources and custom analytics modules.
 - Scale infrastructure for >10k concurrent sessions with adaptive sharding.
 - Provide public API/SDK for workspace automation and integration partners.
 - Launch observability suite (metrics, tracing, alert integrations) for the ecosystem.
 
-### Milestones
+### Phase 16 Milestones
 
 - **S1 (Mar 25)**: Plugin framework alpha with two reference adapters.
 - **S2 (Apr 2)**: Horizontal scaling plan validated for 10k concurrent sessions.
 - **S3 (Apr 9)**: Public API/SDK beta with authentication, rate limits, and documentation.
 - **S4 (Apr 18)**: Observability suite shipping dashboards and alert hooks.
 
-### Success Criteria
+### Phase 16 Success Criteria

@@ -15,30 +15,35 @@ Phase 8 transforms the agent orchestration system from a scaffolding framework i
 ## Objectives
 
 ### 1. Agent Executor Framework
+
 - Build action registry pattern in `lib/agents/executor.ts`
 - Implement context passing between steps
 - Add retry logic for transient failures
 - Create execution telemetry and logging
 
 ### 2. SEC Edgar Integration
+
 - Implement EDGAR API client with rate limiting
 - Parse 10-K/10-Q filing metadata
 - Download and cache raw XBRL/HTML filings
 - Extract structured financial data from filings
 
 ### 3. Financial Data Extraction
+
 - Use OpenAI structured outputs for statement parsing
 - Extract income statement, balance sheet, cash flow
 - Normalize data across different filing formats
 - Validate extracted data for completeness
 
 ### 4. Owner Earnings Calculation
+
 - Implement Buffett-style owner earnings bridge
 - Adjust for non-cash charges (D&A, stock comp)
 - Calculate maintenance CapEx
 - Produce normalized cash generation metric
 
 ### 5. Agent Result Persistence
+
 - Design schema for agent task results
 - Store step outputs with provenance
 - Enable historical analysis and comparison
@@ -51,6 +56,7 @@ Phase 8 transforms the agent orchestration system from a scaffolding framework i
 ### Task 1: Agent Executor Framework (Priority: Critical)
 
 **Files:**
+
 - `lib/agents/executor.ts` (replace stub)
 - New: `lib/agents/actions/index.ts`
 - New: `lib/agents/actions/fetch-filing.ts`
@@ -58,6 +64,7 @@ Phase 8 transforms the agent orchestration system from a scaffolding framework i
 - New: `lib/agents/actions/calculate-metrics.ts`
 
 **Core Executor Structure:**
+
 ```typescript
 // lib/agents/executor.ts
 import { AgentStep } from './orchestrator'
@@ -81,12 +88,9 @@ export function registerAction(name: string, handler: ActionHandler): void {
   actionRegistry.set(name, handler)
 }
 
-export async function executeAgentStep(
-  step: AgentStep,
-  context: StepContext
-): Promise<unknown> {
+export async function executeAgentStep(step: AgentStep, context: StepContext): Promise<unknown> {
   const handler = actionRegistry.get(step.action)
-  
+
   if (!handler) {
     throw new Error(`Unknown action: ${step.action}`)
   }
@@ -104,7 +108,7 @@ export async function executeAgentStep(
     try {
       const result = await Promise.race([
         handler.execute(step, context),
-        new Promise((_, reject) => 
+        new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Action timeout')), handler.timeout ?? 60000)
         )
       ])
@@ -112,7 +116,7 @@ export async function executeAgentStep(
     } catch (error) {
       lastError = error as Error
       if (attempt < maxRetries - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)))
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)))
       }
     }
   }
@@ -124,10 +128,12 @@ export async function executeAgentStep(
 ### Task 2: SEC Edgar Client (Priority: High)
 
 **Files:**
+
 - New: `lib/data-sources/sec-edgar-client.ts`
 - Update: `lib/data-sources/sec-edgar.ts`
 
 **Implementation:**
+
 ```typescript
 // lib/data-sources/sec-edgar-client.ts
 import { log } from '../log'
@@ -148,8 +154,8 @@ export class SecEdgarClient {
   private requestDelay = 150 // 150ms = ~6 req/sec (within 10 req/sec limit)
 
   private async rateLimit<T>(fn: () => Promise<T>): Promise<T> {
-    this.requestQueue = this.requestQueue.then(() => 
-      new Promise(resolve => setTimeout(resolve, this.requestDelay))
+    this.requestQueue = this.requestQueue.then(
+      () => new Promise((resolve) => setTimeout(resolve, this.requestDelay))
     )
     await this.requestQueue
     return fn()
@@ -158,11 +164,10 @@ export class SecEdgarClient {
   async getCompanyFilings(ticker: string, formType: '10-K' | '10-Q'): Promise<EdgarFiling[]> {
     return this.rateLimit(async () => {
       // Implementation: fetch from SEC EDGAR submissions endpoint
-      const response = await fetch(
-        `${this.baseUrl}/submissions/CIK${ticker}.json`,
-        { headers: { 'User-Agent': this.userAgent } }
-      )
-      
+      const response = await fetch(`${this.baseUrl}/submissions/CIK${ticker}.json`, {
+        headers: { 'User-Agent': this.userAgent }
+      })
+
       if (!response.ok) {
         throw new Error(`SEC EDGAR API error: ${response.status}`)
       }
@@ -178,7 +183,7 @@ export class SecEdgarClient {
       const response = await fetch(filing.fileUrl, {
         headers: { 'User-Agent': this.userAgent }
       })
-      
+
       if (!response.ok) {
         throw new Error(`Failed to download filing: ${response.status}`)
       }
@@ -199,10 +204,12 @@ export const secEdgarClient = new SecEdgarClient()
 ### Task 3: Financial Data Extraction (Priority: High)
 
 **Files:**
+
 - New: `lib/agents/actions/extract-financials.ts`
 - New: `lib/ai/structured-extraction.ts`
 
 **OpenAI Structured Extraction:**
+
 ```typescript
 // lib/ai/structured-extraction.ts
 import OpenAI from 'openai'
@@ -235,9 +242,7 @@ export interface FinancialStatements {
   }
 }
 
-export async function extractFinancialStatements(
-  filingText: string
-): Promise<FinancialStatements> {
+export async function extractFinancialStatements(filingText: string): Promise<FinancialStatements> {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
   const completion = await openai.chat.completions.create({
@@ -263,9 +268,11 @@ export async function extractFinancialStatements(
 ### Task 4: Owner Earnings Calculator (Priority: Medium)
 
 **Files:**
+
 - New: `lib/agents/actions/calculate-owner-earnings.ts`
 
 **Implementation:**
+
 ```typescript
 // lib/agents/actions/calculate-owner-earnings.ts
 export interface OwnerEarningsResult {
@@ -278,9 +285,7 @@ export interface OwnerEarningsResult {
   adjustments: Array<{ name: string; amount: number; reason: string }>
 }
 
-export function calculateOwnerEarnings(
-  financials: FinancialStatements
-): OwnerEarningsResult {
+export function calculateOwnerEarnings(financials: FinancialStatements): OwnerEarningsResult {
   const { netIncome } = financials.incomeStatement
   const { capex } = financials.cashFlowStatement
 
@@ -288,7 +293,7 @@ export function calculateOwnerEarnings(
   const maintenanceCapex = capex * 0.7 // Assume 70% is maintenance
 
   // Calculate owner earnings
-  const ownerEarnings = 
+  const ownerEarnings =
     netIncome +
     financials.cashFlowStatement.depreciation +
     financials.incomeStatement.stockBasedComp -
@@ -302,7 +307,11 @@ export function calculateOwnerEarnings(
     maintenanceCapex,
     ownerEarnings,
     adjustments: [
-      { name: 'Depreciation', amount: financials.cashFlowStatement.depreciation || 0, reason: 'Non-cash charge' },
+      {
+        name: 'Depreciation',
+        amount: financials.cashFlowStatement.depreciation || 0,
+        reason: 'Non-cash charge'
+      },
       { name: 'Maintenance CapEx', amount: -maintenanceCapex, reason: 'Required reinvestment' }
     ]
   }
@@ -312,10 +321,12 @@ export function calculateOwnerEarnings(
 ### Task 5: Result Persistence Schema (Priority: Medium)
 
 **Files:**
+
 - New migration: `migrations/0003_agent_results.sql`
 - Update: `lib/db/schema.ts`
 
 **Database Schema:**
+
 ```sql
 -- Agent task results table
 CREATE TABLE IF NOT EXISTS agent_task_results (
@@ -359,30 +370,35 @@ CREATE INDEX idx_agent_step_results_task ON agent_step_results(task_result_id);
 ## Milestones
 
 ### M1: Executor Framework (Oct 19)
+
 - [x] Action registry pattern implemented
 - [x] Context passing between steps functional
 - [x] Retry logic with exponential backoff
 - [x] Execution telemetry integrated
 
 ### M2: SEC Edgar Integration (Oct 21)
+
 - [x] EDGAR client with rate limiting
 - [x] Filing metadata retrieval working
 - [x] 10-K download and caching functional
 - [x] Error handling for API failures
 
 ### M3: Financial Extraction (Oct 23)
+
 - [x] OpenAI structured extraction working
 - [x] All three statements parsed correctly
 - [x] Validated on 5 sample companies
 - [x] Extraction accuracy >90%
 
 ### M4: Owner Earnings (Oct 25)
+
 - [x] Calculation logic implemented
 - [x] Adjustments properly categorized
 - [x] Results match manual calculations
 - [x] Audit trail complete
 
 ### M5: Result Persistence (Oct 27)
+
 - [x] Database schema applied
 - [x] Results stored with provenance
 - [x] Historical queries functional
@@ -411,13 +427,13 @@ CREATE INDEX idx_agent_step_results_task ON agent_step_results(task_result_id);
 
 ## Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| SEC API rate limits too restrictive | High | Implement aggressive caching, queue system |
-| OpenAI extraction accuracy insufficient | High | Add validation rules, manual review workflow |
-| Filing format variations break parser | Medium | Test across multiple companies/years |
-| Result storage grows too quickly | Low | Add TTL, archival strategy |
-| OpenAI API costs exceed budget | Medium | Set usage caps, monitor per-request costs |
+| Risk                                    | Impact | Mitigation                                   |
+| --------------------------------------- | ------ | -------------------------------------------- |
+| SEC API rate limits too restrictive     | High   | Implement aggressive caching, queue system   |
+| OpenAI extraction accuracy insufficient | High   | Add validation rules, manual review workflow |
+| Filing format variations break parser   | Medium | Test across multiple companies/years         |
+| Result storage grows too quickly        | Low    | Add TTL, archival strategy                   |
+| OpenAI API costs exceed budget          | Medium | Set usage caps, monitor per-request costs    |
 
 ---
 

@@ -337,7 +337,9 @@ export async function fetchReviewerAssignments(
     }
   )
   if (!res.ok) throw new Error('Failed to fetch reviewer assignments')
-  return await handleResponse<{ assignments: ReviewerAssignment[]; limit: number; offset: number }>(res)
+  return await handleResponse<{ assignments: ReviewerAssignment[]; limit: number; offset: number }>(
+    res
+  )
 }
 
 export async function createReviewerAssignment(
@@ -417,13 +419,10 @@ export async function exportAuditTimelineCsv(
   if (filters?.createdBefore) search.set('createdBefore', filters.createdBefore)
   search.set('export', 'csv')
 
-  const res = await fetch(
-    `${BASE_URL}/${workflowId}/audit/events?${search.toString()}`,
-    {
-      credentials: 'include',
-      headers: buildAdminHeaders(sessionKey)
-    }
-  )
+  const res = await fetch(`${BASE_URL}/${workflowId}/audit/events?${search.toString()}`, {
+    credentials: 'include',
+    headers: buildAdminHeaders(sessionKey)
+  })
   if (!res.ok) throw new Error('Failed to export audit events')
   return await res.text()
 }
@@ -447,7 +446,11 @@ export async function createAuditEvent(
 export async function acknowledgeAuditEvent(
   workflowId: number,
   eventId: number,
-  input: { actorId?: number | null; actorName?: string | null; acknowledgementNote?: string | null },
+  input: {
+    actorId?: number | null
+    actorName?: string | null
+    acknowledgementNote?: string | null
+  },
   sessionKey?: string
 ): Promise<AuditTimelineEvent> {
   const res = await fetch(`${BASE_URL}/${workflowId}/audit/events/${eventId}/acknowledge`, {

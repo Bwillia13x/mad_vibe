@@ -47,7 +47,7 @@ export class SecEdgarClient {
     const now = Date.now()
     const timeSinceLastRequest = now - this.lastRequestTime
     if (timeSinceLastRequest < this.requestDelay) {
-      await new Promise(resolve => setTimeout(resolve, this.requestDelay - timeSinceLastRequest))
+      await new Promise((resolve) => setTimeout(resolve, this.requestDelay - timeSinceLastRequest))
     }
 
     this.lastRequestTime = Date.now()
@@ -73,7 +73,7 @@ export class SecEdgarClient {
         }
 
         const data = await response.json()
-        
+
         // Find company by ticker
         const entry = Object.values(data).find(
           (company: any) => company.ticker?.toUpperCase() === ticker.toUpperCase()
@@ -92,9 +92,9 @@ export class SecEdgarClient {
           sicDescription: ''
         }
       } catch (error) {
-        log('Error fetching company info', { 
-          ticker, 
-          error: error instanceof Error ? error.message : String(error) 
+        log('Error fetching company info', {
+          ticker,
+          error: error instanceof Error ? error.message : String(error)
         })
         return null
       }
@@ -104,17 +104,13 @@ export class SecEdgarClient {
   /**
    * Get recent filings for a company
    */
-  async getCompanyFilings(
-    cik: string, 
-    formType?: '10-K' | '10-Q' | '8-K'
-  ): Promise<EdgarFiling[]> {
+  async getCompanyFilings(cik: string, formType?: '10-K' | '10-Q' | '8-K'): Promise<EdgarFiling[]> {
     return this.rateLimit(async () => {
       try {
         const paddedCik = cik.padStart(10, '0')
-        const response = await fetch(
-          `${this.baseUrl}/submissions/CIK${paddedCik}.json`,
-          { headers: { 'User-Agent': this.userAgent } }
-        )
+        const response = await fetch(`${this.baseUrl}/submissions/CIK${paddedCik}.json`, {
+          headers: { 'User-Agent': this.userAgent }
+        })
 
         if (!response.ok) {
           throw new Error(`SEC EDGAR API error: ${response.status}`)
@@ -123,9 +119,9 @@ export class SecEdgarClient {
         const data = await response.json()
         return this.parseFilings(data, formType)
       } catch (error) {
-        log('Error fetching company filings', { 
-          cik, 
-          error: error instanceof Error ? error.message : String(error) 
+        log('Error fetching company filings', {
+          cik,
+          error: error instanceof Error ? error.message : String(error)
         })
         return []
       }
@@ -160,10 +156,7 @@ export class SecEdgarClient {
   /**
    * Get latest filing of specific type
    */
-  async getLatestFiling(
-    ticker: string, 
-    formType: '10-K' | '10-Q'
-  ): Promise<EdgarFiling | null> {
+  async getLatestFiling(ticker: string, formType: '10-K' | '10-Q'): Promise<EdgarFiling | null> {
     try {
       // First get company info to get CIK
       const companyInfo = await this.getCompanyInfo(ticker)
@@ -173,7 +166,7 @@ export class SecEdgarClient {
 
       // Get filings
       const filings = await this.getCompanyFilings(companyInfo.cik, formType)
-      
+
       // Return most recent filing
       return filings.length > 0 ? filings[0] : null
     } catch (error) {
@@ -199,7 +192,7 @@ export class SecEdgarClient {
 
     for (let i = 0; i < recent.form.length; i++) {
       const form = recent.form[i]
-      
+
       // Filter by form type if specified
       if (formType && form !== formType) {
         continue
@@ -220,8 +213,8 @@ export class SecEdgarClient {
     }
 
     // Sort by filing date descending (most recent first)
-    return filings.sort((a, b) => 
-      new Date(b.filingDate).getTime() - new Date(a.filingDate).getTime()
+    return filings.sort(
+      (a, b) => new Date(b.filingDate).getTime() - new Date(a.filingDate).getTime()
     )
   }
 }

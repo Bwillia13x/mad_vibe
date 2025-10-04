@@ -10,9 +10,7 @@ export default function AgentResultsPage() {
   const { currentWorkspace } = useWorkspaceContext()
   const params = useParams()
   const [, navigate] = useLocation()
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(
-    params.taskId || null
-  )
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(params.taskId || null)
 
   if (!currentWorkspace) {
     return (

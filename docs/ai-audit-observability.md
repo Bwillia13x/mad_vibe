@@ -310,8 +310,8 @@ order by last_interaction_at desc;
 
   on:
     schedule:
-      - cron: '*/30 * * * *'   # hourly delta every 30 minutes for redundancy
-      - cron: '0 9 * * *'      # 02:00 PT nightly full repair
+      - cron: '*/30 * * * *' # hourly delta every 30 minutes for redundancy
+      - cron: '0 9 * * *' # 02:00 PT nightly full repair
 
   jobs:
     run-sync:

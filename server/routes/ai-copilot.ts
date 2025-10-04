@@ -117,7 +117,8 @@ async function recordAuditLog(params: {
   }
   latencyMs: number
 }) {
-  const { workflowId, capability, prompt, messages, context, response, contextUsed, latencyMs } = params
+  const { workflowId, capability, prompt, messages, context, response, contextUsed, latencyMs } =
+    params
 
   if (!db || typeof workflowId !== 'number' || Number.isNaN(workflowId)) {
     return
@@ -168,8 +169,7 @@ router.post('/copilot', async (req: AuthenticatedRequest, res) => {
     const bodyStageSlug = rawBody['stageSlug']
     const stageSlugFromContext =
       typeof contextStageSlug === 'string' ? contextStageSlug.trim() : undefined
-    const stageSlugFromBody =
-      typeof bodyStageSlug === 'string' ? bodyStageSlug.trim() : undefined
+    const stageSlugFromBody = typeof bodyStageSlug === 'string' ? bodyStageSlug.trim() : undefined
     const stageSlug = stageSlugFromContext ?? stageSlugFromBody
     const contextVersion = baseContext['version']
     const revisionFromContext =
@@ -268,22 +268,21 @@ router.post('/copilot', async (req: AuthenticatedRequest, res) => {
         hasHistory: messages.length > 1,
         workspaceEnriched: !!workspaceId
       },
-      presence:
-        presenceState
-          ? {
-              peers: presenceState.peers.map((peer) => ({
-                actorId: peer.actorId,
-                stageSlug: peer.stageSlug,
-                updatedAt: peer.updatedAt,
-                revision: peer.revision,
-                locked: peer.locked,
-                sessionId: peer.sessionId
-              })),
-              lockOwner: presenceState.lockOwner,
-              lockExpiresAt: presenceState.lockExpiresAt,
-              conflict: presenceState.conflict
-            }
-          : undefined
+      presence: presenceState
+        ? {
+            peers: presenceState.peers.map((peer) => ({
+              actorId: peer.actorId,
+              stageSlug: peer.stageSlug,
+              updatedAt: peer.updatedAt,
+              revision: peer.revision,
+              locked: peer.locked,
+              sessionId: peer.sessionId
+            })),
+            lockOwner: presenceState.lockOwner,
+            lockExpiresAt: presenceState.lockExpiresAt,
+            conflict: presenceState.conflict
+          }
+        : undefined
     })
   } catch (error) {
     console.error('AI Copilot error:', error)

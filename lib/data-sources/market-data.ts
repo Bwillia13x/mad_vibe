@@ -134,7 +134,10 @@ class MarketDataCache {
 class RateLimiter {
   private readonly requests = new Map<string, number[]>()
 
-  constructor(private readonly limit: number, private readonly intervalMs: number) {}
+  constructor(
+    private readonly limit: number,
+    private readonly intervalMs: number
+  ) {}
 
   async schedule<T>(key: string, fn: () => Promise<T>): Promise<T> {
     const now = Date.now()
@@ -244,7 +247,11 @@ const yahooProvider: MarketDataProvider = {
 
     return results.filter((item): item is PeerQuote => item !== null)
   },
-  async getHistoricalPrices(ticker: string, startDate: Date, endDate: Date): Promise<HistoricalPrice[]> {
+  async getHistoricalPrices(
+    ticker: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<HistoricalPrice[]> {
     try {
       const period1 = Math.floor(startDate.getTime() / 1000)
       const period2 = Math.floor(endDate.getTime() / 1000)
@@ -349,7 +356,11 @@ const polygonProvider: MarketDataProvider = {
     // Polygon does not expose a simple peers endpoint; fall back to default mapping
     return yahooProvider.getPeers ? yahooProvider.getPeers(ticker) : []
   },
-  async getHistoricalPrices(ticker: string, startDate: Date, endDate: Date): Promise<HistoricalPrice[]> {
+  async getHistoricalPrices(
+    ticker: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<HistoricalPrice[]> {
     const apiKey = process.env.POLYGON_API_KEY
     if (!apiKey) {
       return yahooProvider.getHistoricalPrices
@@ -396,7 +407,10 @@ const providers: Record<MarketDataProviderName, MarketDataProvider> = {
 
 const configuredProvider = resolveProvider()
 
-export async function getStockQuote(ticker: string, options?: FetchOptions): Promise<StockQuote | null> {
+export async function getStockQuote(
+  ticker: string,
+  options?: FetchOptions
+): Promise<StockQuote | null> {
   const symbol = ticker.trim().toUpperCase()
   if (!symbol) return null
 
@@ -413,16 +427,9 @@ export async function getMarketPeers(ticker: string, options?: FetchOptions): Pr
   if (!symbol) return []
 
   const providerFn = configuredProvider.getPeers?.bind(configuredProvider)
-  const fetcher = providerFn
-    ? () => providerFn(symbol)
-    : () => yahooProvider.getPeers!(symbol)
+  const fetcher = providerFn ? () => providerFn(symbol) : () => yahooProvider.getPeers!(symbol)
 
-  return fetchWithCache(
-    `peers:${symbol}`,
-    `${configuredProvider.name}:peers`,
-    fetcher,
-    options
-  )
+  return fetchWithCache(`peers:${symbol}`, `${configuredProvider.name}:peers`, fetcher, options)
 }
 
 export async function getHistoricalPrices(
@@ -453,7 +460,9 @@ function resolveProvider(): MarketDataProvider {
   if (configured === 'polygon') {
     const apiKey = process.env.POLYGON_API_KEY
     if (!apiKey) {
-      console.warn('MARKET_DATA_PROVIDER=polygon but POLYGON_API_KEY is missing. Falling back to Yahoo.')
+      console.warn(
+        'MARKET_DATA_PROVIDER=polygon but POLYGON_API_KEY is missing. Falling back to Yahoo.'
+      )
       return providers.yahoo
     }
     return providers.polygon
@@ -486,7 +495,10 @@ async function fetchWithCache<T>(
   return result
 }
 
-async function getPolygonTickerDetails(ticker: string, apiKey: string): Promise<PolygonTickerDetails | null> {
+async function getPolygonTickerDetails(
+  ticker: string,
+  apiKey: string
+): Promise<PolygonTickerDetails | null> {
   const cacheKey = `polygon:ticker:${ticker}`
   const cached = polygonDetailCache.get<PolygonTickerDetails | null>(cacheKey)
   if (cached !== undefined) {

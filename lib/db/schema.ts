@@ -18,7 +18,6 @@ export const workflowUsers = pgTable('workflow_users', {
   createdAt: timestamp('created_at').defaultNow().notNull()
 })
 
-
 // Workflows table (parent for states) - Extended for IDE workspace concept
 export const workflows = pgTable(
   'workflows',
@@ -107,9 +106,12 @@ export const workspaceDataSnapshots = pgTable(
     marketSnapshotId: integer('market_snapshot_id').references(() => marketSnapshots.id, {
       onDelete: 'set null'
     }),
-    financialStatementId: integer('financial_statement_id').references(() => financialStatements.id, {
-      onDelete: 'set null'
-    }),
+    financialStatementId: integer('financial_statement_id').references(
+      () => financialStatements.id,
+      {
+        onDelete: 'set null'
+      }
+    ),
     artifactId: integer('artifact_id').references(() => workflowArtifacts.id, {
       onDelete: 'set null'
     }),
@@ -424,7 +426,10 @@ export const workflowAuditEvents = pgTable(
   },
   (table) => {
     return {
-      workflowIdx: index('workflow_audit_events_workflow_idx').on(table.workflowId, table.createdAt),
+      workflowIdx: index('workflow_audit_events_workflow_idx').on(
+        table.workflowId,
+        table.createdAt
+      ),
       stageIdx: index('workflow_audit_events_stage_idx').on(table.stageSlug),
       typeIdx: index('workflow_audit_events_type_idx').on(table.eventType)
     }

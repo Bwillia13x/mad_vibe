@@ -1,10 +1,7 @@
 import { Router } from 'express'
 import { optionalAuth, type AuthenticatedRequest } from '../middleware/auth'
 import { db } from '../../lib/db'
-import {
-  workflowReviewerAssignments,
-  workflowAuditEvents
-} from '../../lib/db/schema'
+import { workflowReviewerAssignments, workflowAuditEvents } from '../../lib/db/schema'
 import { and, desc, eq, gte, inArray, isNull, isNotNull, lte } from 'drizzle-orm'
 import type { InferModel } from 'drizzle-orm'
 import { log } from '../../lib/log'
@@ -151,13 +148,17 @@ export function createWorkflowAuditRouter({
             .map((s) => normaliseStatus(s))
             .filter((status): status is ReviewerAssignmentRow['status'] => Boolean(status))
         : undefined
-      const reviewerIdParam = typeof req.query.reviewerId === 'string' ? req.query.reviewerId : undefined
+      const reviewerIdParam =
+        typeof req.query.reviewerId === 'string' ? req.query.reviewerId : undefined
       const reviewerId = reviewerIdParam ? parseInt(reviewerIdParam, 10) : undefined
       const includeCancelled = req.query.includeCancelled === 'true'
-      const dueBefore = typeof req.query.dueBefore === 'string' ? new Date(req.query.dueBefore) : undefined
-      const dueAfter = typeof req.query.dueAfter === 'string' ? new Date(req.query.dueAfter) : undefined
+      const dueBefore =
+        typeof req.query.dueBefore === 'string' ? new Date(req.query.dueBefore) : undefined
+      const dueAfter =
+        typeof req.query.dueAfter === 'string' ? new Date(req.query.dueAfter) : undefined
 
-      const limitParam = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : undefined
+      const limitParam =
+        typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : undefined
       const limit = Math.min(Math.max(limitParam ?? DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
       const offsetParam = typeof req.query.offset === 'string' ? parseInt(req.query.offset, 10) : 0
       const offset = Math.max(offsetParam, 0)
@@ -221,7 +222,8 @@ export function createWorkflowAuditRouter({
       }
       const stageSlug = stageSlugRaw.trim()
 
-      const reviewerName = typeof req.body?.reviewerName === 'string' ? req.body.reviewerName.trim() : undefined
+      const reviewerName =
+        typeof req.body?.reviewerName === 'string' ? req.body.reviewerName.trim() : undefined
       const reviewerEmail =
         typeof req.body?.reviewerEmail === 'string' ? req.body.reviewerEmail.trim() : undefined
       const reviewerId =
@@ -237,7 +239,7 @@ export function createWorkflowAuditRouter({
       const assignedByName =
         typeof req.body?.assignedByName === 'string'
           ? req.body.assignedByName.trim()
-          : req.user?.username ?? null
+          : (req.user?.username ?? null)
       const notes = typeof req.body?.notes === 'string' ? req.body.notes.trim() : undefined
       const metadata =
         req.body?.metadata && typeof req.body.metadata === 'object' ? req.body.metadata : undefined
@@ -327,13 +329,16 @@ export function createWorkflowAuditRouter({
         const notes = typeof req.body?.notes === 'string' ? req.body.notes.trim() : undefined
         const dueAt = typeof req.body?.dueAt === 'string' ? new Date(req.body.dueAt) : undefined
         const acknowledged = req.body?.acknowledged === true
-        const actorName = typeof req.body?.actorName === 'string' ? req.body.actorName.trim() : undefined
+        const actorName =
+          typeof req.body?.actorName === 'string' ? req.body.actorName.trim() : undefined
         const actorId =
           typeof req.body?.actorId === 'number' && Number.isFinite(req.body.actorId)
             ? req.body.actorId
             : undefined
         const metadata =
-          req.body?.metadata && typeof req.body.metadata === 'object' ? req.body.metadata : undefined
+          req.body?.metadata && typeof req.body.metadata === 'object'
+            ? req.body.metadata
+            : undefined
 
         if (requestedStatus && requestedStatus !== existing.status) {
           patch.status = requestedStatus
@@ -457,15 +462,20 @@ export function createWorkflowAuditRouter({
       const stageSlug = typeof req.query.stageSlug === 'string' ? req.query.stageSlug.trim() : null
       const eventType = typeof req.query.eventType === 'string' ? req.query.eventType.trim() : null
       const assignmentIdParam =
-        typeof req.query.reviewerAssignmentId === 'string' ? req.query.reviewerAssignmentId : undefined
+        typeof req.query.reviewerAssignmentId === 'string'
+          ? req.query.reviewerAssignmentId
+          : undefined
       const reviewerAssignmentId = assignmentIdParam ? parseInt(assignmentIdParam, 10) : undefined
       const acknowledged =
         typeof req.query.acknowledged === 'string' ? req.query.acknowledged === 'true' : undefined
-      const createdAfter = typeof req.query.createdAfter === 'string' ? new Date(req.query.createdAfter) : undefined
-      const createdBefore = typeof req.query.createdBefore === 'string' ? new Date(req.query.createdBefore) : undefined
+      const createdAfter =
+        typeof req.query.createdAfter === 'string' ? new Date(req.query.createdAfter) : undefined
+      const createdBefore =
+        typeof req.query.createdBefore === 'string' ? new Date(req.query.createdBefore) : undefined
       const exportCsv = req.query.export === 'csv'
 
-      const limitParam = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : undefined
+      const limitParam =
+        typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : undefined
       const limit = Math.min(Math.max(limitParam ?? DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
       const offsetParam = typeof req.query.offset === 'string' ? parseInt(req.query.offset, 10) : 0
       const offset = Math.max(offsetParam, 0)
@@ -566,9 +576,12 @@ export function createWorkflowAuditRouter({
         return res.status(400).json({ error: 'eventType is required' })
       }
 
-      const stageSlug = typeof req.body?.stageSlug === 'string' ? req.body.stageSlug.trim() : undefined
-      const actorName = typeof req.body?.actorName === 'string' ? req.body.actorName.trim() : req.user?.username
-      const actorRole = typeof req.body?.actorRole === 'string' ? req.body.actorRole.trim() : undefined
+      const stageSlug =
+        typeof req.body?.stageSlug === 'string' ? req.body.stageSlug.trim() : undefined
+      const actorName =
+        typeof req.body?.actorName === 'string' ? req.body.actorName.trim() : req.user?.username
+      const actorRole =
+        typeof req.body?.actorRole === 'string' ? req.body.actorRole.trim() : undefined
       const actorId =
         typeof req.body?.actorId === 'number' && Number.isFinite(req.body.actorId)
           ? req.body.actorId
@@ -608,67 +621,68 @@ export function createWorkflowAuditRouter({
     }
   })
 
-  router.post('/:workflowId/audit/events/:eventId/acknowledge', async (req: AuthenticatedRequest, res) => {
-    try {
-      if (!database) {
-        return res.status(503).json({ error: 'Database unavailable' })
-      }
-
-      const workflowId = parseWorkflowId(req.params.workflowId)
-      const eventId = parseWorkflowId(req.params.eventId)
-      if (!workflowId || !eventId) {
-        return res.status(400).json({ error: 'Invalid identifiers' })
-      }
-
-      const actorId =
-        typeof req.body?.actorId === 'number' && Number.isFinite(req.body.actorId)
-          ? req.body.actorId
-          : undefined
-      const actorName = typeof req.body?.actorName === 'string' ? req.body.actorName.trim() : undefined
-      const acknowledgementNote =
-        typeof req.body?.acknowledgementNote === 'string'
-          ? req.body.acknowledgementNote.trim()
-          : undefined
-
-      const updatedRows = await database
-        .update(workflowAuditEvents)
-        .set({
-          acknowledgedAt: new Date(),
-          acknowledgedBy: actorId ?? null,
-          acknowledgementNote: acknowledgementNote ?? null
-        })
-        .where(
-          and(
-            eq(workflowAuditEvents.workflowId, workflowId),
-            eq(workflowAuditEvents.id, eventId)
-          )
-        )
-        .returning()
-
-      const updated = updatedRows?.[0]
-      if (!updated) {
-        return res.status(404).json({ error: 'Audit event not found' })
-      }
-
-      await insertAuditEvent(database, {
-        workflowId,
-        stageSlug: updated.stageSlug ?? undefined,
-        eventType: 'audit_event_acknowledged',
-        actorId: actorId ?? null,
-        actorName: actorName ?? req.user?.username ?? null,
-        actorRole: 'reviewer',
-        payload: {
-          acknowledgedEventId: updated.id,
-          note: acknowledgementNote ?? null
+  router.post(
+    '/:workflowId/audit/events/:eventId/acknowledge',
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        if (!database) {
+          return res.status(503).json({ error: 'Database unavailable' })
         }
-      })
 
-      res.json({ event: mapAuditEventResponse(updated) })
-    } catch (error) {
-      console.error('Failed to acknowledge audit event', error)
-      res.status(500).json({ error: 'Failed to acknowledge audit event' })
+        const workflowId = parseWorkflowId(req.params.workflowId)
+        const eventId = parseWorkflowId(req.params.eventId)
+        if (!workflowId || !eventId) {
+          return res.status(400).json({ error: 'Invalid identifiers' })
+        }
+
+        const actorId =
+          typeof req.body?.actorId === 'number' && Number.isFinite(req.body.actorId)
+            ? req.body.actorId
+            : undefined
+        const actorName =
+          typeof req.body?.actorName === 'string' ? req.body.actorName.trim() : undefined
+        const acknowledgementNote =
+          typeof req.body?.acknowledgementNote === 'string'
+            ? req.body.acknowledgementNote.trim()
+            : undefined
+
+        const updatedRows = await database
+          .update(workflowAuditEvents)
+          .set({
+            acknowledgedAt: new Date(),
+            acknowledgedBy: actorId ?? null,
+            acknowledgementNote: acknowledgementNote ?? null
+          })
+          .where(
+            and(eq(workflowAuditEvents.workflowId, workflowId), eq(workflowAuditEvents.id, eventId))
+          )
+          .returning()
+
+        const updated = updatedRows?.[0]
+        if (!updated) {
+          return res.status(404).json({ error: 'Audit event not found' })
+        }
+
+        await insertAuditEvent(database, {
+          workflowId,
+          stageSlug: updated.stageSlug ?? undefined,
+          eventType: 'audit_event_acknowledged',
+          actorId: actorId ?? null,
+          actorName: actorName ?? req.user?.username ?? null,
+          actorRole: 'reviewer',
+          payload: {
+            acknowledgedEventId: updated.id,
+            note: acknowledgementNote ?? null
+          }
+        })
+
+        res.json({ event: mapAuditEventResponse(updated) })
+      } catch (error) {
+        console.error('Failed to acknowledge audit event', error)
+        res.status(500).json({ error: 'Failed to acknowledge audit event' })
+      }
     }
-  })
+  )
 
   return router
 }

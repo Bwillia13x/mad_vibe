@@ -221,15 +221,20 @@ const createTestApp = () => {
   app.use(express.urlencoded({ extended: false }))
   app.use('/api', dataIngestRouter)
   app.use('/api', aiCopilotRouter)
-  app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    const message = error instanceof Error ? error.message : 'Unexpected error'
-    res.status(500).json({ error: message })
-  })
+  app.use(
+    (error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+      const message = error instanceof Error ? error.message : 'Unexpected error'
+      res.status(500).json({ error: message })
+    }
+  )
   return app
 }
 
 const seedWorkspace = () => {
-  const [user] = mockDb.insert(workflowUsers).values({ username: 'analyst', role: 'admin' }).returning()
+  const [user] = mockDb
+    .insert(workflowUsers)
+    .values({ username: 'analyst', role: 'admin' })
+    .returning()
   const [workspace] = mockDb
     .insert(workflows)
     .values({
@@ -327,7 +332,10 @@ describe('Market ingestion integration', () => {
 
     const workspaceSnapshots = getTableData(workspaceDataSnapshots)
     expect(workspaceSnapshots).toHaveLength(1)
-    expect(workspaceSnapshots[0]).toMatchObject({ workflowId: workspace.id, snapshotType: 'market-refresh' })
+    expect(workspaceSnapshots[0]).toMatchObject({
+      workflowId: workspace.id,
+      snapshotType: 'market-refresh'
+    })
   })
 
   it('returns workspace snapshots ordered by newest first', async () => {
@@ -373,13 +381,11 @@ describe('AI Copilot audit logging integration', () => {
     const workspace = seedWorkspace()
     const app = createTestApp()
 
-    const response = await request(app)
-      .post('/api/copilot')
-      .send({
-        prompt: 'Draft an investment memo outline',
-        capability: 'generate',
-        workspaceId: workspace.id
-      })
+    const response = await request(app).post('/api/copilot').send({
+      prompt: 'Draft an investment memo outline',
+      capability: 'generate',
+      workspaceId: workspace.id
+    })
 
     expect(response.status).toBe(200)
     expect(response.body.response).toMatchObject({ text: 'Here is your thesis outline' })

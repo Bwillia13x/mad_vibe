@@ -24,7 +24,9 @@ test.describe('Agent workflow automation', () => {
     await page.waitForTimeout(1000)
 
     // Verify task card appears
-    const taskCard = page.locator('[class*="Card"]').filter({ hasText: 'Validate investment thesis' })
+    const taskCard = page
+      .locator('[class*="Card"]')
+      .filter({ hasText: 'Validate investment thesis' })
     await expect(taskCard).toBeVisible()
 
     // Verify progress indicator exists
@@ -86,7 +88,9 @@ test.describe('Agent workflow automation', () => {
     await page.waitForTimeout(1000)
 
     // Find the task card
-    const taskCard = page.locator('[class*="Card"]').filter({ hasText: 'Build DCF valuation model' })
+    const taskCard = page
+      .locator('[class*="Card"]')
+      .filter({ hasText: 'Build DCF valuation model' })
     await expect(taskCard).toBeVisible()
 
     // Click pause button
@@ -120,7 +124,10 @@ test.describe('Agent workflow automation', () => {
 
     await page.waitForTimeout(3000)
 
-    const taskCard = page.locator('[class*="Card"]').filter({ hasText: 'Validate investment thesis' }).first()
+    const taskCard = page
+      .locator('[class*="Card"]')
+      .filter({ hasText: 'Validate investment thesis' })
+      .first()
 
     // Look for status badges with counts
     const completedBadge = taskCard.locator('text=/✓ \\d+/')
@@ -151,14 +158,14 @@ test.describe('Agent workflow automation', () => {
 
     // Look for "Active agent tasks" card
     const agentTasksCard = page.locator('text=Active agent tasks').locator('..')
-    
+
     // Check if it's visible (might not be if no tasks are running)
     const isVisible = await agentTasksCard.isVisible({ timeout: 3000 }).catch(() => false)
-    
+
     if (isVisible) {
       // Verify it shows task description
       await expect(agentTasksCard).toContainText('Analyze 10-K')
-      
+
       // Verify progress bar exists
       const progressBar = agentTasksCard.locator('[class*="rounded-full"][class*="bg-violet-500"]')
       await expect(progressBar).toBeVisible()
@@ -181,13 +188,15 @@ test.describe('Agent workflow automation', () => {
 
     await page.waitForTimeout(1000)
 
-    const taskCard = page.locator('[class*="Card"]').filter({ hasText: 'Build DCF valuation model' })
-    
+    const taskCard = page
+      .locator('[class*="Card"]')
+      .filter({ hasText: 'Build DCF valuation model' })
+
     // Click cancel button
     const cancelButton = taskCard.locator('button[title="Cancel task"]')
     if (await cancelButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await cancelButton.click()
-      
+
       // Task should show as failed or be removed
       await page.waitForTimeout(1000)
     }

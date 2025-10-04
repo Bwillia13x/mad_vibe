@@ -4,7 +4,14 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table'
 import { useAuditTimeline } from '@/hooks/useReviewerWorkflow'
 import { useWorkspaceContext } from '@/hooks/useWorkspaceContext'
 import type { AuditEventFilters, AuditTimelineEvent } from '@shared/types'
@@ -40,16 +47,8 @@ export default function AuditTimelinePage() {
   const { currentWorkspace } = useWorkspaceContext()
   const [draftFilters, setDraftFilters] = useState<AuditEventFilters>({})
 
-  const {
-    events,
-    loading,
-    error,
-    filters,
-    setFilters,
-    refresh,
-    exportCsv,
-    acknowledge
-  } = useAuditTimeline(currentWorkspace?.id, { limit: 100 })
+  const { events, loading, error, filters, setFilters, refresh, exportCsv, acknowledge } =
+    useAuditTimeline(currentWorkspace?.id, { limit: 100 })
 
   const handleApplyFilters = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -95,7 +94,8 @@ export default function AuditTimelinePage() {
         <CardHeader>
           <CardTitle className="text-base text-slate-100">Audit Timeline</CardTitle>
           <CardDescription className="text-xs text-slate-400">
-            Workspace activity, reviewer actions, reminders, and export history for {currentWorkspace.name}
+            Workspace activity, reviewer actions, reminders, and export history for{' '}
+            {currentWorkspace.name}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -144,10 +144,7 @@ export default function AuditTimelinePage() {
                 onChange={(e) =>
                   setDraftFilters((prev) => ({
                     ...prev,
-                    acknowledged:
-                      e.target.value === ''
-                        ? undefined
-                        : e.target.value === 'true'
+                    acknowledged: e.target.value === '' ? undefined : e.target.value === 'true'
                   }))
                 }
                 className="h-9 rounded-md border border-slate-800 bg-slate-900 px-2 text-sm text-slate-200"
@@ -158,7 +155,9 @@ export default function AuditTimelinePage() {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs uppercase tracking-wide text-slate-500">Created After</label>
+              <label className="text-xs uppercase tracking-wide text-slate-500">
+                Created After
+              </label>
               <Input
                 type="datetime-local"
                 value={draftFilters.createdAfter ?? ''}
@@ -172,7 +171,9 @@ export default function AuditTimelinePage() {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs uppercase tracking-wide text-slate-500">Created Before</label>
+              <label className="text-xs uppercase tracking-wide text-slate-500">
+                Created Before
+              </label>
               <Input
                 type="datetime-local"
                 value={draftFilters.createdBefore ?? ''}
@@ -295,7 +296,8 @@ export default function AuditTimelinePage() {
           </Table>
           {events.length === 0 && !loading && (
             <div className="py-6 text-center text-sm text-slate-500">
-              No audit events recorded yet. Assign reviewers or trigger actions to populate the timeline.
+              No audit events recorded yet. Assign reviewers or trigger actions to populate the
+              timeline.
             </div>
           )}
         </CardContent>

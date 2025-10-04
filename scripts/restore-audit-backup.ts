@@ -37,7 +37,8 @@ function getArg(name: string, fallback?: string) {
   return fallback
 }
 
-const backupPath = getArg('backup-file', '.cache/audit-drop-backup.json') ?? '.cache/audit-drop-backup.json'
+const backupPath =
+  getArg('backup-file', '.cache/audit-drop-backup.json') ?? '.cache/audit-drop-backup.json'
 const capabilityFilter = getArg('capability')
 
 async function main() {

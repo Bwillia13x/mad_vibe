@@ -18,7 +18,7 @@ describe('Agent task load testing', () => {
           type: 'thesis-validation',
           params: {}
         })
-      }).then(res => ({
+      }).then((res) => ({
         ok: res.ok,
         status: res.status,
         taskId: i
@@ -27,8 +27,8 @@ describe('Agent task load testing', () => {
 
     const results = await Promise.allSettled(tasks)
     const duration = Date.now() - startTime
-    const failures = results.filter(r => r.status === 'rejected')
-    const successful = results.filter(r => r.status === 'fulfilled' && r.value.ok)
+    const failures = results.filter((r) => r.status === 'rejected')
+    const successful = results.filter((r) => r.status === 'fulfilled' && r.value.ok)
 
     console.log(`Created ${successful.length} tasks in ${duration}ms`)
     console.log(`Average time per task: ${Math.round(duration / 50)}ms`)
@@ -44,7 +44,7 @@ describe('Agent task load testing', () => {
     const requests = Array.from({ length: 100 }, () =>
       fetch(`${baseUrl}/api/workspaces/1`, {
         headers: { 'Content-Type': 'application/json' }
-      }).then(res => ({
+      }).then((res) => ({
         ok: res.ok,
         status: res.status,
         time: Date.now() - startTime
@@ -53,13 +53,11 @@ describe('Agent task load testing', () => {
 
     const results = await Promise.allSettled(requests)
     const duration = Date.now() - startTime
-    const successful = results.filter(
-      r => r.status === 'fulfilled' && r.value.ok
-    )
-    const failed = results.filter(r => r.status === 'rejected')
+    const successful = results.filter((r) => r.status === 'fulfilled' && r.value.ok)
+    const failed = results.filter((r) => r.status === 'rejected')
 
     // Calculate response time percentiles
-    const times = successful.map(r => (r as any).value.time)
+    const times = successful.map((r) => (r as any).value.time)
     times.sort((a, b) => a - b)
     const p50 = times[Math.floor(times.length * 0.5)]
     const p95 = times[Math.floor(times.length * 0.95)]
@@ -89,7 +87,7 @@ describe('Agent task load testing', () => {
       }
 
       // Wait 5 seconds
-      await new Promise(resolve => setTimeout(resolve, 5000))
+      await new Promise((resolve) => setTimeout(resolve, 5000))
 
       const endMemory = process.memoryUsage().heapUsed
       const memoryIncrease = (endMemory - startMemory) / 1024 / 1024
@@ -101,7 +99,7 @@ describe('Agent task load testing', () => {
       expect(memoryIncrease).toBeLessThan(100) // Less than 100MB increase
     } finally {
       // Close all connections
-      connections.forEach(conn => {
+      connections.forEach((conn) => {
         try {
           conn.body?.cancel()
         } catch {}
@@ -131,7 +129,7 @@ describe('Agent task load testing', () => {
     // Hammer telemetry endpoint
     const startTime = Date.now()
     const requests = Array.from({ length: 50 }, () =>
-      fetch(`${baseUrl}/api/agents/tasks/${task.id}/telemetry`).then(res => ({
+      fetch(`${baseUrl}/api/agents/tasks/${task.id}/telemetry`).then((res) => ({
         ok: res.ok,
         status: res.status
       }))
@@ -139,9 +137,7 @@ describe('Agent task load testing', () => {
 
     const results = await Promise.allSettled(requests)
     const duration = Date.now() - startTime
-    const successful = results.filter(
-      r => r.status === 'fulfilled' && r.value.ok
-    )
+    const successful = results.filter((r) => r.status === 'fulfilled' && r.value.ok)
 
     console.log(`Telemetry requests: ${successful.length} in ${duration}ms`)
     console.log(`Average: ${Math.round(duration / 50)}ms per request`)
@@ -160,27 +156,26 @@ describe('Database connection pool stress test', () => {
 
   it('does not exhaust connection pool under load', async () => {
     const startTime = Date.now()
-    
+
     // Create 100 concurrent requests that hit the database
     const requests = Array.from({ length: 100 }, (_, i) =>
       fetch(`${baseUrl}/api/workspaces`, {
         method: i % 10 === 0 ? 'POST' : 'GET',
         headers: { 'Content-Type': 'application/json' },
-        body: i % 10 === 0 ? JSON.stringify({
-          name: `Load Test Workspace ${i}`,
-          ticker: 'TEST'
-        }) : undefined
-      }).then(res => ({ ok: res.ok, status: res.status }))
+        body:
+          i % 10 === 0
+            ? JSON.stringify({
+                name: `Load Test Workspace ${i}`,
+                ticker: 'TEST'
+              })
+            : undefined
+      }).then((res) => ({ ok: res.ok, status: res.status }))
     )
 
     const results = await Promise.allSettled(requests)
     const duration = Date.now() - startTime
-    const successful = results.filter(
-      r => r.status === 'fulfilled' && r.value.ok
-    )
-    const poolExhausted = results.some(
-      r => r.status === 'fulfilled' && r.value.status === 503
-    )
+    const successful = results.filter((r) => r.status === 'fulfilled' && r.value.ok)
+    const poolExhausted = results.some((r) => r.status === 'fulfilled' && r.value.status === 503)
 
     console.log(`Database stress test: ${successful.length}/100 successful in ${duration}ms`)
     console.log(`Pool exhausted: ${poolExhausted}`)

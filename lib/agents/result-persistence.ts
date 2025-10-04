@@ -23,9 +23,7 @@ export interface StoredTaskResult {
 /**
  * Retrieve a single agent task result by taskId
  */
-export async function getAgentTaskResultByTaskId(
-  taskId: string
-): Promise<StoredTaskResult | null> {
+export async function getAgentTaskResultByTaskId(taskId: string): Promise<StoredTaskResult | null> {
   try {
     const { connectionPool } = await import('../db/connection-pool')
 
@@ -83,7 +81,7 @@ export interface StoredStepResult {
 export async function saveAgentTaskResult(task: AgentTask): Promise<number | null> {
   try {
     const { connectionPool } = await import('../db/connection-pool')
-    
+
     if (!connectionPool) {
       log('Database not available, skipping agent result persistence')
       return null
@@ -157,13 +155,10 @@ export async function saveAgentTaskResult(task: AgentTask): Promise<number | nul
 /**
  * Save agent step results to database
  */
-async function saveAgentStepResults(
-  taskResultId: number,
-  steps: AgentStep[]
-): Promise<void> {
+async function saveAgentStepResults(taskResultId: number, steps: AgentStep[]): Promise<void> {
   try {
     const { connectionPool } = await import('../db/connection-pool')
-    
+
     if (!connectionPool) return
 
     for (const step of steps) {
@@ -226,8 +221,8 @@ async function saveAgentStepResults(
  * Generate summary of task results for quick access
  */
 function generateResultSummary(task: AgentTask): Record<string, unknown> {
-  const completedSteps = task.steps.filter(s => s.status === 'completed')
-  const failedSteps = task.steps.filter(s => s.status === 'failed')
+  const completedSteps = task.steps.filter((s) => s.status === 'completed')
+  const failedSteps = task.steps.filter((s) => s.status === 'failed')
 
   const summary: Record<string, unknown> = {
     totalSteps: task.steps.length,
@@ -249,10 +244,7 @@ function generateResultSummary(task: AgentTask): Record<string, unknown> {
 /**
  * Calculate duration in milliseconds
  */
-function calculateDuration(
-  startedAt: Date | null,
-  completedAt: Date | null
-): number | null {
+function calculateDuration(startedAt: Date | null, completedAt: Date | null): number | null {
   if (!startedAt) return null
   const end = completedAt || new Date()
   return end.getTime() - new Date(startedAt).getTime()
@@ -267,7 +259,7 @@ export async function getAgentTaskResults(
 ): Promise<StoredTaskResult[]> {
   try {
     const { connectionPool } = await import('../db/connection-pool')
-    
+
     if (!connectionPool) return []
 
     const result = await connectionPool.query(
@@ -306,7 +298,7 @@ export async function getAgentTaskResults(
 export async function getAgentStepResults(taskId: string): Promise<StoredStepResult[]> {
   try {
     const { connectionPool } = await import('../db/connection-pool')
-    
+
     if (!connectionPool) return []
 
     const result = await connectionPool.query(

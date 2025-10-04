@@ -15,30 +15,35 @@ Phase 9 transforms the agent system from a headless execution engine into a full
 ## Objectives
 
 ### 1. Agent Results API
+
 - Expose historical agent task results via REST endpoints
 - Support filtering by workspace, task type, date range
 - Provide detailed step-by-step execution breakdown
 - Enable result comparison across multiple runs
 
 ### 2. Results Visualization UI
+
 - Dashboard showing recent agent analyses
 - Detailed result viewer with step-by-step breakdown
 - Visual timeline of agent activities
 - Quick access to key findings and metrics
 
 ### 3. Result Export
+
 - Export agent results to PDF report format
 - JSON export for programmatic access
 - Email delivery of completed analyses
 - Integration with note-taking systems
 
 ### 4. Performance Monitoring
+
 - Track agent success/failure rates
 - Monitor execution times and bottlenecks
 - Identify frequently failing steps
 - Alert on anomalies or degraded performance
 
 ### 5. User Experience Enhancements
+
 - Link from workspace overview to agent results
 - Inline display of latest findings
 - Notification system for completed tasks
@@ -51,6 +56,7 @@ Phase 9 transforms the agent system from a headless execution engine into a full
 ### Task 1: Agent Results API Endpoints (Priority: High)
 
 **Files:**
+
 - Update: `server/routes/agents.ts`
 - New: `server/routes/agent-results.ts`
 
@@ -76,6 +82,7 @@ DELETE /api/agent-results/:taskId
 ```
 
 **Response Format:**
+
 ```json
 {
   "taskId": "task_abc123",
@@ -106,6 +113,7 @@ DELETE /api/agent-results/:taskId
 ### Task 2: Results Visualization UI (Priority: High)
 
 **Files:**
+
 - New: `client/src/pages/agent-results.tsx`
 - New: `client/src/components/agents/AgentResultsTable.tsx`
 - New: `client/src/components/agents/AgentResultDetail.tsx`
@@ -114,6 +122,7 @@ DELETE /api/agent-results/:taskId
 **UI Components:**
 
 **AgentResultsTable:**
+
 ```tsx
 // Paginated table of historical results
 <AgentResultsTable
@@ -125,24 +134,20 @@ DELETE /api/agent-results/:taskId
 ```
 
 **AgentResultDetail:**
+
 ```tsx
 // Full result viewer with tabs
 <AgentResultDetail taskId={taskId}>
   <Tabs>
-    <Tab label="Summary">
-      {/* Key metrics, owner earnings, red flags */}
-    </Tab>
-    <Tab label="Steps">
-      {/* Step-by-step timeline with results */}
-    </Tab>
-    <Tab label="Raw Data">
-      {/* JSON view of full results */}
-    </Tab>
+    <Tab label="Summary">{/* Key metrics, owner earnings, red flags */}</Tab>
+    <Tab label="Steps">{/* Step-by-step timeline with results */}</Tab>
+    <Tab label="Raw Data">{/* JSON view of full results */}</Tab>
   </Tabs>
 </AgentResultDetail>
 ```
 
 **AgentStepTimeline:**
+
 ```tsx
 // Visual timeline of step execution
 <AgentStepTimeline steps={task.steps}>
@@ -155,11 +160,13 @@ DELETE /api/agent-results/:taskId
 ### Task 3: Result Export (Priority: Medium)
 
 **Files:**
+
 - New: `lib/export/pdf-generator.ts`
 - New: `lib/export/json-formatter.ts`
 - Update: `server/routes/agent-results.ts`
 
 **PDF Export:**
+
 ```typescript
 // lib/export/pdf-generator.ts
 import PDFDocument from 'pdfkit'
@@ -169,36 +176,37 @@ export async function generateAgentResultPDF(
   steps: StoredStepResult[]
 ): Promise<Buffer> {
   const doc = new PDFDocument()
-  
+
   // Title page
   doc.fontSize(20).text('Agent Analysis Report')
   doc.fontSize(14).text(taskResult.taskDescription)
   doc.fontSize(10).text(`Completed: ${taskResult.completedAt}`)
-  
+
   // Summary section
   doc.addPage()
   doc.fontSize(16).text('Executive Summary')
   // Render key findings
-  
+
   // Detailed results by step
   for (const step of steps) {
     doc.addPage()
     doc.fontSize(14).text(step.stepName)
     doc.fontSize(10).text(JSON.stringify(step.result, null, 2))
   }
-  
+
   doc.end()
   return doc
 }
 ```
 
 **Export Endpoint:**
+
 ```typescript
 // GET /api/agent-results/:taskId/export?format=pdf|json
 router.get('/agent-results/:taskId/export', async (req, res) => {
   const { taskId } = req.params
   const format = req.query.format || 'json'
-  
+
   if (format === 'pdf') {
     const pdf = await generateAgentResultPDF(taskResult, steps)
     res.contentType('application/pdf')
@@ -212,11 +220,13 @@ router.get('/agent-results/:taskId/export', async (req, res) => {
 ### Task 4: Performance Monitoring (Priority: Medium)
 
 **Files:**
+
 - New: `lib/agents/performance-tracker.ts`
 - Update: `server/routes/agents.ts` (add metrics endpoint)
 - New: `client/src/components/agents/AgentPerformanceMetrics.tsx`
 
 **Performance Tracker:**
+
 ```typescript
 // lib/agents/performance-tracker.ts
 export interface AgentPerformanceMetrics {
@@ -239,17 +249,17 @@ export async function calculateAgentMetrics(
 ): Promise<AgentPerformanceMetrics> {
   // Query agent_task_results for statistics
   const { connectionPool } = await import('../db/connection-pool')
-  
+
   if (!connectionPool) {
     return getEmptyMetrics()
   }
-  
+
   // Aggregate queries for metrics
   const totalTasks = await connectionPool.query(
     'SELECT COUNT(*) FROM agent_task_results WHERE workspace_id = $1',
     [workspaceId]
   )
-  
+
   // Calculate success rate, durations, etc.
   return {
     totalTasks: totalTasks.rows[0].count,
@@ -267,13 +277,12 @@ export async function calculateAgentMetrics(
 ```
 
 **Metrics API:**
+
 ```typescript
 // GET /api/agents/metrics?workspaceId=1
 router.get('/agents/metrics', async (req, res) => {
-  const workspaceId = req.query.workspaceId 
-    ? parseInt(req.query.workspaceId as string) 
-    : undefined
-  
+  const workspaceId = req.query.workspaceId ? parseInt(req.query.workspaceId as string) : undefined
+
   const metrics = await calculateAgentMetrics(workspaceId)
   res.json(metrics)
 })
@@ -282,46 +291,45 @@ router.get('/agents/metrics', async (req, res) => {
 ### Task 5: Workspace Integration (Priority: High)
 
 **Files:**
+
 - Update: `client/src/pages/workspace-overview.tsx`
 - Update: `client/src/components/agents/AgentTaskPanel.tsx`
 
 **Integration Points:**
 
 1. **Workspace Overview - Latest Results Card:**
+
 ```tsx
 // Show most recent agent findings
-{recentResults.length > 0 && (
-  <GlassCard title="Latest Agent Findings" subtitle="Recent automated analysis">
-    <div className="space-y-2">
-      {recentResults.map(result => (
-        <div key={result.taskId} className="p-2 bg-slate-900/40 rounded">
-          <p className="text-sm font-medium">{result.taskDescription}</p>
-          <p className="text-xs text-slate-400">
-            {formatDistanceToNow(result.completedAt)} ago
-          </p>
-          <Link to={`/agent-results/${result.taskId}`}>
-            View Details →
-          </Link>
-        </div>
-      ))}
-    </div>
-  </GlassCard>
-)}
+{
+  recentResults.length > 0 && (
+    <GlassCard title="Latest Agent Findings" subtitle="Recent automated analysis">
+      <div className="space-y-2">
+        {recentResults.map((result) => (
+          <div key={result.taskId} className="p-2 bg-slate-900/40 rounded">
+            <p className="text-sm font-medium">{result.taskDescription}</p>
+            <p className="text-xs text-slate-400">{formatDistanceToNow(result.completedAt)} ago</p>
+            <Link to={`/agent-results/${result.taskId}`}>View Details →</Link>
+          </div>
+        ))}
+      </div>
+    </GlassCard>
+  )
+}
 ```
 
 2. **Agent Task Panel - View Results Button:**
+
 ```tsx
 // After task completes, show "View Results" action
-{task.status === 'completed' && (
-  <Button 
-    size="sm" 
-    variant="outline"
-    onClick={() => navigate(`/agent-results/${task.id}`)}
-  >
-    <FileText className="w-4 h-4 mr-1" />
-    View Results
-  </Button>
-)}
+{
+  task.status === 'completed' && (
+    <Button size="sm" variant="outline" onClick={() => navigate(`/agent-results/${task.id}`)}>
+      <FileText className="w-4 h-4 mr-1" />
+      View Results
+    </Button>
+  )
+}
 ```
 
 ---
@@ -329,30 +337,35 @@ router.get('/agents/metrics', async (req, res) => {
 ## Milestones
 
 ### M1: Results API (Nov 5)
+
 - [x] Historical results endpoints functional
 - [x] Step detail retrieval working
 - [x] Filtering and pagination implemented
 - [x] Response schema validated
 
 ### M2: Visualization UI (Nov 8)
+
 - [x] Results table component built
 - [x] Detail viewer with tabs
 - [x] Step timeline visualization
 - [x] Navigation from workspace overview
 
 ### M3: Export Capability (Nov 10)
+
 - [x] PDF generation working
 - [x] JSON export endpoint
 - [x] Download functionality in UI
 - [x] Export includes all relevant data
 
 ### M4: Performance Monitoring (Nov 12)
+
 - [x] Metrics calculation implemented
 - [x] Performance dashboard component
 - [x] Historical trend tracking
 - [x] Alert thresholds configured
 
 ### M5: Integration Complete (Nov 15)
+
 - [x] All components integrated
 - [x] E2E testing passed
 - [x] Documentation updated
@@ -381,12 +394,12 @@ router.get('/agents/metrics', async (req, res) => {
 
 ## Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Large result sets slow UI | High | Implement pagination, virtual scrolling |
-| PDF generation memory intensive | Medium | Stream PDFs, limit content size |
-| Metrics queries expensive | Medium | Cache metrics, use background jobs |
-| Historical data grows unbounded | Low | Add TTL, archival strategy |
+| Risk                            | Impact | Mitigation                              |
+| ------------------------------- | ------ | --------------------------------------- |
+| Large result sets slow UI       | High   | Implement pagination, virtual scrolling |
+| PDF generation memory intensive | Medium | Stream PDFs, limit content size         |
+| Metrics queries expensive       | Medium | Cache metrics, use background jobs      |
+| Historical data grows unbounded | Low    | Add TTL, archival strategy              |
 
 ---
 
