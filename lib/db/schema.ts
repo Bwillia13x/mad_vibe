@@ -137,10 +137,16 @@ export const aiAuditLogs = pgTable(
       .references(() => workflows.id, { onDelete: 'cascade' }),
     userId: integer('user_id').references(() => workflowUsers.id, { onDelete: 'set null' }),
     provider: varchar('provider', { length: 50 }).notNull().default('openai'),
+    model: varchar('model', { length: 50 }),
     capability: varchar('capability', { length: 50 }),
     prompt: jsonb('prompt').notNull(),
     response: jsonb('response').notNull(),
     verification: jsonb('verification').notNull().default({}),
+    tokensPrompt: integer('tokens_prompt'),
+    tokensCompletion: integer('tokens_completion'),
+    tokensTotal: integer('tokens_total'),
+    estimatedCostUsd: integer('estimated_cost_usd'),
+    latencyMs: integer('latency_ms'),
     createdAt: timestamp('created_at').defaultNow().notNull()
   },
   (table) => {

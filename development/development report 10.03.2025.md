@@ -337,6 +337,23 @@
 ✅ Audit timeline aggregates workflow edits, exports, and reviewer actions with CSV export  
 ✅ Integration suite validates collaboration scenarios in <2 seconds (target: <5 minutes)
 
+### 2025-10-04 Phase 12 Progress (Cognitive Insights & Search Enhancements)
+
+**OpenAI Cost Tracking Infrastructure:** ✅ COMPLETE
+
+- **Schema Extension**: Added cost tracking fields to `ai_audit_logs` table via `migrations/0006_ai_cost_tracking.sql`:
+  - `model` - Model used (gpt-5, gpt-4o, etc.)
+  - `tokens_prompt`, `tokens_completion`, `tokens_total` - Token usage breakdown
+  - `estimated_cost_usd` - Cost in micro-dollars (1/1000000 USD) based on model pricing
+  - `latency_ms` - Response latency tracking
+- **OpenAI Wrapper Enhancement**: Updated `server/lib/openai.ts` with cost estimation logic:
+  - `estimateCost()` function calculates costs based on model-specific pricing (gpt-5: $30/$60 per 1M tokens)
+  - `generateBusinessResponseWithMetrics()` returns usage data alongside AI responses
+  - Automatic logging of token usage and latency for all OpenAI requests
+- **Analytics Foundation**: Infrastructure ready for per-agent, per-workspace cost analytics in performance dashboard
+
+**Phase 12 Status:** Infrastructure work complete. Remaining items (result comparison UI, skeleton loaders, conversational search, cost dashboard integration) ready for next session.
+
 ### Milestones
 
 - **M1 (Oct 20)**: TypeScript cleanup complete, all errors resolved _(in progress)_

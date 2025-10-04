@@ -46,6 +46,30 @@ export interface GenerateBusinessResponseOptions {
   includeDefaultSystemPrompt?: boolean
 }
 
+export interface OpenAIUsageMetrics {
+  model: string
+  tokensPrompt: number
+  tokensCompletion: number
+  tokensTotal: number
+  estimatedCostUsd: number
+  latencyMs: number
+}
+
+/**
+ * Estimate cost in micro-dollars (1/1000000 USD) based on model pricing
+ * Pricing as of Oct 2024: gpt-5 ~$0.03/1K prompt, $0.06/1K completion
+ */
+function estimateCost(model: string, promptTokens: number, completionTokens: number): number {
+  const pricing: Record<string, { prompt: number; completion: number }> = {
+    'gpt-5': { prompt: 30, completion: 60 }, // $30 per 1M prompt, $60 per 1M completion
+    'gpt-4o': { prompt: 5, completion: 15 },
+    'gpt-4-turbo': { prompt: 10, completion: 30 },
+    'gpt-4': { prompt: 30, completion: 60 }
+  }
+  const rate = pricing[model] || pricing['gpt-4']
+  return Math.round((promptTokens * rate.prompt + completionTokens * rate.completion) / 1000)
+}
+
 function buildDefaultSystemPrompt(businessContext?: string): string {
   return (
     `You are an AI equity-research copilot embedded in the MadLab value-investing IDE. ` +
@@ -106,18 +130,18 @@ export async function generateBusinessResponse(
   if (!openai || aiMode === 'demo') {
     console.log('OpenAI not configured. Returning non-AI demo response.')
     const hint = resolvedBusinessContext
-      ? ' Here’s current business context I can use: ' + resolvedBusinessContext.slice(0, 300)
+      ? ` Here's current business context I can use: ${resolvedBusinessContext.slice(0, 300)}`
       : ''
     return (
-      "I'm ready to help progress the investment workflow. " +
-      'I can discuss screening filters, valuation assumptions, memo checkpoints, and risk monitors.' +
-      hint
+      `I'm ready to help progress the investment workflow. ` +
+      `I can discuss screening filters, valuation assumptions, memo checkpoints, and risk monitors.${hint}`
     )
   }
 
   for (const model of modelsToTry) {
     try {
       console.log(`Attempting non-streaming with model: ${model}`)
+      const startTime = Date.now()
 
       const response = await openai.chat.completions.create({
         model: model,
@@ -125,9 +149,15 @@ export async function generateBusinessResponse(
         max_completion_tokens: 500
       })
 
+      const latencyMs = Date.now() - startTime
       const content = response.choices[0].message.content
-      if (content) {
+      const usage = response.usage
+
+      if (content && usage) {
         console.log(`Non-streaming successful with model: ${model}`)
+        console.log(
+          `Usage: ${usage.prompt_tokens} prompt + ${usage.completion_tokens} completion = ${usage.total_tokens} total tokens, ~${estimateCost(model, usage.prompt_tokens, usage.completion_tokens) / 1000}¢, ${latencyMs}ms`
+        )
         return content
       }
     } catch (error) {
@@ -152,6 +182,94 @@ export async function generateBusinessResponse(
     'I can outline screening ideas, valuation checkpoints, memo tasks, and risk monitors. ' +
     'What should we tackle next?'
   )
+}
+
+/**
+ * Version of generateBusinessResponse that returns usage metrics alongside content
+ */
+export async function generateBusinessResponseWithMetrics(
+  messages: BusinessChatMessage[],
+  businessContext?: string,
+  options?: GenerateBusinessResponseOptions
+): Promise<{ content: string; metrics: OpenAIUsageMetrics | null }> {
+  const resolvedBusinessContext =
+    options?.businessContext !== undefined ? options.businessContext : businessContext
+
+  const includeDefaultSystemPrompt =
+    options?.includeDefaultSystemPrompt ?? !options?.systemPromptOverride
+
+  const allMessages: BusinessChatMessage[] = [...messages]
+
+  if (options?.systemPromptOverride) {
+    allMessages.unshift({
+      role: 'system',
+      content: options.systemPromptOverride
+    })
+  }
+
+  if (includeDefaultSystemPrompt) {
+    allMessages.unshift({
+      role: 'system',
+      content: buildDefaultSystemPrompt(resolvedBusinessContext)
+    })
+  }
+
+  const modelsToTry = ['gpt-5', 'gpt-4o', 'gpt-4-turbo', 'gpt-4']
+
+  if (!openai || aiMode === 'demo') {
+    const hint = resolvedBusinessContext
+      ? ` Here's current business context I can use: ${resolvedBusinessContext.slice(0, 300)}`
+      : ''
+    return {
+      content: `I'm ready to help progress the investment workflow. I can discuss screening filters, valuation assumptions, memo checkpoints, and risk monitors.${hint}`,
+      metrics: null
+    }
+  }
+
+  for (const model of modelsToTry) {
+    try {
+      const startTime = Date.now()
+
+      const response = await openai.chat.completions.create({
+        model: model,
+        messages: allMessages,
+        max_completion_tokens: 500
+      })
+
+      const latencyMs = Date.now() - startTime
+      const content = response.choices[0].message.content
+      const usage = response.usage
+
+      if (content && usage) {
+        const metrics: OpenAIUsageMetrics = {
+          model,
+          tokensPrompt: usage.prompt_tokens,
+          tokensCompletion: usage.completion_tokens,
+          tokensTotal: usage.total_tokens,
+          estimatedCostUsd: estimateCost(model, usage.prompt_tokens, usage.completion_tokens),
+          latencyMs
+        }
+        return { content, metrics }
+      }
+    } catch (error) {
+      const isOrganizationIssue =
+        error instanceof Error && error.message.toLowerCase().includes('organization')
+
+      if (isOrganizationIssue && model !== modelsToTry[modelsToTry.length - 1]) {
+        continue
+      }
+
+      break
+    }
+  }
+
+  return {
+    content:
+      "I'm ready to help progress the investment workflow. " +
+      'I can outline screening ideas, valuation checkpoints, memo tasks, and risk monitors. ' +
+      'What should we tackle next?',
+    metrics: null
+  }
 }
 
 export async function analyzeBusinessData(data: string, analysisType: string): Promise<string> {
